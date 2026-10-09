@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  honeyforge-api:
+    build: .
+    container_name: honeyforge-api
+    ports:
+      - "4000:4000"
+    volumes:
+      # Проброс сокета Docker для управления ловушками
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    networks:
+      - honeyforge-internal
+
+networks:
+  honeyforge-internal:
+    driver: bridge
