@@ -7,16 +7,16 @@ class ProxmoxManager:
     Для High-interaction ловушек (уровень ОС).
     """
     
-    def __init__(self, host, user, password, node="pve", verify_ssl=False):
+    def __init__(self, host, user, password, node="pve", verify_ssl=False, port=8006):
         # Подключение к Proxmox API
-        self.proxmox = ProxmoxAPI(host, user=user, password=password, verify_ssl=verify_ssl)
+        self.proxmox = ProxmoxAPI(host, user=user, password=password, verify_ssl=verify_ssl, port=port)
         self.node = node
         
     def create_trap_vm(self, vmid: int, name: str, template_vmid: int):
         """
         Создает новую виртуалку-ловушку по требованиям Даниэля:
         - 1 Ядро CPU
-        - 10 ГБ ОЗУ (RAM)
+        - 1 ГБ ОЗУ (RAM)
         - 10 ГБ Диск (Storage)
         """
         print(f"Начинаем развертывание ловушки {name} (VMID: {vmid}) из шаблона {template_vmid}...")
@@ -31,10 +31,10 @@ class ProxmoxManager:
         # Ждем, пока Proxmox завершит клонирование (в реальности нужно проверять статус таски)
         time.sleep(5) 
         
-        # 2. Настраиваем ресурсы по ТЗ (1 Ядро, 10 ГБ ОЗУ = 10240 МБ)
+        # 2. Настраиваем ресурсы по ТЗ (1 Ядро, 1 ГБ ОЗУ = 1024 МБ)
         self.proxmox.nodes(self.node).qemu(vmid).config.post(
             cores=1,
-            memory=10240, 
+            memory=1024, 
             description="HoneyForge High-Interaction Trap"
         )
         
@@ -56,5 +56,5 @@ class ProxmoxManager:
             "status": "success", 
             "message": f"Ловушка {name} успешно развернута в Proxmox",
             "vmid": vmid,
-            "specs": "1 Core, 10GB RAM, 10GB Disk"
+            "specs": "1 Core, 1GB RAM, 10GB Disk"
         }

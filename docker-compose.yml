@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   honeyforge-api:
     build: .
@@ -7,6 +5,8 @@ services:
     ports:
       - "4000:4000"
     volumes:
+      # Проброс всего кода внутрь контейнера (чтобы не пересобирать Docker при каждом чихе)
+      - .:/app
       # Проброс сокета Docker для управления ловушками
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
