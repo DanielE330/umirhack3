@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>HoneyForge — панель</title>
+<link rel="icon" href="/static/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/static/favicon.png">
+<link rel="stylesheet" href="/static/panel.css">
+</head>
+<body>
+<header>
+  <img src="/static/logo-256.png" alt="">
+  <b>Honey<span>Forge</span></b>
+  <nav id="nav">
+    <button data-tab="containers" class="on">Контейнеры</button>
+    <button data-tab="dash">Обзор</button>
+    <button data-tab="traps">Ловушки</button>
+    <button data-tab="profiles">Профили</button>
+  </nav>
+  <div class="who"><span><b id="who">…</b> · <span id="role"></span></span><button class="ghost" id="logout">Выйти</button></div>
+</header>
+
+<main>
+  <div class="demo">Демо-режим: данные примерные, события генерируются в браузере. К центру управления панель пока не подключена.</div>
+
+  <!-- Контейнеры (главная) -->
+  <section id="tab-containers">
+    <div class="toolbar">
+      <button class="btn" id="add-container">+ Новый контейнер</button>
+      <input id="c-q" placeholder="Поиск по контейнерам и ловушкам…" aria-label="Поиск" style="max-width:280px">
+      <select id="c-status" aria-label="Статус" style="max-width:200px"></select>
+      <span class="spacer"></span>
+      <span class="hint" id="c-summary"></span>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="cgrid" id="containers"></div>
+  </section>
+
+  <!-- Обзор -->
+  <section id="tab-dash" class="hidden">
+    <div class="grid">
+      <div class="card kpi" id="kpi-total" role="button" tabindex="0" title="Показать все события"><h3>Событий за 24 ч</h3><div class="num" id="k-total">0</div></div>
+      <div class="card kpi" id="kpi-online" role="button" tabindex="0" title="Открыть список ловушек"><h3>Ловушки онлайн</h3><div class="num ok" id="k-online">0 / 0</div></div>
+      <div class="card kpi" id="kpi-auth" role="button" tabindex="0" title="Только попытки входа"><h3>Попыток входа</h3><div class="num" id="k-auth">0</div></div>
+      <div class="card kpi" id="kpi-alert" role="button" tabindex="0" title="Только алерты"><h3>Алертов</h3><div class="num bad" id="k-alert">0</div></div>
+    </div>
+    <div class="cols">
+      <div class="card">
+        <h3>Лента атак в реальном времени</h3>
+        <div class="toolbar tight">
+          <select id="f-type" aria-label="Тип события"></select>
+          <select id="f-trap" aria-label="Ловушка"></select>
+          <input id="f-q" placeholder="Поиск: IP, логин, команда…" aria-label="Поиск" style="max-width:220px">
+          <button class="ghost" id="f-reset">Сбросить</button>
+          <button class="ghost" id="f-pause">⏸ Пауза</button>
+          <button class="ghost" id="f-clear">Очистить</button>
+          <button class="ghost" id="f-csv">Экспорт CSV</button>
+        </div>
+        <div class="feed"><table><thead><tr><th>Время</th><th>Ловушка</th><th>Тип</th><th>Источник</th><th>Детали</th></tr></thead><tbody id="feed"></tbody></table></div>
+      </div>
+      <div class="stack">
+        <div class="card"><h3>Активность за час</h3><div class="bars" id="bars"></div></div>
+        <div class="card"><h3>Топ источников <span class="hint">нажмите для фильтра</span></h3><div id="top-src" class="pick"></div>
+          <div style="margin-top:10px"><button class="ghost" id="ioc-csv">Экспорт IoC (CSV)</button></div></div>
+        <div class="card"><h3>Топ паролей <span class="hint">нажмите для фильтра</span></h3><div id="top-pw" class="pick"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ловушки (плоский список по всем контейнерам) -->
+  <section id="tab-traps" class="hidden">
+    <div class="toolbar">
+      <span class="hint">Ловушки живут внутри контейнеров: добавлять и убирать их удобнее на вкладке «Контейнеры».</span>
+      <span class="spacer"></span>
+      <select id="t-status" aria-label="Статус" style="max-width:200px"></select>
+    </div>
+    <div class="card"><table class="rows">
+      <thead><tr><th>Ловушка</th><th>Контейнер</th><th>Статус</th><th>Профиль</th><th>Уровень</th><th>Порты</th><th>Событий</th></tr></thead>
+      <tbody id="traps"></tbody></table></div>
+  </section>
+
+  <!-- Профили -->
+  <section id="tab-profiles" class="hidden">
+    <div class="cols">
+      <div class="card"><h3>Профили <span class="hint">шаблоны ловушек; нажмите строку, чтобы редактировать</span></h3>
+        <table class="rows"><thead><tr><th>Имя</th><th>Уровень</th><th>Сервисы</th><th>Ловушек</th></tr></thead><tbody id="profiles"></tbody></table></div>
+      <div class="card">
+        <h3 id="p-title">Конструктор профиля</h3>
+        <label for="p-name">Название</label><input id="p-name" placeholder="web-admin-medium">
+        <label for="p-level">Уровень</label>
+        <select id="p-level"><option value="low">Low: баннеры портов</option><option value="medium">Medium: fake-SSH / fake-HTTP</option></select>
+        <label for="p-services">Сервисы (порт:протокол:баннер, по одному в строке)</label>
+        <textarea id="p-services" rows="4" placeholder="22:ssh:SSH-2.0-OpenSSH_8.2p1&#10;8080:http:Apache/2.4.41"></textarea>
+        <label for="p-users">Имена пользователей-приманок (по одному в строке)</label>
+        <textarea id="p-users" rows="2" placeholder="admin&#10;root"></textarea>
+        <label for="p-tokens">Honeytokens (путь)</label>
+        <textarea id="p-tokens" rows="2" placeholder="/root/.aws/credentials"></textarea>
+        <label>Интервал маяка, с / джиттер</label>
+        <div class="row2"><input id="p-beacon" type="number" value="15" min="5" max="300" aria-label="Интервал маяка"><input id="p-jitter" type="number" step="0.1" min="0" max="0.9" value="0.3" aria-label="Джиттер"></div>
+        <div class="actions">
+          <button class="btn" id="p-save">Сохранить профиль</button>
+          <button class="ghost hidden" id="p-cancel">Отмена</button>
+          <button class="ghost danger hidden" id="p-delete">Удалить</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="sheet">
+    <div class="sheet-head"><h2 id="modal-title"></h2><button class="ghost" id="modal-close">✕ Закрыть</button></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+<script src="/static/panel.js"></script>
+</body>
+</html>

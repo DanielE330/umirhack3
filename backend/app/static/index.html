@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>HoneyForge — вход</title>
+<link rel="icon" href="/static/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/static/favicon.png">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="honeycomb" aria-hidden="true"></div>
+<main>
+  <header>
+    <div class="mascot"><img src="/static/logo-256.png" width="96" height="96" alt=""></div>
+    <h1>Honey<span>Forge</span></h1>
+    <p class="sub">Центр управления ловушками</p>
+  </header>
+
+  <form id="f-login" autocomplete="on">
+    <label for="u">Пользователь</label>
+    <input id="u" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+    <label for="p">Пароль</label>
+    <input id="p" type="password" autocomplete="current-password" required>
+    <button class="primary">Войти</button>
+  </form>
+
+  <form id="f-setup" class="hidden">
+    <p class="note">Первый вход: включите двухфакторную защиту. Отсканируйте QR в Google Authenticator, Aegis или 2FAS.</p>
+    <img id="qr" class="qr" width="200" height="200" alt="QR-код для приложения-аутентификатора">
+    <p class="note">Или введите ключ вручную:<br><code id="secret"></code></p>
+    <label for="c1">Код из приложения</label>
+    <input id="c1" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" required>
+    <button class="primary">Подтвердить и включить</button>
+  </form>
+
+  <form id="f-code" class="hidden">
+    <p class="note">Введите код из приложения-аутентификатора или резервный код.</p>
+    <label for="c2">Код подтверждения</label>
+    <input id="c2" class="code" autocomplete="one-time-code" maxlength="14" placeholder="000000" required>
+    <button class="primary">Продолжить</button>
+    <button type="button" class="ghost" id="back">Назад</button>
+  </form>
+
+  <section id="s-codes" class="hidden">
+    <p class="ok">Двухфакторная защита включена</p>
+    <p class="note">Сохраните резервные коды. Каждый работает один раз, повторно они показаны не будут.</p>
+    <ul class="codes" id="codes"></ul>
+    <button class="primary" id="saved">Я сохранил(а) коды</button>
+  </section>
+
+  <section id="s-home" class="hidden">
+    <p class="welcome">Вы вошли как <b id="who"></b><span class="badge" id="role"></span></p>
+    <button id="logout" class="ghost">Выйти</button>
+  </section>
+
+  <div id="msg" role="alert" aria-live="polite"></div>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>
