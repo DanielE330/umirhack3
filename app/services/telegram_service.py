@@ -34,6 +34,10 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict):
     
     try:
         async with httpx.AsyncClient() as client:
-            await client.post(url, json=payload)
+            response = await client.post(url, json=payload)
+            if response.status_code != 200:
+                print(f"❌ Ошибка Telegram (Код {response.status_code}): {response.text}")
+            else:
+                print("✅ Уведомление успешно отправлено в Telegram!")
     except Exception as e:
-        print(f"Ошибка отправки в Telegram: {e}")
+        print(f"❌ Ошибка соединения с Telegram: {e}")
