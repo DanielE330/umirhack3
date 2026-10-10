@@ -22,7 +22,7 @@ class ProxmoxManager:
 
     def __init__(self, host, user, password=None, token_name=None, token_value=None, node=None,
                  verify_ssl=False, port=8006, storage="hdd", bridge="vmbr1", network="10.20.0.0/24",
-                 gateway="10.20.0.1", nameserver="1.1.1.1", template_lxc=104, template_kvm=None):
+                 gateway="10.20.0.1", nameserver="1.1.1.1", template_lxc=104, template_kvm=None, pool=None):
         # Подключение к Proxmox API: API-токен предпочтительнее пароля
         auth = {"token_name": token_name, "token_value": token_value} if token_name else {"password": password}
         self.proxmox = ProxmoxAPI(host, user=user, verify_ssl=verify_ssl, port=port, **auth)
@@ -32,6 +32,7 @@ class ProxmoxManager:
         self.network = ipaddress.ip_network(network)
         self.gateway = gateway
         self.templates = {"lxc": template_lxc, "kvm": template_kvm}
+        self.pool = pool  # пул Proxmox: токену оркестратора права выданы только на него
         self._lock = threading.Lock()   # выдача VMID и IP не должна гоняться между параллельными созданиями
         self._reserved_ips: set[str] = set()
 
@@ -55,6 +56,7 @@ class ProxmoxManager:
             nameserver=env("PROXMOX_NAMESERVER", "1.1.1.1"),
             template_lxc=int(env("PROXMOX_TEMPLATE_LXC", "104")),
             template_kvm=int(kvm) if kvm else None,
+            pool=env("PROXMOX_POOL") or None,
         )
 
     # ---------- служебное ----------
@@ -118,10 +120,14 @@ class ProxmoxManager:
     def allocate(self) -> tuple[int, str]:
         """Свободный VMID (от 1100) и свободный IP в DMZ."""
         with self._lock:
-            used_ids = {int(g["vmid"]) for g in self.proxmox.cluster.resources.get(type="vm")}
+            # Свободен ли VMID, проверяет сам Proxmox: токену с ограниченными правами чужие машины не видны
             vmid = VMID_FROM
-            while vmid in used_ids:
-                vmid += 1
+            while True:
+                try:
+                    self.proxmox.cluster.nextid.get(vmid=vmid)
+                    break
+                except Exception:
+                    vmid += 1
             used_ips = {m["ip"] for m in self.list_machines()} | self._reserved_ips | {self.gateway}
             for host in self.network.hosts():
                 ip = str(host)
@@ -142,7 +148,8 @@ class ProxmoxManager:
         api = self._api(kind)
         try:
             name_key = "hostname" if kind == "lxc" else "name"
-            self._wait(api(template).clone.post(newid=vmid, full=1, storage=self.storage, **{name_key: name}))
+            extra = {"pool": self.pool} if self.pool else {}
+            self._wait(api(template).clone.post(newid=vmid, full=1, storage=self.storage, **{name_key: name}, **extra))
             net = f"bridge={self.bridge},ip={ip}/{self.network.prefixlen},gw={self.gateway}"
             common = {"cores": cores, "memory": memory_mb, "tags": TAG,
                       "description": "HoneyForge: машина-ловушка (создана оркестратором)"}
