@@ -21,7 +21,7 @@ const ORDER = ["online", "creating", "starting", "waiting", "offline", "stopped"
 const PVE = {
   bridge: "vmbr1",                      // отдельный bridge под DMZ: ловушки не видят домашнюю LAN и прод
   bridgeLabel: "vmbr1 · DMZ 10.20.0.0/24 (изолированная сеть)",
-  templates: { lxc: 104 },              // шаблон для клонирования (настраивается в оркестраторе)
+  templates: { lxc: 9100 },              // шаблон для клонирования (настраивается в оркестраторе)
   storage: "hdd",
   defaults: { cores: 1, ram: 1, disk: 10 },
   limits: { cores: [1, 32], ram: [1, 128], disk: [10, 1000] },
