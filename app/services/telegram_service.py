@@ -32,8 +32,10 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict):
         "parse_mode": "HTML"
     }
     
+    proxy_url = os.getenv("TELEGRAM_PROXY")
+    
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(proxy=proxy_url) as client:
             response = await client.post(url, json=payload)
             if response.status_code != 200:
                 print(f"❌ Ошибка Telegram (Код {response.status_code}): {response.text}")
