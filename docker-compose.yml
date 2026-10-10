@@ -10,9 +10,31 @@ services:
       # Проброс сокета Docker для управления ловушками
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://admin:password123@postgres:5432/honeyforge
+    depends_on:
+      - postgres
+    networks:
+      - honeyforge-internal
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: honeyforge-db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: honeyforge
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
     networks:
       - honeyforge-internal
 
 networks:
   honeyforge-internal:
     driver: bridge
+
+volumes:
+  postgres_data:
