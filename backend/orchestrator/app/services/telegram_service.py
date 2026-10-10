@@ -44,6 +44,7 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict):
                 ]
             ]
         }
+    }
     proxy_url = os.getenv("TELEGRAM_PROXY")
     if not proxy_url:
         proxy_url = None
