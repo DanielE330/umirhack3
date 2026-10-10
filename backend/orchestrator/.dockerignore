@@ -3,8 +3,4 @@
 **/__pycache__
 **/*.pyc
 **/.pytest_cache
-*.pdf
-backend
-agent
-deploy
-frontend
+.env

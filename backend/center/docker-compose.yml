@@ -1,10 +1,13 @@
-# Центр управления HoneyForge: веб-интерфейс + API + PostgreSQL.
+# Центр управления HoneyForge отдельно (без оркестратора): веб-интерфейс + API + PostgreSQL.
+# Весь стек — infra/docker-compose.yml.
 # Секреты — в .env рядом (HF_SECRET_KEY, HF_DB_PASSWORD), см. .env.example.
 name: honeyforge-center
 
 services:
   center:
-    build: .
+    build:
+      context: ../..                    # корень репозитория: в образ кладётся frontend/
+      dockerfile: backend/center/Dockerfile
     container_name: hf-center
     ports:
       - "4000:4000"

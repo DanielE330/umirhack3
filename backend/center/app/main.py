@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -15,9 +13,6 @@ from .routers import agent_api, events, machines, profiles, traps
 from .routers import auth as auth_router
 from .routers import users as users_router
 from .security import Vault
-
-STATIC = Path(__file__).parent / "static"
-
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
@@ -61,15 +56,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def health():
         return {"status": "ok"}
 
-    if STATIC.is_dir():
-        app.mount("/static", StaticFiles(directory=STATIC), name="static")
+    static = settings.static_path
+    if static and static.is_dir():
+        app.mount("/static", StaticFiles(directory=static), name="static")
 
         @app.get("/", include_in_schema=False)
         def index():
-            return FileResponse(STATIC / "index.html")
+            return FileResponse(static / "index.html")
 
         @app.get("/favicon.ico", include_in_schema=False)
         def favicon():
-            return FileResponse(STATIC / "favicon.ico")
+            return FileResponse(static / "favicon.ico")
 
     return app

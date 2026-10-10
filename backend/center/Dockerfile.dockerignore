@@ -1,0 +1,9 @@
+# Контекст сборки центра — корень репозитория; в образ попадают только код центра и фронт
+*
+!backend/center/app
+!backend/center/requirements.txt
+!frontend
+**/.venv
+**/.pytest_cache
+**/__pycache__
+**/*.pyc

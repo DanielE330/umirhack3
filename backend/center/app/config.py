@@ -1,8 +1,20 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _default_static_dir() -> str:
+    """Папка веб-интерфейса frontend/: ищется вверх от кода центра.
+
+    Из репозитория это <корень>/frontend, в Docker-образе — /srv/frontend.
+    """
+    for parent in Path(__file__).resolve().parents:
+        if (parent / "frontend" / "index.html").is_file():
+            return str(parent / "frontend")
+    return ""
 
 
 class Settings(BaseSettings):
@@ -36,10 +48,17 @@ class Settings(BaseSettings):
 
     trusted_proxies: str = "127.0.0.1,::1"   # от них верим X-Forwarded-For (Nginx)
     docs_enabled: bool = False               # /docs и /openapi.json
+    # Статика веб-интерфейса (папка frontend/ в корне репозитория); пусто — найти автоматически
+    static_dir: str = ""
 
     # Оркестратор Proxmox (отдельный сервис): адрес во внутренней сети и межсервисный токен
     orchestrator_url: str = ""
     orchestrator_token: str = ""
+
+    @property
+    def static_path(self) -> Path | None:
+        path = self.static_dir or _default_static_dir()
+        return Path(path) if path else None
 
     @property
     def trusted_proxy_set(self) -> set[str]:

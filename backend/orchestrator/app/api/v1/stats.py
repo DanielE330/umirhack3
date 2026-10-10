@@ -34,7 +34,7 @@ async def get_dashboard_stats(db: AsyncSession = Depends(get_db)):
     )
     alerts = alert_query.scalar() or 0
 
-    # Возвращаем ровно в том виде, в котором ожидает ваш frontend/index.html
+    # Возвращаем ровно в том виде, в котором ожидает веб-интерфейс
     return {
         "events_24h": total_events,
         "traps_online": online_traps,
