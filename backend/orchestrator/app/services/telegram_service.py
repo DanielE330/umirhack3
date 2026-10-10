@@ -4,6 +4,11 @@ import json
 import html
 import asyncio
 
+# Исправляем прокси от vpn-for-bot.py, чтобы httpx не падал на socks5h://
+for k in ["HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy"]:
+    if os.environ.get(k, "").startswith("socks5h://"):
+        os.environ[k] = os.environ[k].replace("socks5h://", "socks5://")
+
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
