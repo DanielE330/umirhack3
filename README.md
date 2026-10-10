@@ -93,10 +93,14 @@ export $(.venv/bin/python -m app.cli gen-key)
 
 ### Агент
 
+На машинах-ловушках из Proxmox агент ставится **автоматически**: оператор создаёт машину и добавляет в неё ловушку в панели, центр выпускает токен и передаёт его оркестратору, оркестратор через хост Proxmox (`infra/proxmox/hf-agent-ctl`) кладёт свежий код агента и включает экземпляр `systemd-journal-helper@<id>` внутри машины. Токен нигде не показывается. От создания машины до агента «на связи» — около 30 секунд.
+
+Ручной запуск (ловушка без машины, например на своём хосте):
+
 ```sh
 cd agent
 pip install -r requirements.txt
-HF_CENTER_URL=http://<центр>:4000 HF_TRAP_TOKEN=<токен из «развернуть»> python3 -m netsvc
+HF_CENTER_URL=http://<центр>:4000 HF_TRAP_TOKEN=<токен из «Подключить агента»> python3 -m netsvc
 ```
 
 ### Тесты
@@ -158,16 +162,21 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `PROXMOX_NETWORK` | `10.20.0.0/24` | подсеть, из которой выдаются IP |
 | `PROXMOX_GATEWAY` | `10.20.0.1` | шлюз DMZ |
 | `PROXMOX_NAMESERVER` | `1.1.1.1` | DNS для машин |
-| `PROXMOX_TEMPLATE_LXC` | `104` | VMID шаблона LXC |
+| `PROXMOX_TEMPLATE_LXC` | `9101` | VMID шаблона LXC (Ubuntu 24.04 с предустановленным агентом, см. `infra/proxmox/README.md`) |
 | `PROXMOX_TEMPLATE_KVM` | пусто (KVM недоступен) | VMID шаблона KVM |
 | `PROXMOX_POOL` | пусто (в infra `honeyforge`) | пул, в который попадают машины |
+| `PVE_SSH_HOST` | `PROXMOX_HOST` | хост Proxmox для включения агентов |
+| `PVE_SSH_KEY` | `/run/hf-secrets/pve_agent_ed25519` | ключ, которому на хосте разрешена только `hf-agent-ctl` (в infra монтируется из `infra/secrets/`, не в git) |
+| `PVE_SSH_KNOWN_HOSTS` | `/run/hf-secrets/known_hosts` | ключ хоста Proxmox; если файл есть — подмена хоста отвергается |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | пусто (уведомления выключены) | бот и чат для алертов |
+| `TELEGRAM_PROXY` | пусто | `socks5://…` или `http://…`, если Telegram заблокирован (на стенде — общий VPN-прокси `192.168.1.101:1080`) |
 
 ### Агент (`agent/netsvc/__main__.py`)
 
 | Переменная | По умолчанию | Назначение |
 |---|---|---|
 | `HF_CENTER_URL` | обязательна | адрес центра |
-| `HF_TRAP_TOKEN` | обязательна | токен ловушки (выдаётся при «развернуть») |
+| `HF_TRAP_TOKEN` | обязательна | токен ловушки (на машинах Proxmox подставляется автоматически) |
 | `HF_STATE_DIR` | `/var/tmp/.cache-netsvc` | буфер событий (SQLite) и состояние |
 | `HF_CA_FILE` | пусто (системные CA) | свой корневой сертификат центра |
 | `HF_INSECURE_TLS` | — | `1` отключает проверку сертификата (только демо) |
@@ -191,7 +200,8 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `GET /api/profiles`, `GET /api/profiles/{id}` | профили ловушек | сессия |
 | `POST/PUT/DELETE /api/profiles[/{id}]` | CRUD профилей | оператор + CSRF |
 | `GET /api/traps`, `GET /api/traps/{id}` | ловушки со статусом online/offline/never | сессия |
-| `POST /api/traps`, `PATCH/DELETE /api/traps/{id}` | регистрация, привязка к профилю, вкл/выкл | оператор + CSRF |
+| `POST /api/traps`, `PATCH/DELETE /api/traps/{id}` | регистрация, привязка к профилю и машине, вкл/выкл; при `machine_vmid` агент включается/переносится/выключается автоматически (поле `agent`: `installed`/`queued`/`error: …`, токен в ответе только если авто-установки не было) | оператор + CSRF |
+| `POST /api/traps/{id}/agent` | переустановить агента в машине ловушки (новый токен, никому не показывается) | оператор + CSRF |
 | `POST /api/traps/{id}/command` | команда агенту `restart` / `refresh` | оператор + CSRF |
 | `POST /api/traps/{id}/deploy` | новый токен + артефакт `docker` (команда `docker run`) или `script` | оператор + CSRF |
 | `GET /api/machines` | машины из оркестратора + состояние агентов | сессия |
@@ -210,6 +220,9 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | Метод и путь | Назначение | Защита |
 |---|---|---|
 | `GET/POST /api/v1/machines/`, `POST /api/v1/machines/{vmid}/{action}`, `PUT/DELETE /api/v1/machines/{vmid}` | машины Proxmox с тегом `honeyforge` | межсервисный токен |
+| `POST /api/v1/machines/{vmid}/agents`, `DELETE /api/v1/machines/{vmid}/agents/{trap_id}` | включить/выключить агента ловушки в машине (пока машина создаётся — в очередь) | межсервисный токен |
+| `POST /api/v1/notify/` | отправить алерт центра в Telegram | межсервисный токен |
+| `GET /api/v1/events/` | лента событий из своей БД (Lunarflux-hub) | нет |
 | `GET/POST /api/v1/traps/`, `POST /api/v1/traps/proxmox`, `DELETE /api/v1/traps/{container_id}`, `POST /api/v1/traps/{container_id}/stop` | docker-ловушки (нужен Docker-сокет, в infra не смонтирован) и создание в Proxmox | межсервисный токен |
 | `GET /api/v1/stats/` | статистика по своей БД | нет |
 | `POST /api/v1/analytics/track` | приём телеметрии под видом веб-аналитики | нет |
@@ -240,8 +253,8 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | FR-C3 конфигурация агенту, приём телеметрии | сделано | `routers/agent_api.py` |
 | FR-C4 события в PostgreSQL с фильтрами | сделано | `routers/events.py`, `models.py` |
 | FR-C5 аутентификация и роли | сделано: пароль + TOTP, резервные коды, сессии, CSRF, роли admin/operator, блокировки | `auth.py`, `routers/auth.py`, `routers/users.py` |
-| FR-C6 оркестратор одной кнопкой | частично: артефакт docker/script (`routers/traps.py`), создание машин в Proxmox (`backend/orchestrator`); установка агента на машину автоматически не выполняется, образа `honeyforge-agent` в репозитории нет | |
-| FR-C7 алерты и экспорт IoC | сделано: ≥N попыток входа за окно → `alert`, IoC CSV/STIX | `services.py` (`_make_alerts`), `routers/events.py` |
+| FR-C6 оркестратор одной кнопкой | сделано: машина в Proxmox (клон шаблона в DMZ) + автоматическое включение агента каждой ловушки | `backend/orchestrator/app/api/v1/machines.py`, `services/agent_installer.py`, `infra/proxmox/hf-agent-ctl`, `center/app/routers/traps.py` |
+| FR-C7 алерты и экспорт IoC | сделано: ≥N попыток входа за окно → `alert`, IoC CSV/STIX; `alert` и `honeytoken` уходят в Telegram | `services.py` (`_make_alerts`), `routers/events.py`, `routers/agent_api.py`, `orchestrator/app/api/v1/notify.py` |
 | FR-A1 low и medium | сделано | `agent/netsvc/traps/` |
 | FR-A2 логирование активности | сделано: connect, auth_attempt, command, http_request, payload, honeytoken, session_end | `agent/netsvc/emitter.py`, `traps/` |
 | FR-A3 телеметрия и обновление конфигурации | сделано | `agent/netsvc/core.py` |
@@ -250,7 +263,7 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | FR-A6 honeytokens | сделано: файлы в SSH-ФС, URL в HTTP | `traps/ssh.py`, `traps/http.py` |
 | MASK-1 TLS | частично (агент поддерживает, на стенде http) | `agent/netsvc/center.py`, `infra/Caddyfile` |
 | MASK-2 неприметный endpoint | сделано | `routers/agent_api.py` |
-| MASK-3 разделение интерфейсов | частично (отдельная подсеть DMZ) | `proxmox_manager.py` |
+| MASK-3 разделение интерфейсов | сделано: DMZ `vmbr1` с файрволом — из ловушки доступен только канал агента к центру | `infra/proxmox/hf-dmz-fw.sh`, `proxmox_manager.py` |
 | MASK-4 скрытность агента | сделано | `agent/netsvc/__main__.py` |
 | MASK-5 джиттер и рандомизация | сделано | `agent/netsvc/core.py`, `center.py` |
 | MASK-6 анти-фингерпринтинг | частично: реалистичные баннеры SSH/HTTP, 404 как у Apache, правдоподобные ФС/`uname`/`ps` | `traps/ssh.py`, `traps/http.py` |
@@ -259,7 +272,9 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 ## Безопасность и сеть
 
 - Ловушки создаются только на мосту `vmbr1`, подсеть `10.20.0.0/24`, шлюз `10.20.0.1` (DMZ), с тегом `honeyforge`; оркестратор управляет только машинами с этим тегом (`NotOurMachine`).
-- Машины кладутся в пул Proxmox `honeyforge`; рекомендуемый вход — API-токен пользователя `honeyforge@pve` с правами только на этот пул. Набор привилегий роли настраивается в Proxmox вручную и в репозитории не зафиксирован.
+- Машины кладутся в пул Proxmox `honeyforge`; оркестратор входит API-токеном `honeyforge@pve` с правами только на этот пул, шаблон, хранилище `hdd` и мост `vmbr1` — prod-машины ему не видны. Роли и ACL — в `infra/proxmox/README.md`.
+- Агентов включает отдельный ключ, которому на хосте Proxmox разрешена ровно одна команда (`hf-agent-ctl`) и только с адреса сервера центра; команда работает только с запущенными машинами с тегом `honeyforge`.
+- Изоляция DMZ проверена изнутри ловушки: закрыты домашняя сеть, Proxmox, prod, Tailscale; открыт только канал агента к центру и интернет через NAT.
 - Наружу публикуется только proxy :4000; center, orchestrator, db — во внутренней сети compose `172.31.40.0/24`. Центр доверяет `X-Forwarded-For` только от `172.31.40.10` (Caddy).
 - Управляющие эндпоинты оркестратора закрыты `ORCH_TOKEN`; без токена — 401 на всё.
 - Секреты (`HF_SECRET_KEY`, `HF_DB_PASSWORD`, `ORCH_TOKEN`, `PROXMOX_*`) только в `.env`, файл в `.gitignore`. Токены ловушек хранятся в БД в виде хэша. TOTP-секреты зашифрованы Fernet.
@@ -271,7 +286,9 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 - Оркестратор подключается к Proxmox без проверки сертификата (`verify_ssl=False`).
 - `/api/v1/stats/` и `/api/v1/analytics/track` оркестратора открыты без авторизации и проброшены наружу через proxy; телеметрию агенты шлют в центр, не сюда.
 - High-interaction и запись сессий не реализованы; mTLS не реализован.
-- Нет Dockerfile агента, хотя артефакт `docker` ссылается на образ `honeyforge-agent:latest`.
+- Нет Dockerfile агента, хотя ручной артефакт `docker` ссылается на образ `honeyforge-agent:latest` (на машинах Proxmox агент ставится без Docker).
+- Поддельная консоль SSH выполняет только по одной простой команде в строке: цепочки (`;`, `&&`, `|`) не разбираются.
+- Автоматическое включение агентов работает только для LXC-машин из шаблона с предустановленным агентом (`9101`).
 - Docker-ловушки оркестратора (`/api/v1/traps/`) требуют Docker-сокет; он смонтирован только в `backend/orchestrator/docker-compose.yml`, в infra — нет.
 - Автотестов оркестратора нет.
 
