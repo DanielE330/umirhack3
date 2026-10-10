@@ -46,6 +46,8 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict):
         }
     }
     proxy_url = os.getenv("TELEGRAM_PROXY")
+    if proxy_url and proxy_url.startswith("socks5h://"):
+        proxy_url = proxy_url.replace("socks5h://", "socks5://")
     if not proxy_url:
         proxy_url = None
     
@@ -66,6 +68,8 @@ async def start_polling():
 
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
     proxy_url = os.getenv("TELEGRAM_PROXY")
+    if proxy_url and proxy_url.startswith("socks5h://"):
+        proxy_url = proxy_url.replace("socks5h://", "socks5://")
     if not proxy_url:
         proxy_url = None
     offset = 0
