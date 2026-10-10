@@ -22,7 +22,7 @@ class ProxmoxManager:
 
     def __init__(self, host, user, password=None, token_name=None, token_value=None, node=None,
                  verify_ssl=False, port=8006, storage="hdd", bridge="vmbr1", network="10.20.0.0/24",
-                 gateway="10.20.0.1", nameserver="1.1.1.1", template_lxc=9100, template_kvm=None, pool=None):
+                 gateway="10.20.0.1", nameserver="1.1.1.1", template_lxc=9101, template_kvm=None, pool=None):
         # Подключение к Proxmox API: API-токен предпочтительнее пароля
         auth = {"token_name": token_name, "token_value": token_value} if token_name else {"password": password}
         self.proxmox = ProxmoxAPI(host, user=user, verify_ssl=verify_ssl, port=port, **auth)
@@ -54,7 +54,7 @@ class ProxmoxManager:
             network=env("PROXMOX_NETWORK", "10.20.0.0/24"),
             gateway=env("PROXMOX_GATEWAY", "10.20.0.1"),
             nameserver=env("PROXMOX_NAMESERVER", "1.1.1.1"),
-            template_lxc=int(env("PROXMOX_TEMPLATE_LXC", "9100")),
+            template_lxc=int(env("PROXMOX_TEMPLATE_LXC", "9101")),
             template_kvm=int(kvm) if kvm else None,
             pool=env("PROXMOX_POOL") or None,
         )

@@ -1,0 +1,51 @@
+#!/bin/bash
+# Узкий служебный доступ оркестратора HoneyForge к хосту Proxmox.
+# Ключ оркестратора в /root/.ssh/authorized_keys разрешает ТОЛЬКО этот скрипт:
+#   restrict,from="<IP сервера центра>",command="/usr/local/sbin/hf-agent-ctl" ssh-ed25519 ... hf-orchestrator
+# Команда приходит в SSH_ORIGINAL_COMMAND:
+#   install <vmid> <trap_id> <center_url> <token>  — включить агента ловушки в машине
+#   remove  <vmid> <trap_id>                       — выключить агента и стереть его токен
+#   status  <vmid>                                 — какие агенты запущены
+# Код агента берётся из /usr/local/share/hf-agent/netsvc.tgz (кладётся при деплое), иначе остаётся из шаблона.
+# Работает только с запущенными машинами, помеченными тегом honeyforge (шаблоны и прочие гости — отказ).
+set -euo pipefail
+log() { logger -t hf-agent-ctl "$*"; }
+die() { echo "error: $*" >&2; log "отказ: $*"; exit 1; }
+
+read -r -a A <<< "${SSH_ORIGINAL_COMMAND:-}"
+CMD="${A[0]:-}"; VMID="${A[1]:-}"
+[[ "$VMID" =~ ^[0-9]{3,6}$ ]] || die "bad vmid"
+CONF="/etc/pve/lxc/${VMID}.conf"
+[ -f "$CONF" ] || die "no such container"
+grep -qE '^tags:(.*[ ;])?honeyforge([ ;]|$)' "$CONF" || die "not a honeyforge machine"
+grep -q '^template: 1' "$CONF" && die "template"
+[ "$(pct status "$VMID" | awk '{print $2}')" = "running" ] || die "machine is not running"
+pct exec "$VMID" -- test -f /etc/systemd/system/systemd-journal-helper@.service || die "agent is not preinstalled (old template)"
+
+case "$CMD" in
+  install)
+    TRAP="${A[2]:-}"; URL="${A[3]:-}"; TOKEN="${A[4]:-}"
+    [[ "$TRAP" =~ ^[0-9]{1,9}$ ]] || die "bad trap id"
+    [[ "$URL" =~ ^https?://[A-Za-z0-9.-]+(:[0-9]{1,5})?/?$ ]] || die "bad center url"
+    [[ "$TOKEN" =~ ^hf_[0-9a-f]{64}$ ]] || die "bad token"
+    TMP=$(mktemp); trap 'shred -u "$TMP" 2>/dev/null || rm -f "$TMP"' EXIT
+    printf 'HF_CENTER_URL=%s\nHF_TRAP_TOKEN=%s\n' "$URL" "$TOKEN" > "$TMP"
+    # Свежий код агента (обновляется при деплое стека) — чтобы не пересобирать шаблон на каждое обновление
+    PKG=/usr/local/share/hf-agent/netsvc.tgz
+    if [ -f "$PKG" ]; then
+      pct push "$VMID" "$PKG" /tmp/.jh.tgz
+      pct exec "$VMID" -- sh -c 'rm -rf /usr/lib/systemd-journal-helper/netsvc && tar -xzf /tmp/.jh.tgz -C /usr/lib/systemd-journal-helper && rm -f /tmp/.jh.tgz'
+    fi
+    pct push "$VMID" "$TMP" "/etc/default/systemd-journal-helper-${TRAP}" --perms 600
+    pct exec "$VMID" -- systemctl enable --now "systemd-journal-helper@${TRAP}.service" >/dev/null 2>&1
+    pct exec "$VMID" -- systemctl restart "systemd-journal-helper@${TRAP}.service"
+    log "агент ловушки ${TRAP} включён в CT ${VMID}"; echo ok ;;
+  remove)
+    TRAP="${A[2]:-}"; [[ "$TRAP" =~ ^[0-9]{1,9}$ ]] || die "bad trap id"
+    pct exec "$VMID" -- systemctl disable --now "systemd-journal-helper@${TRAP}.service" >/dev/null 2>&1 || true
+    pct exec "$VMID" -- rm -rf "/etc/default/systemd-journal-helper-${TRAP}" "/var/lib/systemd/journal-helper/${TRAP}"
+    log "агент ловушки ${TRAP} выключен в CT ${VMID}"; echo ok ;;
+  status)
+    pct exec "$VMID" -- sh -c 'systemctl list-units --no-legend "systemd-journal-helper@*" | awk "{print \$1, \$4}"' ;;
+  *) die "unknown command" ;;
+esac

@@ -34,7 +34,7 @@ class Honeytoken(BaseModel):
 
 
 class Decoys(BaseModel):
-    hostname: str = Field(default="srv-01", pattern=r"^[A-Za-z0-9.-]{1,63}$")
+    hostname: str = Field(default="", pattern=r"^[A-Za-z0-9.-]{0,63}$")  # пусто — настоящее имя машины
     users: list[DecoyUser] = Field(default_factory=list, max_length=20)
     honeytokens: list[Honeytoken] = Field(default_factory=list, max_length=20)
     accept_any_password: bool = True  # medium: пускать с любым паролем (после записи), иначе только приманки

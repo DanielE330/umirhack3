@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import posixpath
 import random
+import socket
 import uuid
 from pathlib import Path
 
@@ -11,14 +12,33 @@ import asyncssh
 
 from ..emitter import Emitter
 
+FALLBACK_OS_RELEASE = 'NAME="Ubuntu"\nVERSION="20.04.6 LTS (Focal Fossa)"\nID=ubuntu\nVERSION_ID="20.04"\n'
+# Типичные ядра Ubuntu по версии: настоящее ядро контейнера (…-pve) выдало бы гипервизор
+KERNELS = {"20.04": ("5.4.0-150-generic", "#167-Ubuntu SMP Mon May 15 17:35:05 UTC 2023"),
+           "22.04": ("5.15.0-122-generic", "#132-Ubuntu SMP Thu Aug 29 13:45:52 UTC 2024"),
+           "24.04": ("6.8.0-45-generic", "#45-Ubuntu SMP PREEMPT_DYNAMIC Fri Aug 30 12:02:04 UTC 2024")}
+
+
+def system_identity() -> tuple[str, str]:
+    """os-release и uname -a в духе той машины, на которой работает агент: консоль не расходится с баннером и ОС."""
+    try:
+        os_release = Path("/etc/os-release").read_text()
+    except OSError:
+        os_release = FALLBACK_OS_RELEASE
+    version = next((line.split("=", 1)[1].strip('"') for line in os_release.splitlines()
+                    if line.startswith("VERSION_ID=")), "20.04")
+    kernel, build = KERNELS.get(version, KERNELS["20.04"])
+    return os_release, f"Linux {{hostname}} {kernel} {build} x86_64 x86_64 x86_64 GNU/Linux"
+
+
+OS_RELEASE, UNAME = system_identity()
 DEFAULT_FILES = {
     "/etc/hostname": "{hostname}\n",
-    "/etc/os-release": 'NAME="Ubuntu"\nVERSION="20.04.6 LTS (Focal Fossa)"\nID=ubuntu\nVERSION_ID="20.04"\n',
+    "/etc/os-release": OS_RELEASE,
     "/etc/passwd": "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\n"
                    "www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\nadmin:x:1000:1000::/home/admin:/bin/bash\n",
     "/home/admin/notes.txt": "TODO: rotate backup keys\n",
 }
-UNAME = "Linux {hostname} 5.4.0-150-generic #167-Ubuntu SMP Mon May 15 17:35:05 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux"
 PS = ("  PID TTY          TIME CMD\n    1 ?        00:00:03 systemd\n  412 ?        00:00:00 sshd\n"
       "  733 ?        00:00:01 cron\n 1290 pts/0    00:00:00 bash\n 1344 pts/0    00:00:00 ps\n")
 
@@ -131,7 +151,8 @@ class SshTrap:
     def __init__(self, service: dict, config: dict, emitter: Emitter, key_dir: str):
         self.service, self.config, self.emitter, self.key_dir = service, config, emitter, key_dir
         decoys = config.get("decoys", {})
-        self.hostname = decoys.get("hostname", "srv-01")
+        # Пустое имя в профиле — берём настоящее имя машины, чтобы консоль совпадала с hostname сервера
+        self.hostname = decoys.get("hostname") or socket.gethostname()
         self.users = {(u["username"], u["password"]) for u in decoys.get("users", [])}
         self.accept_any = decoys.get("accept_any_password", True)
         self.fs = FakeFS(self.hostname, decoys.get("honeytokens", []))

@@ -25,6 +25,21 @@ def trap_view(t: Trap, settings, events: int = 0) -> dict:
             "pending_command": t.pending_command, "events": events, "machine_vmid": t.machine_vmid, "created_at": t.created_at.isoformat() + "Z"}
 
 
+def _agent(request: Request, action: str, t: Trap, vmid: int | None, token: str | None = None) -> str:
+    """Включить/выключить агента ловушки в её машине через оркестратор. Ошибка не роняет основное действие."""
+    if not vmid:
+        return "no-machine"
+    orch = request.app.state.orchestrator
+    try:
+        if action == "install":
+            body = {"trap_id": t.id, "center_url": auth.settings_of(request).public_url.rstrip("/"), "token": token}
+            return orch.request("POST", f"/{vmid}/agents", body, timeout=240)["status"]
+        orch.request("DELETE", f"/{vmid}/agents/{t.id}", timeout=120)
+        return "removed"
+    except HTTPException as e:
+        return f"error: {e.detail}"
+
+
 def _get(db: Session, trap_id: int) -> Trap:
     t = db.get(Trap, trap_id)
     if not t:
@@ -57,7 +72,11 @@ def create_trap(body: TrapIn, request: Request, user: User = Depends(operator), 
     except IntegrityError:
         db.rollback()
         raise HTTPException(409, "Ловушка с таким именем уже есть")
-    return {**trap_view(t, auth.settings_of(request)), "token": token}  # токен показывается один раз
+    agent = _agent(request, "install", t, t.machine_vmid, token)
+    view = {**trap_view(t, auth.settings_of(request)), "agent": agent}
+    if agent not in ("installed", "queued"):
+        view["token"] = token  # агент не включён автоматически: токен показывается один раз для ручной установки
+    return view
 
 
 @router.get("/{trap_id}")
@@ -80,8 +99,11 @@ def patch_trap(trap_id: int, body: TrapPatch, request: Request, user: User = Dep
         t.profile_id = body.profile_id
     if body.enabled is not None:
         t.enabled = body.enabled
-    if body.machine_vmid is not None:
+    old_vmid, new_token = t.machine_vmid, None
+    if body.machine_vmid is not None and body.machine_vmid != t.machine_vmid:
         t.machine_vmid = body.machine_vmid
+        new_token = new_agent_token()  # в новой машине — новый токен, старый перестаёт работать
+        t.token_hash = hash_agent_token(new_token)
     auth.audit(db, user.username, "trap.update", f"{t.name}: {body.model_dump(exclude_none=True)}",
                auth.client_ip(request))
     try:
@@ -90,12 +112,17 @@ def patch_trap(trap_id: int, body: TrapPatch, request: Request, user: User = Dep
         db.rollback()
         raise HTTPException(409, "Ловушка с таким именем уже есть")
     db.refresh(t)
-    return trap_view(t, auth.settings_of(request))
+    view = trap_view(t, auth.settings_of(request))
+    if new_token:
+        _agent(request, "remove", t, old_vmid)
+        view["agent"] = _agent(request, "install", t, t.machine_vmid, new_token)
+    return view
 
 
 @router.delete("/{trap_id}", status_code=204)
 def delete_trap(trap_id: int, request: Request, user: User = Depends(operator), db: Session = Depends(get_db)):
     t = _get(db, trap_id)
+    _agent(request, "remove", t, t.machine_vmid)
     auth.audit(db, user.username, "trap.delete", t.name, auth.client_ip(request))
     db.delete(t)
     db.commit()
@@ -127,6 +154,23 @@ def _render_artifact(kind: str, trap: Trap, token: str, public_url: str) -> str:
             f"export HF_CENTER_URL={shlex.quote(public_url)}\n"
             f"export HF_TRAP_TOKEN={shlex.quote(token)}\n"
             "exec python3 -m netsvc\n")
+
+
+@router.post("/{trap_id}/agent")
+def reinstall_agent(trap_id: int, request: Request, user: User = Depends(operator), db: Session = Depends(get_db)):
+    """Переустановить агента в машине ловушки: новый токен, доставка через оркестратор. Токен никому не показывается."""
+    t = _get(db, trap_id)
+    if not t.machine_vmid:
+        raise HTTPException(422, "Ловушка не привязана к машине")
+    token = new_agent_token()
+    t.token_hash = hash_agent_token(token)
+    db.commit()
+    agent = _agent(request, "install", t, t.machine_vmid, token)
+    auth.audit(db, user.username, "trap.agent", f"{t.name}: {agent}", auth.client_ip(request))
+    db.commit()
+    if agent.startswith("error"):
+        raise HTTPException(502, agent.removeprefix("error: "))
+    return {"agent": agent}
 
 
 @router.post("/{trap_id}/deploy")

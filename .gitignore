@@ -5,3 +5,4 @@ __pycache__/
 .env
 HoneyForgeGit/
 vpn-rostik.sh
+infra/secrets/

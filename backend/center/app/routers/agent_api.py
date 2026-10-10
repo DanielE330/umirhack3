@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -45,8 +45,20 @@ def manifest(request: Request, v: str = "", trap: Trap = Depends(agent_trap), db
     return {"rev": digest, "state": state, "poll": poll, "config": config, "cmds": commands}
 
 
+NOTIFY_TYPES = {"alert", "honeytoken"}  # о чём сообщать оператору в Telegram
+
+
+def _notify(orchestrator, view: dict) -> None:
+    try:
+        orchestrator.request("POST", "/", {"event_name": view["type"], "attacker_ip": view["src_ip"],
+                                           "properties": {"trap": view["trap"], "detail": view["command"] or view["username"]}},
+                             timeout=20, base="/api/v1/notify")
+    except HTTPException:
+        pass  # уведомление вторично: событие уже сохранено и показано в ленте
+
+
 @router.post("/log")
-async def collect(request: Request, trap: Trap = Depends(agent_trap)):
+async def collect(request: Request, background: BackgroundTasks, trap: Trap = Depends(agent_trap)):
     settings = auth.settings_of(request)
     raw = await request.body()
     if len(raw) > settings.max_body_bytes:
@@ -67,4 +79,6 @@ async def collect(request: Request, trap: Trap = Depends(agent_trap)):
     hub = request.app.state.hub
     for view in views:
         hub.publish(view)
+        if view["type"] in NOTIFY_TYPES:
+            background.add_task(_notify, request.app.state.orchestrator, view)
     return {"ok": len(batch.events) - dup, "dup": dup}

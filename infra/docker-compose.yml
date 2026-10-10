@@ -63,7 +63,7 @@ services:
       PROXMOX_PASSWORD: ${PROXMOX_PASSWORD:-}
       PROXMOX_TOKEN_NAME: ${PROXMOX_TOKEN_NAME:-}
       PROXMOX_TOKEN_VALUE: ${PROXMOX_TOKEN_VALUE:-}
-      PROXMOX_TEMPLATE_LXC: ${PROXMOX_TEMPLATE_LXC:-9100}
+      PROXMOX_TEMPLATE_LXC: ${PROXMOX_TEMPLATE_LXC:-9101}
       PROXMOX_STORAGE: ${PROXMOX_STORAGE:-hdd}
       PROXMOX_BRIDGE: ${PROXMOX_BRIDGE:-vmbr1}
       PROXMOX_NETWORK: ${PROXMOX_NETWORK:-10.20.0.0/24}
@@ -73,6 +73,10 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
       TELEGRAM_PROXY: ${TELEGRAM_PROXY:-}
+      # Узкий SSH-доступ к хосту Proxmox для включения агентов (infra/proxmox/hf-agent-ctl)
+      PVE_SSH_HOST: ${PVE_SSH_HOST:-}
+    volumes:
+      - ./secrets:/run/hf-secrets:ro   # pve_agent_ed25519 + known_hosts, только на сервере, не в git
     depends_on:
       db:
         condition: service_healthy

@@ -21,7 +21,7 @@ const ORDER = ["online", "creating", "starting", "waiting", "offline", "stopped"
 const PVE = {
   bridge: "vmbr1",                      // отдельный bridge под DMZ: ловушки не видят домашнюю LAN и прод
   bridgeLabel: "vmbr1 · DMZ 10.20.0.0/24 (изолированная сеть)",
-  templates: { lxc: 9100 },              // шаблон для клонирования (настраивается в оркестраторе)
+  templates: { lxc: 9101 },              // шаблон для клонирования (настраивается в оркестраторе)
   storage: "hdd",
   defaults: { cores: 1, ram: 1, disk: 10 },
   limits: { cores: [1, 32], ram: [1, 128], disk: [10, 1000] },
@@ -85,7 +85,7 @@ function profileToApi(p) {
   return {
     name: p.name, description: p.desc || "", level: p.level, services: p.services,
     decoys: {
-      hostname: d.hostname || "srv-01", accept_any_password: d.accept_any_password ?? true,
+      hostname: d.hostname || "", accept_any_password: d.accept_any_password ?? true,
       users: p.users.map((u) => ({ username: u, password: oldUsers.get(u) || "Winter2024!" })),
       honeytokens: p.tokens.map((path) => oldTokens.get(path) || { type: "file", path, content: fakeContent(path) }),
     },
@@ -408,7 +408,7 @@ function openPve(c) {
     steps.append(
       li("Клонирование:", "оркестратор через Proxmox API делает полный клон шаблона " + (PVE.templates[c.type] || "—") + " в " + t.kind + " " + c.vmid + " на хранилище " + PVE.storage + "."),
       li("Ресурсы и сеть:", resParts(c).join(", ") + "; интерфейс в " + c.bridge + " (DMZ) с адресом " + (c.host || "из 10.20.0.0/24") + ", без доступа в домашнюю сеть. Тег honeyforge: чужие машины оркестратор не трогает."),
-      li("Запуск:", "машина стартует; агент в ней подключается к центру и поднимает ловушки (кнопка «Подключить агента» в окне ловушки).")
+      li("Запуск и агенты:", "машина стартует, оркестратор через хост Proxmox включает внутри агента каждой ловушки с её токеном; агент подключается к центру и поднимает порты.")
     );
     body.append(el("h4", "Что делает центр"), steps, el("h4", "Эквивалентные команды Proxmox (для справки и ручной отладки)"));
     const pre = el("pre", pveCommands(c)); body.append(pre);
@@ -479,7 +479,7 @@ function containerCard(c) {
     const bar = el("div", undefined, "progress"); bar.append(el("i")); note.append(bar); card.append(note);
   } else if (st === "waiting") {
     const note = el("div", undefined, "cnote");
-    note.append(list.length ? "Машина работает, но агенты ещё не вышли на связь. Откройте ловушку и нажмите «Подключить агента»." : "Машина работает. Добавьте в неё ловушку.");
+    note.append(list.length ? "Машина работает, агенты запускаются. Если через минуту статус не сменился — откройте ловушку и нажмите «Переустановить агента»." : "Машина работает. Добавьте в неё ловушку — агент включится сам.");
     card.append(note);
   } else if (st === "offline") {
     const note = el("div", undefined, "cnote warn");
@@ -567,7 +567,7 @@ function openNewContainer() {
     const typeLabel = el("label", "Тип машины"); typeLabel.append(q("LXC — лёгкий контейнер, стартует за секунды, подходит для Low и Medium. KVM — полноценная виртуальная машина: дольше стартует, но изоляция сильнее."));
     const typeWrap = el("div"); typeWrap.append(typeLabel, seg);
 
-    const nameIn = el("input"); nameIn.maxLength = 60; nameIn.value = uniqueContainerName("edge-dmz"); nameIn.setAttribute("aria-label", "Имя");
+    const nameIn = el("input"); nameIn.maxLength = 60; nameIn.value = uniqueContainerName("web-prod"); nameIn.setAttribute("aria-label", "Имя");
     const vmHint = el("div", undefined, "hint"); const vmLabel = () => { vmHint.textContent = "VMID и адрес в DMZ выдаст оркестратор автоматически · шаблон " + (PVE.templates[type] || "не настроен"); };
     vmLabel();
     const res = resourceFields(PVE.defaults);
@@ -604,7 +604,7 @@ function openNewContainer() {
           const tn = uniqueName(baseName(pn), taken); taken.add(tn);
           await api("/api/traps", { method: "POST", body: { name: tn, profile_id: profileByName(pn).id, machine_vmid: m.vmid } });
         }
-        closeModal(); toast("Создаю " + TYPE_INFO[type].kind + " " + m.vmid + " в Proxmox (адрес " + m.ip + ")…");
+        closeModal(); toast("Создаю " + TYPE_INFO[type].kind + " " + m.vmid + " (адрес " + m.ip + "): клон, запуск и агенты — автоматически, около минуты");
       } catch (e) { err.textContent = e.message; create.disabled = false; return; }
       await refresh();
     };
@@ -639,7 +639,7 @@ function openAddTrap(c) {
       if (errs.length) { err.textContent = errs.join("\n"); return; }
       try { await api("/api/traps", { method: "POST", body: { name, profile_id: profileByName(p).id, machine_vmid: c.vmid } }); }
       catch (e) { err.textContent = e.message; return; }
-      closeModal(); toast("Ловушка «" + name + "» добавлена — подключите к ней агента в окне ловушки");
+      closeModal(); toast("Ловушка «" + name + "» добавлена — агент включится в машине автоматически");
       await refresh();
     };
   });
@@ -847,8 +847,10 @@ function openTrap(name) {
     const actions = el("div", undefined, "inline");
     const bOpen = el("button", "▦ Показать машину", "ghost"); bOpen.onclick = () => { closeModal(); showTab("containers"); $("c-q").value = t.container; S.cFilter.q = t.container; renderContainers(); };
     const bEv = el("button", "☰ Все события ловушки", "ghost"); bEv.onclick = () => { closeModal(); showTab("dash"); setFilter({ trap: t.name, type: "", q: "" }); };
-    const bAgent = el("button", "⚡ Подключить агента", "ghost"); bAgent.title = "Выпустить новый токен и показать команду запуска агента для этой ловушки";
-    armed(bAgent, "Старый токен перестанет работать. Точно?", () => openAgentDeploy(t));
+    const bAgent = el("button", t.vmid ? "⚡ Переустановить агента" : "⚡ Подключить агента", "ghost");
+    bAgent.title = t.vmid ? "Выпустить новый токен и перезапустить агента внутри машины — автоматически, токен никто не видит"
+      : "Ловушка не в машине: выпустить токен и показать команду для ручного запуска агента";
+    armed(bAgent, "Старый токен перестанет работать. Точно?", () => (t.vmid ? reinstallAgent(t) : openAgentDeploy(t)));
     const bDel = el("button", "🗑 Удалить", "ghost danger"); armed(bDel, "Точно удалить?", () => { closeModal(); removeTrap(t); });
     actions.append(bOpen, bEv, bAgent, bDel); body.append(actions);
 
@@ -865,6 +867,12 @@ function openTrap(name) {
   });
 }
 
+async function reinstallAgent(t) {
+  toast("Переустанавливаю агента в «" + t.container + "»…");
+  try { await api("/api/traps/" + t.id + "/agent", { method: "POST" }); toast("Агент «" + t.name + "» перезапущен — выйдет на связь через несколько секунд"); }
+  catch (e) { fail(e); }
+  await refresh();
+}
 async function openAgentDeploy(t) {
   let d;
   try { d = await api("/api/traps/" + t.id + "/deploy", { method: "POST", body: { kind: "script" } }); } catch (e) { fail(e); return; }

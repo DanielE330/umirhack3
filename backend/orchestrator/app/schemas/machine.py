@@ -18,3 +18,9 @@ class MachineUpdate(BaseModel):
     cores: Optional[int] = Field(default=None, ge=1, le=32)
     memory_mb: Optional[int] = Field(default=None, ge=256, le=131072)
     disk_gb: Optional[int] = Field(default=None, ge=1, le=1000)
+
+
+class AgentInstall(BaseModel):
+    trap_id: int = Field(ge=1)
+    center_url: str = Field(pattern=r"^https?://[A-Za-z0-9.-]+(:[0-9]{1,5})?/?$")
+    token: str = Field(pattern=r"^hf_[0-9a-f]{64}$")

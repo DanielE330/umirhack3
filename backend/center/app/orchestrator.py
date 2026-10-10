@@ -13,12 +13,13 @@ class Orchestrator:
         self.token = settings.orchestrator_token
         self.transport = transport  # подмена в тестах
 
-    def request(self, method: str, path: str, json: dict | None = None, timeout: float = 30.0):
+    def request(self, method: str, path: str, json: dict | None = None, timeout: float = 30.0,
+                base: str = "/api/v1/machines"):
         if not self.url or not self.token:
             raise HTTPException(503, "Оркестратор Proxmox не настроен")
         try:
             with httpx.Client(transport=self.transport, timeout=timeout) as client:
-                resp = client.request(method, f"{self.url}/api/v1/machines{path}", json=json,
+                resp = client.request(method, f"{self.url}{base}{path}", json=json,
                                       headers={"X-Internal-Token": self.token})
         except httpx.HTTPError:
             raise HTTPException(503, "Оркестратор Proxmox недоступен")
