@@ -12,6 +12,8 @@ services:
     restart: unless-stopped
     environment:
       - DATABASE_URL=postgresql+asyncpg://admin:password123@postgres:5432/honeyforge
+      - TELEGRAM_BOT_TOKEN=8836884932:AAHqS5Lxu_1FgfWKhGvj6_0AyEGGF16mAoQ
+      - TELEGRAM_CHAT_ID=7233408033
     depends_on:
       - postgres
     networks:
