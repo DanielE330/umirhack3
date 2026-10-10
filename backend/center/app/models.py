@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -135,4 +135,28 @@ class Event(Base):
     command: Mapped[str] = mapped_column(Text, default="")
     data: Mapped[dict] = mapped_column(JSON, default=dict)
 
+    # Оценка HoneyMind (app/honeymind.py, app/scoring.py) — всегда nullable: пока фоновая
+    # оценка не завершилась (сервис недоступен/таймаут), это нормальное состояние, не ошибка.
+    threat_score: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    category: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    needs_review: Mapped[bool | None] = mapped_column(Boolean, nullable=True, index=True)
+    honeymind_result: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # полный ответ /predict
+
     trap: Mapped[Trap] = relationship()
+
+
+class SessionAssessment(Base):
+    """Итог оценки сессии атакующего через HoneyMind /session («человек или бот»)."""
+
+    __tablename__ = "session_assessments"
+
+    session_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    trap_id: Mapped[int | None] = mapped_column(ForeignKey("traps.id", ondelete="CASCADE"), nullable=True, index=True)
+    src_ip: Mapped[str] = mapped_column(String(64), default="")
+    is_human: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    human_probability: Mapped[float | None] = mapped_column(Float, nullable=True)
+    human_method: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    human_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    script_seen_before: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # полный ответ /session
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)

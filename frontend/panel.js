@@ -278,6 +278,16 @@ const q = (text) => { const s = el("span", "?", "q"); s.tabIndex = 0; s.dataset.
 const levelTag = (level) => tipped(el("span", level === "low" ? "Low" : level === "medium" ? "Medium" : "—", "tag " + level), HELP[level] || "Профиль не задан");
 const typeTag = (type) => tipped(el("span", type, "tag t-" + type), EVENT_HELP[type] || type);
 
+// Оценка HoneyMind (AI): threat_score 0–100, порог алерта 60. null — ещё не оценено (сервис недоступен/ждёт очереди).
+function threatTag(ev) {
+  if (ev.threat_score === null || ev.threat_score === undefined) return tipped(el("span", "…", "tag"), "Ещё не оценено HoneyMind (AI-анализатором)");
+  const sev = ev.threat_score >= 60 ? "high" : ev.threat_score >= 30 ? "medium" : "low";
+  const label = ev.threat_score + (ev.category ? " · " + ev.category : "");
+  const hint = "Оценка HoneyMind: " + ev.threat_score + "/100" + (ev.category ? ", категория: " + ev.category : "")
+    + (ev.needs_review ? " — требует проверки человеком" : "");
+  return tipped(el("span", label, "tag " + sev), hint);
+}
+
 function stateBadge(state) {
   const wrap = el("span", undefined, "cstate"); wrap.title = STATES[state].hint;
   wrap.append(el("span", undefined, "dot " + state), el("span", STATES[state].label, "st-label " + state));
@@ -905,12 +915,13 @@ function eventRow(ev, animate) {
   tr.append(el("td", fmtTime(ev.ts), "m"), el("td", ev.trap));
   const tag = el("td"); tag.append(typeTag(ev.type)); tr.append(tag);
   tr.append(el("td", ev.src_ip, "m"), el("td", ev.command || ev.username || "", "m"));
+  const score = el("td"); score.append(threatTag(ev)); tr.append(score);
   makeClickable(tr, () => openEvent(ev));
   return tr;
 }
 function renderFeed() {
   const rows = S.events.filter(matches).slice(0, 60).map((e) => eventRow(e, false));
-  $("feed").replaceChildren(...(rows.length ? rows : [emptyRow(5, S.events.length ? "По фильтру ничего нет" : "Событий пока нет")]));
+  $("feed").replaceChildren(...(rows.length ? rows : [emptyRow(6, S.events.length ? "По фильтру ничего нет" : "Событий пока нет")]));
 }
 function addToFeed(ev) {  // новая строка вставляется сверху, остальные не трогаются
   if (!matches(ev)) return;
@@ -924,13 +935,29 @@ function setFilter(patch) {
   $("f-type").value = S.filter.type; $("f-trap").value = S.filter.trap; $("f-q").value = S.filter.q;
   renderFeed(); renderTops(true);
 }
+function humanBotLabel(s) {
+  const verdict = s.is_human === true ? "похоже на человека" : s.is_human === false ? "похоже на бота" : "не определено";
+  const p = s.human_probability != null ? " (p=" + s.human_probability.toFixed(2) + ")" : "";
+  return verdict + p + (s.human_reason ? " — " + s.human_reason : "");
+}
 function openEvent(ev) {
+  const scoreText = ev.threat_score === null || ev.threat_score === undefined ? "ещё не оценено"
+    : ev.threat_score + "/100 · " + (ev.category || "—") + (ev.needs_review ? " · требует проверки" : "");
+  const rows = [
+    ["Время", new Date(ev.ts).toLocaleString("ru-RU")], ["Машина", ev.container], ["Ловушка", ev.trap], ["Тип", ev.type],
+    ["Источник", ev.src_ip + ":" + ev.src_port], ["Порт ловушки", ev.dst_port], ["Протокол", ev.proto], ["Сессия", ev.session_id],
+    ["Логин", ev.username], ["Пароль", ev.password], ["Команда / запрос", ev.command],
+    ["Оценка HoneyMind (AI)", scoreText],
+  ];
+  let humanSpan = null;
+  if (ev.session_id) { humanSpan = el("span", "проверяется…"); rows.push(["Сессия: человек или бот", humanSpan]); }
   openModal("Событие #" + ev.id, (body) => {
-    body.append(kv([
-      ["Время", new Date(ev.ts).toLocaleString("ru-RU")], ["Машина", ev.container], ["Ловушка", ev.trap], ["Тип", ev.type],
-      ["Источник", ev.src_ip + ":" + ev.src_port], ["Порт ловушки", ev.dst_port], ["Протокол", ev.proto], ["Сессия", ev.session_id],
-      ["Логин", ev.username], ["Пароль", ev.password], ["Команда / запрос", ev.command],
-    ]));
+    body.append(kv(rows));
+    if (humanSpan) {
+      api("/api/sessions/" + encodeURIComponent(ev.session_id))
+        .then((s) => { if ($("modal-title").textContent === "Событие #" + ev.id) humanSpan.textContent = humanBotLabel(s); })
+        .catch(() => { if ($("modal-title").textContent === "Событие #" + ev.id) humanSpan.textContent = "ещё не оценено"; });
+    }
     const row = el("div", undefined, "inline");
     const b1 = el("button", "⌕ Все события этого IP", "ghost"); b1.onclick = () => { closeModal(); showTab("dash"); setFilter({ q: ev.src_ip, type: "", trap: "" }); };
     const b2 = el("button", "☰ События этой ловушки", "ghost"); b2.onclick = () => { closeModal(); showTab("dash"); setFilter({ q: "", type: "", trap: ev.trap }); };
@@ -1103,6 +1130,7 @@ fetch("/api/auth/me", { credentials: "same-origin" })
     connectStream();
     setInterval(refresh, 5000);       // машины, ловушки, профили: статусы и «на связи»
     setInterval(loadStats, 30000);    // агрегаты пересчитывает центр
+    setInterval(loadEvents, 20000);   // подхватывает оценку HoneyMind: она считается в фоне, после приёма события
     setInterval(() => { S.buckets.shift(); S.buckets.push(0); renderKpis(); }, 60000);
     setInterval(refreshCells, 1000);
   })

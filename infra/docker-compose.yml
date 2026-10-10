@@ -4,7 +4,8 @@
 #   db           — PostgreSQL центра
 #   orchestrator — сервис управления машинами-ловушками в Proxmox (только по межсервисному токену)
 #   honeymind    — AI-аналитика событий (threat_score/category/is_human); только во внутренней
-#                  сети backend, порт наружу не публикуется — доступен лишь оркестратору
+#                  сети backend, порт наружу не публикуется — доступен лишь центру (он принимает
+#                  события от агентов, см. backend/center/app/routers/agent_api.py)
 # Запуск из папки infra/: cp .env.example .env && заполнить && docker compose up -d --build
 name: honeyforge-center
 
@@ -33,9 +34,16 @@ services:
       HF_ORCHESTRATOR_URL: http://orchestrator:4000
       HF_ORCHESTRATOR_TOKEN: ${ORCH_TOKEN:?задайте ORCH_TOKEN}
       HF_TRUSTED_PROXIES: 172.31.40.10
+      # AI-аналитика событий агента (threat_score/category/is_human) — honeymind виден только
+      # через внутреннюю сеть backend, см. honeymind/README.md
+      HF_HONEYMIND_URL: http://honeymind:8001
+      HF_HONEYMIND_TOKEN: ${HONEYMIND_TOKEN:?задайте HONEYMIND_TOKEN}
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      default: {}
+      backend: {}
     restart: unless-stopped
 
   db:
@@ -77,18 +85,11 @@ services:
       TELEGRAM_PROXY: ${TELEGRAM_PROXY:-}
       # Узкий SSH-доступ к хосту Proxmox для включения агентов (infra/proxmox/hf-agent-ctl)
       PVE_SSH_HOST: ${PVE_SSH_HOST:-}
-      # AI-аналитика событий (threat_score/category/is_human); сервис honeymind виден только
-      # здесь, через внутреннюю сеть backend — см. honeymind/README.md
-      HONEYMIND_URL: http://honeymind:8001
-      HONEYMIND_TOKEN: ${HONEYMIND_TOKEN:?задайте HONEYMIND_TOKEN}
     volumes:
       - ./secrets:/run/hf-secrets:ro   # pve_agent_ed25519 + known_hosts, только на сервере, не в git
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      default: {}
-      backend: {}
     restart: unless-stopped
 
   honeymind:
@@ -107,7 +108,7 @@ networks:
       config:
         - subnet: 172.31.40.0/24
   backend:
-    internal: true          # нет выхода наружу; доступен только сервисам, подключённым к ней (orchestrator)
+    internal: true          # нет выхода наружу; доступен только сервисам, подключённым к ней (center)
 
 volumes:
   pgdata:

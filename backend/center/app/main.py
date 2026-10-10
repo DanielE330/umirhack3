@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 from .config import Settings, get_settings
 from .db import init_db, make_engine
+from .honeymind import HoneyMind
 from .hub import Hub
 from .orchestrator import Orchestrator
 from .routers import agent_api, events, machines, profiles, traps
@@ -25,6 +26,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.vault = Vault(settings.secret_key)
     app.state.hub = Hub()
     app.state.orchestrator = Orchestrator(settings)
+    app.state.honeymind = HoneyMind(settings)
     app.state.session_factory = sessionmaker(engine, expire_on_commit=False)
 
     @app.middleware("http")

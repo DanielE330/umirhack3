@@ -24,10 +24,7 @@ async def get_recent_events(limit: int = 20, db: AsyncSession = Depends(get_db))
             "timestamp": e.timestamp.isoformat(),
             "attacker_ip": e.attacker_ip,
             "event_type": e.event_type,
-            "payload": e.payload,
-            "threat_score": e.threat_score,
-            "category": e.category,
-            "needs_review": e.needs_review
+            "payload": e.payload
         })
         
     return response

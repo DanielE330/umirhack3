@@ -116,6 +116,11 @@ def canonicalize(obj: Any) -> CanonEvent:
             kind = KIND_LOGIN
         else:
             kind = KIND_OTHER
+    # Тип «payload» агента HoneyForge — НЕ обязательно скачивание: это и попытка wget/curl в SSH-ловушке
+    # (в command лежит строка команды), и сырые байты, присланные в TCP-ловушку (command = их печатный вид).
+    # Поэтому, если есть текст команды и нет url/хэша, анализируем его как команду (правила + ML решат сами).
+    if raw_type == "payload" and command is not None and url is None and fhash is None:
+        kind = KIND_COMMAND
     # honeytoken в центре кладёт путь в поле command — оставляем как есть
     success = detail.get("success")
     if raw_type == "cowrie.login.success":

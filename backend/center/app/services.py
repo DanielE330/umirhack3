@@ -41,7 +41,9 @@ def event_view(e: Event) -> dict:
     return {"id": e.id, "uid": e.uid, "trap_id": e.trap_id, "trap": e.trap.name if e.trap else "",
             "ts": e.ts.isoformat() + "Z", "type": e.type, "src_ip": e.src_ip, "src_port": e.src_port,
             "dst_port": e.dst_port, "proto": e.proto, "session_id": e.session_id, "username": e.username,
-            "password": e.password, "command": e.command, "data": e.data}
+            "password": e.password, "command": e.command, "data": e.data,
+            # Оценка HoneyMind (app/scoring.py); NULL, пока фоновая оценка не завершилась.
+            "threat_score": e.threat_score, "category": e.category, "needs_review": e.needs_review}
 
 
 def _to_naive_utc(ts: float) -> datetime:

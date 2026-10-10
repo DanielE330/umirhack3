@@ -38,7 +38,7 @@ docker run --rm -p 8001:8001 -e HONEYMIND_TOKEN=change-me honeyforge-honeymind
     networks: [backend]          # порт НЕ публикуем
 ```
 
-Тесты: `pip install -r requirements-dev.txt && pytest` (74 теста, ~10 с).
+Тесты: `pip install -r requirements-dev.txt && pytest` (79 тестов, ~4 с).
 > Dockerfile проверен по шагам вручную (копирование файлов → `train.py` → `uvicorn main:app`), но сам `docker build` в среде разработки не запускался — там не было демона Docker.
 
 ## API
@@ -198,5 +198,5 @@ scripts/extract_sessions.py Cowrie → реальные сессии для is_h
 scripts/eval_sessions.py    проверка is_human на своих размеченных сессиях
 data/                   размеченные реальные команды (оценка)
 reports/                метрики
-tests/                  74 теста
+tests/                  79 тестов
 ```
