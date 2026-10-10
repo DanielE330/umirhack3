@@ -16,7 +16,7 @@
   <nav id="nav">
     <button data-tab="containers" class="on" title="Машины в Proxmox, внутри которых работают ловушки">Контейнеры</button>
     <button data-tab="dash" title="Сводка и лента атак в реальном времени">Обзор</button>
-    <button data-tab="traps" title="Все ловушки одним списком, по всем машинам">Ловушки</button>
+    <button data-tab="traps" title="Каталог всех типов ловушек, которые умеет платформа">Ловушки</button>
     <button data-tab="profiles" title="Шаблоны ловушек: уровень, порты, баннеры, приманки">Профили</button>
   </nav>
   <div class="who"><span><b id="who">…</b> · <span id="role"></span></span><button class="ghost" id="logout" title="Завершить сеанс">Выйти</button></div>
@@ -42,7 +42,7 @@
   <section id="tab-dash" class="hidden">
     <div class="grid">
       <div class="card kpi" id="kpi-total" role="button" tabindex="0" title="Все события с ловушек за сутки. Нажмите, чтобы сбросить фильтры ленты"><h3>Событий за 24 ч</h3><div class="num" id="k-total">0</div></div>
-      <div class="card kpi" id="kpi-online" role="button" tabindex="0" title="Сколько ловушек сейчас на связи с центром из общего числа. Нажмите, чтобы открыть список"><h3>Ловушки онлайн</h3><div class="num ok" id="k-online">0 / 0</div></div>
+      <div class="card kpi" id="kpi-online" role="button" tabindex="0" title="Сколько ловушек сейчас на связи с центром из общего числа. Нажмите, чтобы показать работающие машины"><h3>Ловушки онлайн</h3><div class="num ok" id="k-online">0 / 0</div></div>
       <div class="card kpi" id="kpi-auth" role="button" tabindex="0" title="Сколько раз атакующие вводили логин и пароль. Нажмите, чтобы показать только их"><h3>Попыток входа</h3><div class="num" id="k-auth">0</div></div>
       <div class="card kpi" id="kpi-alert" role="button" tabindex="0" title="Тревоги центра: например, перебор паролей (5+ попыток с одного IP за минуту). Нажмите, чтобы показать только их"><h3>Алертов</h3><div class="num bad" id="k-alert">0</div></div>
     </div>
@@ -69,16 +69,16 @@
     </div>
   </section>
 
-  <!-- Ловушки (плоский список по всем контейнерам) -->
+  <!-- Ловушки: каталог всех типов, которые умеет платформа -->
   <section id="tab-traps" class="hidden">
     <div class="toolbar">
-      <span class="hint">Ловушки живут внутри контейнеров: добавлять и убирать их удобнее на вкладке «Контейнеры».</span>
+      <div class="chips" id="cat-level" role="radiogroup" aria-label="Уровень"></div>
+      <input id="cat-q" placeholder="Поиск: ftp, 22, mysql…" aria-label="Поиск по каталогу" title="Поиск по названию, порту и описанию" style="max-width:240px">
       <span class="spacer"></span>
-      <select id="t-status" aria-label="Статус" title="Показать только ловушки в выбранном состоянии" style="max-width:200px"></select>
+      <span class="hint" id="cat-summary"></span>
     </div>
-    <div class="card"><table class="rows">
-      <thead><tr><th>Ловушка</th><th title="Машина, в которой работает ловушка">Контейнер</th><th title="Состояние берётся от агента: на связи он или нет">Статус</th><th title="Шаблон, по которому настроена ловушка">Профиль</th><th title="Low — только баннеры портов; Medium — поддельные SSH и веб-сервисы">Уровень</th><th title="Порты, которые слушает ловушка">Порты</th><th title="Сколько событий записала ловушка">Событий</th></tr></thead>
-      <tbody id="traps"></tbody></table></div>
+    <p class="lead">Все ловушки, которые умеет запускать агент. Выберите тип и нажмите «Создать профиль» — конструктор заполнится готовыми портами, баннерами и приманками; останется сохранить и добавить ловушку в контейнер.</p>
+    <div class="catalog" id="catalog"></div>
   </section>
 
   <!-- Профили -->
@@ -108,6 +108,13 @@
     </div>
   </section>
 </main>
+<footer class="credits">
+  <span>HoneyForge · UmirHack III</span>
+  <span>Команда:</span>
+  <a href="https://github.com/DanielE330" target="_blank" rel="noopener" title="Автор и тимлид проекта">DanielE330</a><span class="role">автор</span>
+  <span>·</span>
+  <a href="https://github.com/Lunarflux-hub" target="_blank" rel="noopener" title="Контрибьютер: бэкенд, Docker, интеграция с Proxmox">Lunarflux-hub</a><span class="role">контрибьютер</span>
+</footer>
 
 <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="sheet">

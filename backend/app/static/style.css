@@ -82,3 +82,11 @@ button.ghost:hover { border-color: var(--honey); color: var(--fg); }
 
 @media (max-width: 420px) { main { padding: 28px 20px 22px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* Подвал с командой */
+.credits { position: relative; margin-top: 18px; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px;
+  color: var(--muted); font-size: 12.5px; text-align: center; }
+.credits a { color: var(--fg); text-decoration: none; border-bottom: 1px dotted var(--line); }
+.credits a:hover { color: var(--honey); border-color: var(--honey); }
+.credits .role { color: var(--muted); opacity: .8; }
+body { align-content: center; }  /* форма и подпись команды держатся вместе по центру */

@@ -77,7 +77,7 @@ const TYPES = ["connect", "auth_attempt", "command", "http_request", "payload", 
 
 const S = {
   events: [], nextId: 1, paused: false, editing: null, hoverTop: false,
-  trapFilter: "", cFilter: { q: "", status: "" },
+  cFilter: { q: "", status: "" },
   filter: { type: "", trap: "", q: "" },
   total: 2410, auth: 1180, alert: 6,
   src: { "185.220.101.34": 412, "45.155.205.233": 301, "194.165.16.77": 186, "103.99.0.12": 142, "89.248.165.200": 97 },
@@ -304,7 +304,7 @@ function showTab(tab) {
   for (const b of $("nav").children) b.classList.toggle("on", b.dataset.tab === tab);
   for (const s of ["containers", "dash", "traps", "profiles"]) $("tab-" + s).classList.toggle("hidden", s !== tab);
 }
-function renderAll() { renderContainers(); renderTraps(); renderProfiles(); renderFilters(); renderKpis(); }
+function renderAll() { renderContainers(); renderCatalog(); renderProfiles(); renderFilters(); renderKpis(); }
 
 // ============ ВЫБОР ЛОВУШЕК КАРТОЧКАМИ ============
 // Карточки создаются один раз; при выборе меняются только классы — анимация отметки играет только у нажатой карточки.
@@ -647,26 +647,118 @@ $("add-container").onclick = () => { if (!profiles.length) { toast("Сначал
 $("c-q").oninput = (e) => { S.cFilter.q = e.target.value; renderContainers(); };
 $("c-status").onchange = (e) => { S.cFilter.status = e.target.value; renderContainers(); };
 
-// ============ ЛОВУШКИ (плоский список) ============
-function trapRow(t) {
-  const tr = el("tr", undefined, "click");
-  const s = el("td"); s.append(stateBadge(trapState(t)));
-  const lv = el("td"); lv.append(levelTag(levelOf(t.profile)));
-  const ev = el("td", String(t.events), "c-ev"); ev.dataset.trap = t.id;
-  const c = containerByName(t.container);
-  tr.append(el("td", t.name), el("td", t.container + (c ? " · " + TYPE_INFO[c.type].kind + " " + c.vmid : "")), s, el("td", t.profile), lv, el("td", portsOf(t.profile).join(", "), "m"), ev);
-  makeClickable(tr, () => openTrap(t.name));
-  return tr;
+// ============ ЛОВУШКИ: КАТАЛОГ ТИПОВ ============
+// Всё, что умеет агент: banner (Low), ssh и http (Medium). planned — то, чего в агенте ещё нет.
+const CATALOG = [
+  { id: "ssh-banner", icon: "SSH", name: "SSH-сканер", level: "low",
+    services: [{ port: 22, proto: "banner", banner: "SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6" }],
+    emulates: "Открытый порт SSH с баннером OpenSSH. Войти нельзя — соединение закрывается после приветствия.",
+    collects: "IP и порт источника, время, версию SSH-клиента сканера.", risk: "Минимальный" },
+  { id: "ftp", icon: "FTP", name: "FTP-сервер", level: "low",
+    services: [{ port: 21, proto: "banner", banner: "220 ProFTPD 1.3.5 Server ready." }],
+    emulates: "Приветствие ProFTPD 1.3.5 — версия с известными уязвимостями, на неё охотно идут боты.",
+    collects: "Подключение и первую команду клиента (обычно USER с логином).", risk: "Минимальный" },
+  { id: "telnet", icon: "TEL", name: "Telnet", level: "low",
+    services: [{ port: 23, proto: "banner", banner: "Ubuntu 18.04.6 LTS\r\nweb-01 login:" }],
+    emulates: "Приглашение входа Telnet, как на старом сервере или роутере.",
+    collects: "Подключение и введённый логин — ботнеты вроде Mirai перебирают Telnet постоянно.", risk: "Минимальный" },
+  { id: "smtp", icon: "SMTP", name: "Почтовый сервер", level: "low",
+    services: [{ port: 25, proto: "banner", banner: "220 mail.corp.local ESMTP Postfix (Ubuntu)" }],
+    emulates: "Приветствие почтового сервера Postfix.",
+    collects: "Подключение и первую команду (EHLO, попытки открытого релея для спама).", risk: "Минимальный" },
+  { id: "mysql", icon: "SQL", name: "MySQL", level: "low",
+    services: [{ port: 3306, proto: "banner", banner: "5.7.42-0ubuntu0.18.04.1" }],
+    emulates: "Открытый порт MySQL с версией сервера. Логики базы нет.",
+    collects: "Факт сканирования БД и первые байты клиента.", risk: "Минимальный",
+    note: "Баннер текстовый, а настоящий MySQL отвечает бинарным пакетом — продвинутый сканер может это заметить." },
+  { id: "redis", icon: "RDS", name: "Redis", level: "low",
+    services: [{ port: 6379, proto: "banner", banner: "" }],
+    emulates: "Порт Redis без пароля: молчит и ждёт команд, как настоящий.",
+    collects: "Присланные команды (INFO, CONFIG SET, SLAVEOF) — так ищут открытые базы для майнеров и вымогателей.", risk: "Минимальный" },
+  { id: "tcp", icon: "TCP", name: "Любой TCP-порт", level: "low", custom: true,
+    services: [{ port: 9200, proto: "banner", banner: "" }],
+    emulates: "Пустой TCP-порт на ваш выбор: просто принимает соединение. Порт и баннер задаются в профиле.",
+    collects: "Подключения и первые байты — «радар» для сканеров вроде nmap и masscan.", risk: "Минимальный" },
+  { id: "fake-ssh", icon: "SSH", name: "Поддельный SSH", level: "medium",
+    services: [{ port: 22, proto: "ssh", banner: "SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6" }],
+    users: ["root", "admin"], tokens: ["/root/.aws/credentials", "/home/admin/backup.sql"],
+    emulates: "Настоящий SSH-протокол: пускает с любым паролем и выдаёт консоль Ubuntu с поддельной файловой системой.",
+    collects: "Логины и пароли, все команды, попытки скачать файлы (wget, curl), чтение файлов-приманок.", risk: "Умеренный" },
+  { id: "fake-web", icon: "WEB", name: "Поддельная веб-админка", level: "medium",
+    services: [{ port: 80, proto: "http", banner: "Apache/2.4.52 (Ubuntu)" }, { port: 8080, proto: "http", banner: "Apache/2.4.52 (Ubuntu)" }],
+    users: ["admin"], tokens: [],
+    emulates: "Страница входа «Admin Console», правдоподобные 404 и заголовок Apache.",
+    collects: "Логины и пароли из формы, все HTTP-запросы: поиск /.env, /wp-login.php, /phpmyadmin, попытки SQL-инъекций.", risk: "Умеренный" },
+  { id: "fake-db", icon: "DB", name: "Поддельная база данных", level: "medium", planned: true, services: [{ port: 5432, proto: "db", banner: "" }],
+    emulates: "Протокол PostgreSQL/MySQL с ответами на запросы и таблицами-приманками.",
+    collects: "Учётные данные и SQL-запросы атакующего.", risk: "Умеренный" },
+  { id: "high-vm", icon: "VM", name: "Настоящая ОС в песочнице", level: "high", planned: true, services: [],
+    emulates: "Полноценная виртуальная машина в изолированной сети с откатом к снимку после атаки.",
+    collects: "Всю сессию: ввод и вывод, загруженные инструменты, попытки двигаться по сети.", risk: "Высокий" },
+];
+const CAT_LEVELS = [["", "Все"], ["low", "Low"], ["medium", "Medium"], ["high", "High"]];
+S.cat = { level: "", q: "" };
+
+function catalogUsage(entry) {  // сколько развёрнутых ловушек слушают такой же сервис
+  if (entry.planned || entry.custom) return null;
+  const want = entry.services.map((x) => x.proto + ":" + x.port);
+  return traps.filter((t) => ((profileByName(t.profile) || {}).services || []).some((x) => want.includes(x.proto + ":" + x.port))).length;
 }
-function renderTraps() {
-  const list = traps.filter((t) => !S.trapFilter || trapState(t) === S.trapFilter);
-  reconcile($("traps"), list, {
-    key: (t) => t.id, build: trapRow, animate: true,
-    sig: (t) => { const c = containerByName(t.container); return JSON.stringify([t.name, t.container, c && c.vmid, trapState(t), t.profile, portsOf(t.profile)]); },
-    empty: () => emptyRow(7, traps.length ? "Нет ловушек с таким состоянием" : "Ловушек пока нет"),
+function useTemplate(entry) {
+  clearEditor(); setEditing(null);
+  $("p-name").value = entry.id + "-" + entry.level;
+  $("p-level").value = entry.level;
+  $("p-services").value = entry.services.map((x) => [x.port, x.proto, x.banner.replace(/\r\n/g, " ")].join(":").replace(/:$/, "")).join("\n");
+  $("p-users").value = (entry.users || []).join("\n");
+  $("p-tokens").value = (entry.tokens || []).join("\n");
+  showTab("profiles"); $("p-name").focus(); $("p-name").select();
+  toast("Конструктор заполнен по шаблону «" + entry.name + "» — проверьте и сохраните");
+}
+function catalogCard(entry) {
+  const card = el("article", undefined, "tcard lv-" + entry.level + (entry.planned ? " planned" : ""));
+  const head = el("div", undefined, "thead");
+  const lvl = entry.level === "high" ? tipped(el("span", "High", "tag high"), "High — настоящая ОС в изолированной машине. Самые полные данные, но и самый высокий риск.") : levelTag(entry.level);
+  head.append(el("span", entry.icon, "badge"), el("h3", entry.name), lvl);
+  if (entry.planned) head.append(tipped(el("span", "в разработке", "tag soon"), "Агент пока не умеет такую ловушку. Это направление развития проекта."));
+  card.append(head);
+  if (entry.services.length) {
+    const ports = el("div", undefined, "ports");
+    for (const x of entry.services) ports.append(tipped(el("span", x.port + "/" + (x.proto === "banner" ? "tcp" : x.proto)), x.banner ? "Баннер: " + x.banner.replace(/\r\n/g, " ⏎ ") : "Без баннера: порт молча ждёт данных"));
+    card.append(ports);
+  }
+  const dl = el("dl", undefined, "tinfo");
+  dl.append(el("dt", "Эмулирует"), el("dd", entry.emulates), el("dt", "Собирает"), el("dd", entry.collects));
+  card.append(dl);
+  if (entry.note) card.append(el("p", "⚠ " + entry.note, "tnote"));
+  const foot = el("div", undefined, "tfoot");
+  foot.append(tipped(el("span", "Риск: " + entry.risk.toLowerCase(), "risk r-" + entry.level), "Насколько опасно держать такую ловушку: чем реалистичнее, тем больше атакующий может сделать внутри."));
+  const used = catalogUsage(entry);
+  if (used !== null) foot.append(tipped(el("span", used ? "запущено: " + used : "не запущена", "used" + (used ? " on" : "")), "Сколько ловушек этого типа сейчас работает в контейнерах"));
+  const btn = el("button", entry.planned ? "Скоро" : "Создать профиль", entry.planned ? "ghost small" : "btn small");
+  if (entry.planned) { btn.disabled = true; btn.title = "Появится в следующих версиях"; }
+  else { btn.title = "Открыть конструктор профиля, заполненный этим шаблоном"; btn.onclick = () => useTemplate(entry); }
+  foot.append(btn);
+  card.append(foot);
+  return card;
+}
+function renderCatalog() {
+  const q = S.cat.q.trim().toLowerCase();
+  const list = CATALOG.filter((e) => (!S.cat.level || e.level === S.cat.level) &&
+    (!q || [e.name, e.icon, e.emulates, e.collects, ...e.services.map((x) => String(x.port))].join(" ").toLowerCase().includes(q)));
+  reconcile($("catalog"), list, {
+    key: (e) => e.id, sig: (e) => String(catalogUsage(e)), build: catalogCard, animate: true,
+    empty: () => el("div", "Ничего не найдено", "cnone"),
   });
+  const ready = CATALOG.filter((e) => !e.planned).length;
+  $("cat-summary").textContent = ready + " типов готово · " + (CATALOG.length - ready) + " в разработке";
 }
-$("t-status").onchange = (e) => { S.trapFilter = e.target.value; renderTraps(); };
+$("cat-level").replaceChildren(...CAT_LEVELS.map(([v, label]) => {
+  const b = el("button", label, v === S.cat.level ? "on" : ""); b.type = "button"; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(v === S.cat.level));
+  b.title = v ? "Показать только уровень " + label : "Показать все уровни";
+  b.onclick = () => { S.cat.level = v; for (const x of $("cat-level").children) { const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-checked", String(on)); } renderCatalog(); };
+  return b;
+}));
+$("cat-q").oninput = (e) => { S.cat.q = e.target.value; renderCatalog(); };
 
 function openTrap(name) {
   const t = trapByName(name); if (!t) return;
@@ -807,7 +899,7 @@ function renderFilters() {
   fillSelect($("f-type"), [["", "Все типы"], ...TYPES.map((t) => [t, t])]);
   fillSelect($("f-trap"), [["", "Все ловушки"], ...traps.map((t) => [t.name, t.container + " / " + t.name])]);
   const states = [["", "Все состояния"], ...ORDER.map((k) => [k, STATES[k].label])];
-  fillSelect($("c-status"), states); fillSelect($("t-status"), states);
+  fillSelect($("c-status"), states);
 }
 
 // ============ ПРОФИЛИ (имена пользователей-приманок, без паролей) ============
@@ -918,7 +1010,7 @@ $("ioc-csv").onclick = () => {
 makeClickable($("kpi-total"), () => { setFilter({ type: "", trap: "", q: "" }); toast("Фильтры сброшены"); });
 makeClickable($("kpi-auth"), () => setFilter({ type: "auth_attempt", trap: "", q: "" }));
 makeClickable($("kpi-alert"), () => setFilter({ type: "alert", trap: "", q: "" }));
-makeClickable($("kpi-online"), () => { showTab("traps"); S.trapFilter = "online"; $("t-status").value = "online"; renderTraps(); });
+makeClickable($("kpi-online"), () => { showTab("containers"); S.cFilter.status = "online"; $("c-status").value = "online"; renderContainers(); });
 
 // ============ СЕССИЯ ============
 $("logout").onclick = async () => {
