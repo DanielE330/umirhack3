@@ -9,7 +9,7 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict):
     """
     Отправляет уведомление об атаке в Telegram.
     Библиотека httpx автоматически подхватит прокси (HTTP_PROXY), 
-    который проставит скрипт Даниэля.
+    заданный в окружении.
     """
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
         return

@@ -44,14 +44,14 @@ docs/             условие кейса (pdf), планы, ресёрч, з�
 
 ## Сервисы
 
-| Сервис | Назначение | Порт | Технологии | Автор |
-|---|---|---|---|---|
-| proxy | единый вход, маршрутизация на center/orchestrator | 4000 (наружу) | Caddy 2 | DanielE330 |
-| center (`backend/center`) | вход с 2FA, профили, ловушки, события, алерты, IoC, канал агентов, прокси к оркестратору | 4000 (внутри сети) | Python 3.12, FastAPI, SQLAlchemy, psycopg, pyotp, cryptography | DanielE330 |
-| frontend (`frontend/`) | веб-интерфейс оператора (вход, панель) | отдаётся центром | HTML, JS, CSS без сборки | DanielE330 |
-| orchestrator (`backend/orchestrator`) | создание/управление LXC/KVM-ловушками в Proxmox, статистика, приём телеметрии `/api/v1/analytics/track` | 4000 (внутри сети) | Python 3.11, FastAPI, SQLAlchemy async, asyncpg, proxmoxer, docker SDK | Lunarflux-hub (доработки — DanielE330) |
-| db | PostgreSQL центра и оркестратора | 5432 (внутри сети) | PostgreSQL 17 | — |
-| agent (`agent/`) | сервисы-приманки на хосте, отправка событий | порты из профиля | Python 3, asyncio, asyncssh, setproctitle | DanielE330 |
+| Сервис | Назначение | Порт | Технологии |
+|---|---|---|---|
+| proxy | единый вход, маршрутизация на center/orchestrator | 4000 (наружу) | Caddy 2 |
+| center (`backend/center`) | вход с 2FA, профили, ловушки, события, алерты, IoC, канал агентов, прокси к оркестратору | 4000 (внутри сети) | Python 3.12, FastAPI, SQLAlchemy, psycopg, pyotp, cryptography |
+| frontend (`frontend/`) | веб-интерфейс оператора (вход, панель) | отдаётся центром | HTML, JS, CSS без сборки |
+| orchestrator (`backend/orchestrator`) | создание/управление LXC/KVM-ловушками в Proxmox, статистика, приём телеметрии `/api/v1/analytics/track` | 4000 (внутри сети) | Python 3.11, FastAPI, SQLAlchemy async, asyncpg, proxmoxer, docker SDK |
+| db | PostgreSQL центра и оркестратора | 5432 (внутри сети) | PostgreSQL 17 |
+| agent (`agent/`) | сервисы-приманки на хосте, отправка событий | порты из профиля | Python 3, asyncio, asyncssh, setproctitle |
 
 ## Запуск
 
@@ -222,7 +222,7 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `GET/POST /api/v1/machines/`, `POST /api/v1/machines/{vmid}/{action}`, `PUT/DELETE /api/v1/machines/{vmid}` | машины Proxmox с тегом `honeyforge` | межсервисный токен |
 | `POST /api/v1/machines/{vmid}/agents`, `DELETE /api/v1/machines/{vmid}/agents/{trap_id}` | включить/выключить агента ловушки в машине (пока машина создаётся — в очередь) | межсервисный токен |
 | `POST /api/v1/notify/` | отправить алерт центра в Telegram | межсервисный токен |
-| `GET /api/v1/events/` | лента событий из своей БД (Lunarflux-hub) | нет |
+| `GET /api/v1/events/` | лента событий из своей БД | нет |
 | `GET/POST /api/v1/traps/`, `POST /api/v1/traps/proxmox`, `DELETE /api/v1/traps/{container_id}`, `POST /api/v1/traps/{container_id}/stop` | docker-ловушки (нужен Docker-сокет, в infra не смонтирован) и создание в Proxmox | межсервисный токен |
 | `GET /api/v1/stats/` | статистика по своей БД | нет |
 | `POST /api/v1/analytics/track` | приём телеметрии под видом веб-аналитики | нет |
@@ -291,10 +291,3 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 - Автоматическое включение агентов работает только для LXC-машин из шаблона с предустановленным агентом (`9101`).
 - Docker-ловушки оркестратора (`/api/v1/traps/`) требуют Docker-сокет; он смонтирован только в `backend/orchestrator/docker-compose.yml`, в infra — нет.
 - Автотестов оркестратора нет.
-
-## Команда
-
-| Участник | Роль |
-|---|---|
-| [DanielE330](https://github.com/DanielE330) | автор, тимлид |
-| [Lunarflux-hub](https://github.com/Lunarflux-hub) | контрибьютер: бэкенд, Docker, интеграция с Proxmox |

@@ -3,7 +3,7 @@
 	auto_https off
 }
 :4000 {
-	# Оркестратор (сервис Ростика): его API и документация; управление машинами закрыто межсервисным токеном
+	# Оркестратор: его API и документация; управление машинами закрыто межсервисным токеном
 	@orchestrator path /api/v1/* /docs /docs/* /openapi.json /redoc
 	handle @orchestrator {
 		reverse_proxy orchestrator:4000
