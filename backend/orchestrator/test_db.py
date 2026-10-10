@@ -1,7 +1,7 @@
 import asyncio
 from app.db.database import engine, Base
 # Импортируем модели, чтобы SQLAlchemy знала, какие таблицы создавать
-from app.models.models import User, Profile, Trap, Event, AuditLog
+from app.models.models import User, Profile, Trap, Event, AuditLog, SessionAssessment
 
 async def init_db():
     print("Подключаемся к базе данных PostgreSQL...")

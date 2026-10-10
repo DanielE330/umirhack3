@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, JSON, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, JSON, ForeignKey, Enum, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -48,8 +48,31 @@ class Event(Base):
     attacker_ip = Column(String, index=True)
     event_type = Column(String, index=True) # ssh_login, web_exploit, command_executed
     payload = Column(JSON) # JSON с полной информацией (введенный пароль, скачанный вирус и т.д.)
-    
+    session_id = Column(String, index=True, nullable=True) # для группировки событий одной сессии (HoneyMind /session)
+
+    # Оценка HoneyMind (app/services/honeymind_client.py, app/services/scoring.py).
+    # NULL, пока фоновая оценка не завершилась (сервис недоступен/таймаут) — это нормальное состояние, не ошибка.
+    threat_score = Column(Integer, nullable=True, index=True)
+    category = Column(String, nullable=True)
+    needs_review = Column(Boolean, nullable=True, index=True)
+    honeymind_result = Column(JSON, nullable=True) # полный ответ /predict (matched_rules, mitre, summary и т.д.)
+
     trap = relationship("Trap")
+
+
+class SessionAssessment(Base):
+    """Итог оценки сессии атакующего через HoneyMind /session («человек или бот»)."""
+    __tablename__ = "session_assessments"
+
+    session_id = Column(String, primary_key=True)
+    attacker_ip = Column(String, index=True, nullable=True)
+    is_human = Column(Boolean, nullable=True)
+    human_probability = Column(Float, nullable=True)
+    human_method = Column(String, nullable=True)
+    human_reason = Column(String, nullable=True)
+    script_seen_before = Column(Integer, nullable=True)
+    result = Column(JSON, nullable=True) # полный ответ /session
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class AuditLog(Base):
     """Аудит действий админов панели"""

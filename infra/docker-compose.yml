@@ -3,6 +3,8 @@
 #   center       — вход с 2FA, веб-интерфейс, профили, ловушки, приём телеметрии агентов, события
 #   db           — PostgreSQL центра
 #   orchestrator — сервис управления машинами-ловушками в Proxmox (только по межсервисному токену)
+#   honeymind    — AI-аналитика событий (threat_score/category/is_human); только во внутренней
+#                  сети backend, порт наружу не публикуется — доступен лишь оркестратору
 # Запуск из папки infra/: cp .env.example .env && заполнить && docker compose up -d --build
 name: honeyforge-center
 
@@ -75,11 +77,28 @@ services:
       TELEGRAM_PROXY: ${TELEGRAM_PROXY:-}
       # Узкий SSH-доступ к хосту Proxmox для включения агентов (infra/proxmox/hf-agent-ctl)
       PVE_SSH_HOST: ${PVE_SSH_HOST:-}
+      # AI-аналитика событий (threat_score/category/is_human); сервис honeymind виден только
+      # здесь, через внутреннюю сеть backend — см. honeymind/README.md
+      HONEYMIND_URL: http://honeymind:8001
+      HONEYMIND_TOKEN: ${HONEYMIND_TOKEN:?задайте HONEYMIND_TOKEN}
     volumes:
       - ./secrets:/run/hf-secrets:ro   # pve_agent_ed25519 + known_hosts, только на сервере, не в git
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      default: {}
+      backend: {}
+    restart: unless-stopped
+
+  honeymind:
+    build: ../honeymind
+    container_name: hf-honeymind
+    environment:
+      HONEYMIND_TOKEN: ${HONEYMIND_TOKEN:?задайте HONEYMIND_TOKEN}
+      HONEYMIND_DOCS: "0"
+    networks:
+      backend: {}          # только внутренняя сеть — порт наружу и в default не публикуем
     restart: unless-stopped
 
 networks:
@@ -87,6 +106,8 @@ networks:
     ipam:
       config:
         - subnet: 172.31.40.0/24
+  backend:
+    internal: true          # нет выхода наружу; доступен только сервисам, подключённым к ней (orchestrator)
 
 volumes:
   pgdata:
