@@ -2,17 +2,19 @@ from fastapi import APIRouter, HTTPException
 from app.services.docker_manager import DockerManager
 from app.services.proxmox_manager import ProxmoxManager
 from app.schemas.trap import TrapCreate, ProxmoxTrapCreate
+import os
 import random
 
 router = APIRouter()
 docker_manager = DockerManager()
 
 def get_proxmox_manager():
+    # Доступ к Proxmox только из окружения (PROXMOX_*), секреты в коде не храним
     return ProxmoxManager(
-        host="100.64.0.12",
-        user="root@pam",
-        password="10293847", 
-        port=8006
+        host=os.environ.get("PROXMOX_HOST", "100.64.0.12"),
+        user=os.environ.get("PROXMOX_USER", "root@pam"),
+        password=os.environ["PROXMOX_PASSWORD"],
+        port=int(os.environ.get("PROXMOX_PORT", "8006")),
     )
 
 @router.post("/")

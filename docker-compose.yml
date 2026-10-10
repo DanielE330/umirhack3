@@ -12,6 +12,9 @@ services:
     restart: unless-stopped
     environment:
       - DATABASE_URL=postgresql+asyncpg://admin:password123@postgres:5432/honeyforge
+      - PROXMOX_HOST=${PROXMOX_HOST:-100.64.0.12}
+      - PROXMOX_USER=${PROXMOX_USER:-root@pam}
+      - PROXMOX_PASSWORD=${PROXMOX_PASSWORD:?задайте PROXMOX_PASSWORD в .env}
     depends_on:
       - postgres
     networks:
