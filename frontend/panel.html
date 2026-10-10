@@ -18,6 +18,7 @@
     <button data-tab="dash" title="Сводка и лента атак в реальном времени">Обзор</button>
     <button data-tab="traps" title="Каталог всех типов ловушек, которые умеет платформа">Ловушки</button>
     <button data-tab="profiles" title="Шаблоны ловушек: уровень, порты, баннеры, приманки">Профили</button>
+    <button data-tab="users" class="hidden" id="nav-users" title="Операторы панели: создание, роли, блокировка, сброс 2FA">Пользователи</button>
   </nav>
   <div class="who"><span><b id="who">…</b> · <span id="role"></span></span><button class="ghost" id="logout" title="Завершить сеанс">Выйти</button></div>
 </header>
@@ -104,6 +105,23 @@
           <button class="ghost hidden" id="p-cancel">Отмена</button>
           <button class="ghost danger hidden" id="p-delete">Удалить</button>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Пользователи (только admin) -->
+  <section id="tab-users" class="hidden">
+    <div class="cols">
+      <div class="card"><h3>Пользователи<span class="q" tabindex="0" data-tip="Кто может входить в панель. Admin управляет пользователями, operator — машинами, ловушками и профилями. Саморегистрации нет: заводит только администратор." aria-label="Кто может входить в панель. Admin управляет пользователями, operator — машинами, ловушками и профилями. Саморегистрации нет: заводит только администратор.">?</span></h3>
+        <table><thead><tr><th>Логин</th><th>Роль</th><th title="Включена ли двухфакторная аутентификация">2FA</th><th>Статус</th><th></th></tr></thead><tbody id="users"></tbody></table></div>
+      <div class="card">
+        <h3>Новый пользователь</h3>
+        <label for="u-name">Логин</label><input id="u-name" maxlength="64" autocomplete="off" placeholder="ivan.petrov">
+        <label for="u-pass">Пароль<span class="q" tabindex="0" data-tip="Не короче 12 символов и не содержит логин. Передайте пароль пользователю лично: при первом входе он настроит 2FA." aria-label="Не короче 12 символов и не содержит логин. Передайте пароль пользователю лично: при первом входе он настроит 2FA.">?</span></label>
+        <div class="row2"><input id="u-pass" type="text" maxlength="128" autocomplete="new-password"><button class="ghost" id="u-gen" title="Сгенерировать надёжный пароль">⚄</button></div>
+        <label for="u-role">Роль</label>
+        <select id="u-role"><option value="operator">operator: машины, ловушки, профили</option><option value="admin">admin: всё, включая пользователей</option></select>
+        <div class="actions"><button class="btn" id="u-create">✓ Создать</button></div>
       </div>
     </div>
   </section>
