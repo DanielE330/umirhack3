@@ -10,7 +10,8 @@ from sqlalchemy.orm import sessionmaker
 from .config import Settings, get_settings
 from .db import init_db, make_engine
 from .hub import Hub
-from .routers import agent_api, events, profiles, traps
+from .orchestrator import Orchestrator
+from .routers import agent_api, events, machines, profiles, traps
 from .routers import auth as auth_router
 from .routers import users as users_router
 from .security import Vault
@@ -28,6 +29,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.state.vault = Vault(settings.secret_key)
     app.state.hub = Hub()
+    app.state.orchestrator = Orchestrator(settings)
     app.state.session_factory = sessionmaker(engine, expire_on_commit=False)
 
     @app.middleware("http")
@@ -51,6 +53,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(users_router.router)
     app.include_router(profiles.router)
     app.include_router(traps.router)
+    app.include_router(machines.router)
     app.include_router(events.router)
     app.include_router(agent_api.router)
 

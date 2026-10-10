@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     trusted_proxies: str = "127.0.0.1,::1"   # от них верим X-Forwarded-For (Nginx)
     docs_enabled: bool = False               # /docs и /openapi.json
 
+    # Оркестратор Proxmox (отдельный сервис): адрес во внутренней сети и межсервисный токен
+    orchestrator_url: str = ""
+    orchestrator_token: str = ""
+
     @property
     def trusted_proxy_set(self) -> set[str]:
         return {p.strip() for p in self.trusted_proxies.split(",") if p.strip()}

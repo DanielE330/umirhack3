@@ -22,7 +22,7 @@ def trap_view(t: Trap, settings, events: int = 0) -> dict:
             "level": t.profile.level if t.profile else None, "enabled": t.enabled, "host": t.host,
             "agent_version": t.agent_version, "status": trap_status(t, settings),
             "last_seen": t.last_seen.isoformat() + "Z" if t.last_seen else None,
-            "pending_command": t.pending_command, "events": events, "created_at": t.created_at.isoformat() + "Z"}
+            "pending_command": t.pending_command, "events": events, "machine_vmid": t.machine_vmid, "created_at": t.created_at.isoformat() + "Z"}
 
 
 def _get(db: Session, trap_id: int) -> Trap:
@@ -48,7 +48,8 @@ def list_traps(request: Request, _: User = Depends(auth.current_user), db: Sessi
 def create_trap(body: TrapIn, request: Request, user: User = Depends(operator), db: Session = Depends(get_db)):
     _check_profile(db, body.profile_id)
     token = new_agent_token()
-    t = Trap(name=body.name.strip(), profile_id=body.profile_id, token_hash=hash_agent_token(token))
+    t = Trap(name=body.name.strip(), profile_id=body.profile_id, machine_vmid=body.machine_vmid,
+             token_hash=hash_agent_token(token))
     db.add(t)
     auth.audit(db, user.username, "trap.create", t.name, auth.client_ip(request))
     try:
@@ -79,6 +80,8 @@ def patch_trap(trap_id: int, body: TrapPatch, request: Request, user: User = Dep
         t.profile_id = body.profile_id
     if body.enabled is not None:
         t.enabled = body.enabled
+    if body.machine_vmid is not None:
+        t.machine_vmid = body.machine_vmid
     auth.audit(db, user.username, "trap.update", f"{t.name}: {body.model_dump(exclude_none=True)}",
                auth.client_ip(request))
     try:
@@ -120,9 +123,10 @@ def _render_artifact(kind: str, trap: Trap, token: str, public_url: str) -> str:
         parts.append("honeyforge-agent:latest")
         return " \\\n  ".join(parts) + "\n"
     return ("#!/bin/sh\nset -eu\n"
+            "# Запускать из каталога, где лежит пакет агента netsvc\n"
             f"export HF_CENTER_URL={shlex.quote(public_url)}\n"
             f"export HF_TRAP_TOKEN={shlex.quote(token)}\n"
-            "exec python3 -m agent\n")
+            "exec python3 -m netsvc\n")
 
 
 @router.post("/{trap_id}/deploy")

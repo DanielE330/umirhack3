@@ -1,0 +1,15 @@
+{
+	admin off
+	auto_https off
+}
+:4000 {
+	# Оркестратор (сервис Ростика): его API и документация; управление машинами закрыто межсервисным токеном
+	@orchestrator path /api/v1/* /docs /docs/* /openapi.json /redoc
+	handle @orchestrator {
+		reverse_proxy orchestrator:4000
+	}
+	# Всё остальное: веб-интерфейс и API центра (вход, профили, ловушки, события, канал агентов)
+	handle {
+		reverse_proxy center:4000
+	}
+}

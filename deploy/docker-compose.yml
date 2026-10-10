@@ -1,0 +1,81 @@
+# Весь стек HoneyForge одной командой (микросервисы):
+#   proxy        — единый вход :4000 (Caddy): веб-интерфейс и API центра, /api/v1/* — оркестратор
+#   center       — вход с 2FA, веб-интерфейс, профили, ловушки, приём телеметрии агентов, события
+#   db           — PostgreSQL центра
+#   orchestrator — сервис управления машинами-ловушками в Proxmox (только по межсервисному токену)
+# Запуск: cp .env.example .env && заполнить && docker compose up -d --build
+name: honeyforge-center
+
+services:
+  proxy:
+    image: caddy:2-alpine
+    container_name: hf-proxy
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    networks:
+      default:
+        ipv4_address: 172.31.40.10   # центр доверяет X-Forwarded-For только от этого адреса
+    depends_on: [center, orchestrator]
+    restart: unless-stopped
+
+  center:
+    build: ../backend
+    container_name: hf-center
+    env_file: .env
+    environment:
+      HF_DATABASE_URL: postgresql+psycopg://honeyforge:${HF_DB_PASSWORD:?задайте HF_DB_PASSWORD}@db:5432/honeyforge
+      HF_ORCHESTRATOR_URL: http://orchestrator:4000
+      HF_ORCHESTRATOR_TOKEN: ${ORCH_TOKEN:?задайте ORCH_TOKEN}
+      HF_TRUSTED_PROXIES: 172.31.40.10
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    container_name: hf-center-db
+    environment:
+      POSTGRES_USER: honeyforge
+      POSTGRES_PASSWORD: ${HF_DB_PASSWORD:?задайте HF_DB_PASSWORD}
+      POSTGRES_DB: honeyforge
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro   # отдельная база оркестратора при первом запуске
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U honeyforge"]
+      interval: 3s
+      retries: 20
+    restart: unless-stopped
+
+  orchestrator:
+    build: ..
+    container_name: hf-orchestrator
+    environment:
+      ORCH_TOKEN: ${ORCH_TOKEN:?задайте ORCH_TOKEN}
+      DATABASE_URL: postgresql+asyncpg://honeyforge:${HF_DB_PASSWORD}@db:5432/orchestrator
+      PROXMOX_HOST: ${PROXMOX_HOST:-192.168.1.94}
+      PROXMOX_USER: ${PROXMOX_USER:-root@pam}
+      PROXMOX_PASSWORD: ${PROXMOX_PASSWORD:-}
+      PROXMOX_TOKEN_NAME: ${PROXMOX_TOKEN_NAME:-}
+      PROXMOX_TOKEN_VALUE: ${PROXMOX_TOKEN_VALUE:-}
+      PROXMOX_TEMPLATE_LXC: ${PROXMOX_TEMPLATE_LXC:-104}
+      PROXMOX_STORAGE: ${PROXMOX_STORAGE:-hdd}
+      PROXMOX_BRIDGE: ${PROXMOX_BRIDGE:-vmbr1}
+      PROXMOX_NETWORK: ${PROXMOX_NETWORK:-10.20.0.0/24}
+      PROXMOX_GATEWAY: ${PROXMOX_GATEWAY:-10.20.0.1}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.31.40.0/24
+
+volumes:
+  pgdata:

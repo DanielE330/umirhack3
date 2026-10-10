@@ -110,6 +110,7 @@ class Trap(Base):
     agent_version: Mapped[str] = mapped_column(String(32), default="")
     last_seen: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     pending_command: Mapped[str | None] = mapped_column(String(16), nullable=True)  # restart | refresh
+    machine_vmid: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)  # машина в Proxmox
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     profile: Mapped[Profile | None] = relationship()

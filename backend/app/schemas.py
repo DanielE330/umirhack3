@@ -81,6 +81,7 @@ class ProfileIn(BaseModel):
 class TrapIn(BaseModel):
     name: str = Field(min_length=1, max_length=80)
     profile_id: int | None = None
+    machine_vmid: int | None = Field(default=None, ge=100)
 
 
 class TrapPatch(BaseModel):
@@ -88,6 +89,22 @@ class TrapPatch(BaseModel):
     profile_id: int | None = None
     enabled: bool | None = None
     clear_profile: bool = False
+    machine_vmid: int | None = Field(default=None, ge=100)
+
+
+class MachineIn(BaseModel):
+    name: str = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9-]{0,61}$")
+    type: Literal["lxc", "kvm"] = "lxc"
+    cores: int = Field(default=1, ge=1, le=32)
+    memory_gb: int = Field(default=1, ge=1, le=128)
+    disk_gb: int = Field(default=10, ge=1, le=1000)
+
+
+class MachinePatch(BaseModel):
+    name: str | None = Field(default=None, pattern=r"^[A-Za-z0-9][A-Za-z0-9-]{0,61}$")
+    cores: int | None = Field(default=None, ge=1, le=32)
+    memory_gb: int | None = Field(default=None, ge=1, le=128)
+    disk_gb: int | None = Field(default=None, ge=1, le=1000)
 
 
 class CommandIn(BaseModel):
