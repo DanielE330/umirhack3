@@ -14,23 +14,23 @@
   <img src="/static/logo-256.png" alt="">
   <b>Honey<span>Forge</span></b>
   <nav id="nav">
-    <button data-tab="containers" class="on">Контейнеры</button>
-    <button data-tab="dash">Обзор</button>
-    <button data-tab="traps">Ловушки</button>
-    <button data-tab="profiles">Профили</button>
+    <button data-tab="containers" class="on" title="Машины в Proxmox, внутри которых работают ловушки">Контейнеры</button>
+    <button data-tab="dash" title="Сводка и лента атак в реальном времени">Обзор</button>
+    <button data-tab="traps" title="Все ловушки одним списком, по всем машинам">Ловушки</button>
+    <button data-tab="profiles" title="Шаблоны ловушек: уровень, порты, баннеры, приманки">Профили</button>
   </nav>
-  <div class="who"><span><b id="who">…</b> · <span id="role"></span></span><button class="ghost" id="logout">Выйти</button></div>
+  <div class="who"><span><b id="who">…</b> · <span id="role"></span></span><button class="ghost" id="logout" title="Завершить сеанс">Выйти</button></div>
 </header>
 
 <main>
-  <div class="demo">Демо-режим: данные примерные, события генерируются в браузере. К центру управления панель пока не подключена.</div>
+  <div class="demo" title="Сейчас панель показывает примерные данные, чтобы можно было посмотреть интерфейс без ловушек">Демо-режим: данные примерные, события генерируются в браузере. К центру управления панель пока не подключена.</div>
 
   <!-- Контейнеры (главная) -->
   <section id="tab-containers">
     <div class="toolbar">
-      <button class="btn" id="add-container">+ Новый контейнер</button>
+      <button class="btn" id="add-container" title="Создать в Proxmox новую машину в изолированной сети и запустить в ней ловушки">+ Новый контейнер</button>
       <input id="c-q" placeholder="Поиск по контейнерам и ловушкам…" aria-label="Поиск" style="max-width:280px">
-      <select id="c-status" aria-label="Статус" style="max-width:200px"></select>
+      <select id="c-status" aria-label="Статус" title="Показать только машины в выбранном состоянии" style="max-width:200px"></select>
       <span class="spacer"></span>
       <span class="hint" id="c-summary"></span>
     </div>
@@ -41,30 +41,30 @@
   <!-- Обзор -->
   <section id="tab-dash" class="hidden">
     <div class="grid">
-      <div class="card kpi" id="kpi-total" role="button" tabindex="0" title="Показать все события"><h3>Событий за 24 ч</h3><div class="num" id="k-total">0</div></div>
-      <div class="card kpi" id="kpi-online" role="button" tabindex="0" title="Открыть список ловушек"><h3>Ловушки онлайн</h3><div class="num ok" id="k-online">0 / 0</div></div>
-      <div class="card kpi" id="kpi-auth" role="button" tabindex="0" title="Только попытки входа"><h3>Попыток входа</h3><div class="num" id="k-auth">0</div></div>
-      <div class="card kpi" id="kpi-alert" role="button" tabindex="0" title="Только алерты"><h3>Алертов</h3><div class="num bad" id="k-alert">0</div></div>
+      <div class="card kpi" id="kpi-total" role="button" tabindex="0" title="Все события с ловушек за сутки. Нажмите, чтобы сбросить фильтры ленты"><h3>Событий за 24 ч</h3><div class="num" id="k-total">0</div></div>
+      <div class="card kpi" id="kpi-online" role="button" tabindex="0" title="Сколько ловушек сейчас на связи с центром из общего числа. Нажмите, чтобы открыть список"><h3>Ловушки онлайн</h3><div class="num ok" id="k-online">0 / 0</div></div>
+      <div class="card kpi" id="kpi-auth" role="button" tabindex="0" title="Сколько раз атакующие вводили логин и пароль. Нажмите, чтобы показать только их"><h3>Попыток входа</h3><div class="num" id="k-auth">0</div></div>
+      <div class="card kpi" id="kpi-alert" role="button" tabindex="0" title="Тревоги центра: например, перебор паролей (5+ попыток с одного IP за минуту). Нажмите, чтобы показать только их"><h3>Алертов</h3><div class="num bad" id="k-alert">0</div></div>
     </div>
     <div class="cols">
       <div class="card">
-        <h3>Лента атак в реальном времени</h3>
+        <h3>Лента атак в реальном времени<span class="q" tabindex="0" data-tip="Каждая строка — действие атакующего на ловушке. Новые события появляются сверху сами. Нажмите строку, чтобы увидеть подробности." aria-label="Каждая строка — действие атакующего на ловушке. Новые события появляются сверху сами. Нажмите строку, чтобы увидеть подробности.">?</span></h3>
         <div class="toolbar tight">
-          <select id="f-type" aria-label="Тип события"></select>
-          <select id="f-trap" aria-label="Ловушка"></select>
-          <input id="f-q" placeholder="Поиск: IP, логин, команда…" aria-label="Поиск" style="max-width:220px">
-          <button class="ghost" id="f-reset">Сбросить</button>
-          <button class="ghost" id="f-pause">⏸ Пауза</button>
-          <button class="ghost" id="f-clear">Очистить</button>
-          <button class="ghost" id="f-csv">Экспорт CSV</button>
+          <select id="f-type" aria-label="Тип события" title="Показать только события выбранного типа"></select>
+          <select id="f-trap" aria-label="Ловушка" title="Показать события только одной ловушки"></select>
+          <input id="f-q" placeholder="Поиск: IP, логин, команда…" aria-label="Поиск" title="Поиск по IP, логину, паролю, команде и имени ловушки" style="max-width:220px">
+          <button class="ghost" id="f-reset" title="Убрать все фильтры ленты">Сбросить</button>
+          <button class="ghost" id="f-pause" title="Остановить прокрутку ленты, чтобы спокойно рассмотреть события. Новые события продолжат считаться">⏸ Пауза</button>
+          <button class="ghost" id="f-clear" title="Очистить ленту на экране (в базе события останутся)">Очистить</button>
+          <button class="ghost" id="f-csv" title="Скачать отфильтрованные события таблицей для Excel">Экспорт CSV</button>
         </div>
-        <div class="feed"><table><thead><tr><th>Время</th><th>Ловушка</th><th>Тип</th><th>Источник</th><th>Детали</th></tr></thead><tbody id="feed"></tbody></table></div>
+        <div class="feed"><table><thead><tr><th title="Время события на ловушке">Время</th><th>Ловушка</th><th title="Наведите на тег в строке, чтобы узнать, что он значит">Тип</th><th title="IP-адрес атакующего">Источник</th><th title="Команда, запрос или введённые логин/пароль">Детали</th></tr></thead><tbody id="feed"></tbody></table></div>
       </div>
       <div class="stack">
-        <div class="card"><h3>Активность за час</h3><div class="bars" id="bars"></div></div>
-        <div class="card"><h3>Топ источников <span class="hint">нажмите для фильтра</span></h3><div id="top-src" class="pick"></div>
-          <div style="margin-top:10px"><button class="ghost" id="ioc-csv">Экспорт IoC (CSV)</button></div></div>
-        <div class="card"><h3>Топ паролей <span class="hint">нажмите для фильтра</span></h3><div id="top-pw" class="pick"></div></div>
+        <div class="card"><h3>Активность за час<span class="q" tabindex="0" data-tip="Число событий по минутам за последний час. Наведите на столбик, чтобы увидеть точное значение." aria-label="Число событий по минутам за последний час. Наведите на столбик, чтобы увидеть точное значение.">?</span></h3><div class="bars" id="bars"></div></div>
+        <div class="card"><h3>Топ источников<span class="q" tabindex="0" data-tip="IP-адреса, с которых пришло больше всего событий. Это кандидаты на блокировку." aria-label="IP-адреса, с которых пришло больше всего событий. Это кандидаты на блокировку.">?</span> <span class="hint">нажмите для фильтра</span></h3><div id="top-src" class="pick"></div>
+          <div style="margin-top:10px"><button class="ghost" id="ioc-csv" title="IoC (индикаторы компрометации) — список IP атакующих. Его можно загрузить в межсетевой экран или SIEM">Экспорт IoC (CSV)</button></div></div>
+        <div class="card"><h3>Топ паролей<span class="q" tabindex="0" data-tip="Пароли, которые атакующие пробуют чаще всего. Показывает, какие словари используют для перебора." aria-label="Пароли, которые атакующие пробуют чаще всего. Показывает, какие словари используют для перебора.">?</span> <span class="hint">нажмите для фильтра</span></h3><div id="top-pw" class="pick"></div></div>
       </div>
     </div>
   </section>
@@ -74,33 +74,33 @@
     <div class="toolbar">
       <span class="hint">Ловушки живут внутри контейнеров: добавлять и убирать их удобнее на вкладке «Контейнеры».</span>
       <span class="spacer"></span>
-      <select id="t-status" aria-label="Статус" style="max-width:200px"></select>
+      <select id="t-status" aria-label="Статус" title="Показать только ловушки в выбранном состоянии" style="max-width:200px"></select>
     </div>
     <div class="card"><table class="rows">
-      <thead><tr><th>Ловушка</th><th>Контейнер</th><th>Статус</th><th>Профиль</th><th>Уровень</th><th>Порты</th><th>Событий</th></tr></thead>
+      <thead><tr><th>Ловушка</th><th title="Машина, в которой работает ловушка">Контейнер</th><th title="Состояние берётся от агента: на связи он или нет">Статус</th><th title="Шаблон, по которому настроена ловушка">Профиль</th><th title="Low — только баннеры портов; Medium — поддельные SSH и веб-сервисы">Уровень</th><th title="Порты, которые слушает ловушка">Порты</th><th title="Сколько событий записала ловушка">Событий</th></tr></thead>
       <tbody id="traps"></tbody></table></div>
   </section>
 
   <!-- Профили -->
   <section id="tab-profiles" class="hidden">
     <div class="cols">
-      <div class="card"><h3>Профили <span class="hint">шаблоны ловушек; нажмите строку, чтобы редактировать</span></h3>
-        <table class="rows"><thead><tr><th>Имя</th><th>Уровень</th><th>Сервисы</th><th>Ловушек</th></tr></thead><tbody id="profiles"></tbody></table></div>
+      <div class="card"><h3>Профили<span class="q" tabindex="0" data-tip="Профиль — шаблон ловушки: уровень, какие порты открыть, что отвечать и какие приманки подложить. Одним профилем можно настроить сколько угодно ловушек." aria-label="Профиль — шаблон ловушки: уровень, какие порты открыть, что отвечать и какие приманки подложить. Одним профилем можно настроить сколько угодно ловушек.">?</span> <span class="hint">шаблоны ловушек; нажмите строку, чтобы редактировать</span></h3>
+        <table class="rows"><thead><tr><th>Имя</th><th>Уровень</th><th title="Порт и протокол каждого эмулируемого сервиса">Сервисы</th><th title="Сколько ловушек использует профиль">Ловушек</th></tr></thead><tbody id="profiles"></tbody></table></div>
       <div class="card">
         <h3 id="p-title">Конструктор профиля</h3>
         <label for="p-name">Название</label><input id="p-name" placeholder="web-admin-medium">
-        <label for="p-level">Уровень</label>
+        <label for="p-level">Уровень<span class="q" tabindex="0" data-tip="Low — порт отвечает баннером сервиса и фиксирует подключение. Medium — работает поддельный SSH или веб-сервис, который собирает логины, пароли и команды." aria-label="Low — порт отвечает баннером сервиса и фиксирует подключение. Medium — работает поддельный SSH или веб-сервис, который собирает логины, пароли и команды.">?</span></label>
         <select id="p-level"><option value="low">Low: баннеры портов</option><option value="medium">Medium: fake-SSH / fake-HTTP</option></select>
-        <label for="p-services">Сервисы (порт:протокол:баннер, по одному в строке)</label>
+        <label for="p-services">Сервисы (порт:протокол:баннер, по одному в строке)<span class="q" tabindex="0" data-tip="Протокол: banner — просто строка-приветствие, ssh — поддельный SSH, http — поддельный веб-сервер. Баннер — то, что увидит сканер: чем правдоподобнее, тем лучше." aria-label="Протокол: banner — просто строка-приветствие, ssh — поддельный SSH, http — поддельный веб-сервер. Баннер — то, что увидит сканер: чем правдоподобнее, тем лучше.">?</span></label>
         <textarea id="p-services" rows="4" placeholder="22:ssh:SSH-2.0-OpenSSH_8.2p1&#10;8080:http:Apache/2.4.41"></textarea>
-        <label for="p-users">Имена пользователей-приманок (по одному в строке)</label>
+        <label for="p-users">Имена пользователей-приманок (по одному в строке)<span class="q" tabindex="0" data-tip="Учётные записи, которые «существуют» на ловушке. Атакующий увидит их и попробует подобрать к ним пароль." aria-label="Учётные записи, которые «существуют» на ловушке. Атакующий увидит их и попробует подобрать к ним пароль.">?</span></label>
         <textarea id="p-users" rows="2" placeholder="admin&#10;root"></textarea>
-        <label for="p-tokens">Honeytokens (путь)</label>
+        <label for="p-tokens">Honeytokens (путь)<span class="q" tabindex="0" data-tip="Файлы-приманки на поддельной машине. Обращение к такому файлу сразу поднимает событие honeytoken." aria-label="Файлы-приманки на поддельной машине. Обращение к такому файлу сразу поднимает событие honeytoken.">?</span></label>
         <textarea id="p-tokens" rows="2" placeholder="/root/.aws/credentials"></textarea>
-        <label>Интервал маяка, с / джиттер</label>
+        <label>Интервал маяка, с / джиттер<span class="q" tabindex="0" data-tip="Маяк — периодический запрос агента к центру за настройками. Интервал — как часто (в секундах), джиттер — случайный разброс (0.3 = ±30%), чтобы трафик не выделялся регулярностью. Агент — небольшая фоновая программа внутри машины-ловушки. Он получает от центра настройки, запускает ловушки, записывает действия атакующего и незаметно отправляет их в центр." aria-label="Маяк — периодический запрос агента к центру за настройками. Интервал — как часто (в секундах), джиттер — случайный разброс (0.3 = ±30%), чтобы трафик не выделялся регулярностью. Агент — небольшая фоновая программа внутри машины-ловушки. Он получает от центра настройки, запускает ловушки, записывает действия атакующего и незаметно отправляет их в центр.">?</span></label>
         <div class="row2"><input id="p-beacon" type="number" value="15" min="5" max="300" aria-label="Интервал маяка"><input id="p-jitter" type="number" step="0.1" min="0" max="0.9" value="0.3" aria-label="Джиттер"></div>
         <div class="actions">
-          <button class="btn" id="p-save">Сохранить профиль</button>
+          <button class="btn" id="p-save" title="Сохранить шаблон. Ловушки с этим профилем получат новые настройки при ближайшем опросе">Сохранить профиль</button>
           <button class="ghost hidden" id="p-cancel">Отмена</button>
           <button class="ghost danger hidden" id="p-delete">Удалить</button>
         </div>

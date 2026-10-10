@@ -91,7 +91,6 @@ const containerByName = (n) => containers.find((c) => c.name === n);
 const profileByName = (n) => profiles.find((p) => p.name === n);
 const trapsOf = (cname) => traps.filter((t) => t.container === cname);
 const levelOf = (name) => (profileByName(name) || {}).level || "—";
-const levelLabel = (name) => (levelOf(name) === "low" ? "Low" : levelOf(name) === "medium" ? "Medium" : "—");
 const portsOf = (profile, lookup = profileByName) => ((lookup(profile) || { services: [] }).services).map((s) => s.port);
 const alive = (c) => containers.includes(c);
 
@@ -180,6 +179,61 @@ function makeClickable(node, handler) {
 function setText(node, text) { if (node.textContent !== text) node.textContent = text; }  // без «прыжков» цифр
 function seenSpan(c) { const s = el("span", since(c.seen), "c-seen"); s.dataset.c = c.id; return s; }
 
+// ============ ПОДСКАЗКИ ПРИ НАВЕДЕНИИ ============
+// Любой элемент с title или data-tip получает быструю подсказку в стиле панели (системная title отключается).
+const HELP = {
+  agent: "Агент — небольшая фоновая программа внутри машины-ловушки. Он получает от центра настройки (какие порты открыть и что отвечать), запускает ловушки, записывает действия атакующего и незаметно отправляет их в центр. Если связь пропала, события копятся у агента и досылаются позже.",
+  seen: "Когда агент последний раз выходил на связь с центром. Агент «отмечается» каждые 15–20 секунд со случайным разбросом, чтобы его трафик не выделялся регулярностью.",
+  low: "Low — простая ловушка: открывает порт и отвечает баннером сервиса (например, «220 ProFTPD»). Фиксирует сканирование и факт подключения. Риск минимальный.",
+  medium: "Medium — ловушка с логикой сервиса: поддельный SSH с консолью, поддельная веб-админка. Собирает логины, пароли, команды и запросы. Внутри — заглушка, а не настоящая система.",
+  dmz: "DMZ — отдельная изолированная сеть для ловушек. Из неё не видно домашнюю сеть, прод и центр управления: даже взломав ловушку, атакующий не уйдёт дальше.",
+  beacon: "Маяк — периодический запрос агента к центру за настройками. Интервал — как часто, джиттер — случайный разброс (0.3 = ±30%), чтобы запросы не шли строго по часам.",
+  honeytoken: "Honeytoken — файл-приманка (ключи, бэкап, пароли). Сам по себе он не нужен никому, кроме атакующего, поэтому любое обращение к нему — верный признак взлома.",
+};
+const EVENT_HELP = {
+  connect: "Подключение к порту ловушки: кто-то просканировал или открыл соединение.",
+  auth_attempt: "Попытка входа: атакующий ввёл логин и пароль.",
+  command: "Команда, выполненная атакующим в поддельной консоли.",
+  http_request: "HTTP-запрос к поддельному веб-сервису.",
+  payload: "Данные, которые атакующий отправил в порт (полезная нагрузка).",
+  honeytoken: "Атакующий открыл файл-приманку (honeytoken) — признак настоящего взлома.",
+  alert: "Тревога центра: например, слишком много попыток входа с одного IP за минуту (перебор паролей).",
+};
+const tipped = (node, text) => { node.dataset.tip = text; return node; };
+const q = (text) => { const s = el("span", "?", "q"); s.tabIndex = 0; s.dataset.tip = text; s.setAttribute("aria-label", text); return s; };
+
+(function tooltips() {
+  const tip = el("div", undefined, "tip"); tip.setAttribute("role", "tooltip"); tip.id = "tip"; document.body.append(tip);
+  let current = null, timer = 0;
+  const find = (n) => (n && n.closest ? n.closest("[data-tip], [title]") : null);
+  function show(node) {
+    if (node.hasAttribute("title")) { node.dataset.tip = node.title; node.removeAttribute("title"); }  // без системной подсказки
+    const text = node.dataset.tip; if (!text) return;
+    current = node; tip.textContent = text; node.setAttribute("aria-describedby", "tip");
+    tip.classList.remove("on"); tip.style.left = "0px"; tip.style.top = "0px";
+    const r = node.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight, pad = 8;
+    let top = r.top - h - pad; if (top < pad) top = r.bottom + pad;
+    const left = Math.min(Math.max(pad, r.left + r.width / 2 - w / 2), innerWidth - w - pad);
+    tip.style.left = left + "px"; tip.style.top = top + "px";
+    requestAnimationFrame(() => tip.classList.add("on"));
+  }
+  function hide() { clearTimeout(timer); if (current) current.removeAttribute("aria-describedby"); current = null; tip.classList.remove("on"); }
+  document.addEventListener("mouseover", (e) => {
+    const n = find(e.target); if (n === current) return;
+    hide(); if (!n) return;
+    if (n.hasAttribute("title")) { n.dataset.tip = n.title; n.removeAttribute("title"); }
+    timer = setTimeout(() => show(n), 220);
+  });
+  document.addEventListener("focusin", (e) => { const n = find(e.target); hide(); if (n && e.target.matches(":focus-visible")) show(n); });
+  document.addEventListener("focusout", hide);
+  document.addEventListener("mousedown", hide);
+  addEventListener("scroll", hide, true);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") hide(); });
+})();
+
+const levelTag = (level) => tipped(el("span", level === "low" ? "Low" : level === "medium" ? "Medium" : "—", "tag " + level), HELP[level] || "Профиль не задан");
+const typeTag = (type) => tipped(el("span", type, "tag t-" + type), EVENT_HELP[type] || type);
+
 function stateBadge(state) {
   const wrap = el("span", undefined, "cstate"); wrap.title = STATES[state].hint;
   wrap.append(el("span", undefined, "dot " + state), el("span", STATES[state].label, "st-label " + state));
@@ -260,7 +314,7 @@ function buildPicker(box, { existing, selected, multi, onChange }) {
   for (const p of profiles) {
     const card = el("button", undefined, "pcard"); card.type = "button";
     card.append(el("span", iconFor(p), "badge"));
-    const title = el("div"); title.append(el("span", p.name, "pn"), " ", el("span", p.level === "low" ? "Low" : "Medium", "tag " + p.level)); card.append(title);
+    const title = el("div"); title.append(el("span", p.name, "pn"), " ", levelTag(p.level)); card.append(title);
     card.append(el("div", p.desc || ("Сервисов: " + p.services.length), "pd"));
     const ports = el("div", undefined, "ports"); for (const s of p.services) ports.append(el("span", s.port + "/" + s.proto)); card.append(ports);
     const why = el("div", "", "why"); why.hidden = true; card.append(why);
@@ -367,17 +421,18 @@ function containerCard(c) {
   const card = el("div", undefined, "ccard is-" + st);
 
   const head = el("div", undefined, "chead");
-  const tag = el("span", t.label + " · " + t.kind + " " + c.vmid, "vmtag " + c.type); tag.title = t.title + " в Proxmox, нода " + c.node;
+  const tag = el("span", t.label + " · " + t.kind + " " + c.vmid, "vmtag " + c.type); tag.title = t.title + " в Proxmox, нода " + c.node + ".\n" + t.kind + " " + c.vmid + " — номер машины (VMID) в Proxmox.\n" + t.desc;
   head.append(el("h3", c.name), tag,
     switchEl(c.enabled, c.enabled ? "Выключить машину (" + t.cli + " shutdown)" : "Включить машину (" + t.cli + " start)", () => toggleContainer(c), st === "creating"));
   card.append(head);
 
   const meta = el("div", undefined, "cmeta");
-  meta.append(stateBadge(st), " · IP ", el("span", c.host || "—", "m"), " · на связи ", seenSpan(c));
+  meta.append(stateBadge(st), " · IP ", tipped(el("span", c.host || "—", "m"), "Адрес машины внутри изолированной сети DMZ"), " · ", tipped(el("span", "на связи"), HELP.seen), " ", seenSpan(c), q(HELP.agent));
   card.append(meta);
   const res = el("div", undefined, "cres");
-  for (const r of resParts(c)) res.append(el("span", r));
-  res.append(el("span", "сеть " + c.bridge + " · DMZ"), el("span", "нода " + c.node));
+  const resHelp = ["Сколько ядер процессора выделено машине", "Оперативная память машины", "Размер диска машины (можно только увеличить)"];
+  resParts(c).forEach((r, i) => res.append(tipped(el("span", r), resHelp[i])));
+  res.append(tipped(el("span", "сеть " + c.bridge + " · DMZ"), HELP.dmz), tipped(el("span", "нода " + c.node), "Физический сервер Proxmox, на котором запущена машина"));
   card.append(res);
 
   if (st === "creating") {
@@ -385,12 +440,11 @@ function containerCard(c) {
     const bar = el("div", undefined, "progress"); bar.append(el("i")); note.append(bar); card.append(note);
   } else if (st === "waiting") {
     const note = el("div", undefined, "cnote");
-    note.append("Машина создана, но агент ещё не вышел на связь. Проверьте консоль " + t.kind + " в Proxmox. ");
-    const b = el("button", "Что делает центр", "ghost small"); b.onclick = () => openPve(c); note.append(b);
+    note.append("Машина создана, но агент ещё не вышел на связь. Проверьте консоль " + t.kind + " в Proxmox.");
     card.append(note);
   } else if (st === "offline") {
     const note = el("div", undefined, "cnote warn");
-    note.append("Агент не выходит на связь (последний раз ", seenSpan(c), "). Проверьте машину или перезапустите её.");
+    note.append("Агент не выходит на связь (последний раз ", seenSpan(c), "). Проверьте машину: выключите и снова включите её переключателем.");
     card.append(note);
   }
 
@@ -400,22 +454,25 @@ function containerCard(c) {
     const ts = trapState(x);
     const item = el("div", undefined, "titem"); item.title = STATES[ts].label + " — нажмите, чтобы открыть";
     makeClickable(item, () => openTrap(x.name));
-    const ev = el("span", String(x.events), "ev"); ev.dataset.trap = x.id; ev.title = "событий";
+    const ev = el("span", String(x.events), "ev"); ev.dataset.trap = x.id; ev.title = "Сколько событий (подключений, попыток входа, команд) записала эта ловушка";
     const rm = el("button", "✕ Убрать", "ghost small x"); rm.title = "Убрать ловушку из контейнера";
     armed(rm, "Точно убрать?", () => removeTrap(x));
-    item.append(el("span", undefined, "dot " + ts), el("span", x.name, "nm"), el("span", levelLabel(x.profile), "tag " + levelOf(x.profile)),
-      el("span", portsOf(x.profile).join(", "), "pf"), ev, rm);
+    item.append(el("span", undefined, "dot " + ts), el("span", x.name, "nm"), levelTag(levelOf(x.profile)),
+      tipped(el("span", portsOf(x.profile).join(", "), "pf"), "Порты, которые слушает ловушка"), ev, rm);
     items.append(item);
   }
   card.append(items);
 
   const foot = el("div", undefined, "cfoot");
-  const bAdd = el("button", "+ Добавить ловушку", "btn small"); bAdd.onclick = () => openAddTrap(c);
-  const bEdit = el("button", "⚙ Настройки", "ghost small"); bEdit.onclick = () => openContainerSettings(c);
-  const bPve = el("button", "ⓘ Proxmox", "ghost small"); bPve.title = "Что делает центр и команды Proxmox"; bPve.onclick = () => openPve(c);
-  const bRe = el("button", "↻ Перезапустить", "ghost small"); bRe.title = t.cli + " reboot " + c.vmid; bRe.onclick = () => restartContainer(c);
-  const bDel = el("button", "🗑 Удалить", "ghost small danger grow"); armed(bDel, "Удалить машину и ловушки?", () => deleteContainer(c));
-  foot.append(bAdd, bEdit, bPve, bRe, bDel);
+  const bAdd = el("button", "+ Добавить ловушку", "btn small"); bAdd.title = "Запустить в этой машине ещё одну ловушку. Агент поднимет её при ближайшем опросе центра."; bAdd.onclick = () => openAddTrap(c);
+  const bEdit = el("button", "⚙ Настройки", "ghost small"); bEdit.title = "Имя, IP, ресурсы машины и список её ловушек"; bEdit.onclick = () => openContainerSettings(c);
+  const bPve = el("button", "ⓘ", "ghost small"); bPve.setAttribute("aria-label", "Информация о машине");
+  bPve.title = "Информация о машине: что делает центр и эквивалентные команды Proxmox"; bPve.onclick = () => openPve(c);
+  const bRe = el("button", "↻", "ghost small"); bRe.setAttribute("aria-label", "Перезапустить машину");
+  bRe.title = "Перезапустить машину (" + t.cli + " reboot " + c.vmid + "). Агент снова выйдет на связь через несколько секунд."; bRe.onclick = () => restartContainer(c);
+  const bDel = el("button", "🗑", "ghost small danger"); bDel.setAttribute("aria-label", "Удалить машину"); bDel.title = "Удалить машину вместе со всеми ловушками. Нужно нажать дважды."; armed(bDel, "Удалить?", () => deleteContainer(c));
+  const icons = el("span", undefined, "cicons"); icons.append(bPve, bRe, bDel);
+  foot.append(bAdd, bEdit, icons);
   card.append(foot);
   return card;
 }
@@ -468,7 +525,8 @@ function openNewContainer() {
       return b;
     };
     seg.append(segBtn("lxc"), segBtn("kvm"));
-    const typeWrap = el("div"); typeWrap.append(el("label", "Тип машины"), seg);
+    const typeLabel = el("label", "Тип машины"); typeLabel.append(q("LXC — лёгкий контейнер, стартует за секунды, подходит для Low и Medium. KVM — полноценная виртуальная машина: дольше стартует, но изоляция сильнее."));
+    const typeWrap = el("div"); typeWrap.append(typeLabel, seg);
 
     const nameIn = el("input"); nameIn.maxLength = 60; nameIn.value = uniqueContainerName("edge-dmz"); nameIn.setAttribute("aria-label", "Имя");
     const vmidIn = numInput(nextVmid(), [PVE.vmidFrom, 999999999], "VMID");
@@ -476,15 +534,16 @@ function openNewContainer() {
     vmidIn.oninput = vmLabel; vmLabel();
     const res = resourceFields(PVE.defaults);
     body.append(typeWrap, field("Имя (hostname)", nameIn), field("VMID", vmidIn), vmHint,
-      el("h4", "Ресурсы"), res.grid, res.reset, el("h4", "Сеть"), el("div", PVE.bridgeLabel + " — ловушки не видят домашнюю сеть и прод", "ro"));
+      el("h4", "Ресурсы"), res.grid, res.reset, (() => { const h = el("h4", "Сеть"); h.append(q(HELP.dmz)); return h; })(), el("div", PVE.bridgeLabel + " — ловушки не видят домашнюю сеть и прод", "ro"));
 
-    body.append(el("h4", "Какие ловушки запустить"));
+    const pickH = el("h4", "Какие ловушки запустить"); pickH.append(q("Каждая карточка — профиль ловушки. В одной машине может работать несколько ловушек, если их порты не пересекаются. Запускает их агент внутри машины."));
+    body.append(pickH);
     body.append(el("p", "Можно выбрать несколько. Типы с пересекающимися портами в одной машине недоступны.", "hint"));
     const selected = new Set([profiles[0] && profiles[0].name].filter(Boolean));
     const grid = el("div", undefined, "picker"); body.append(grid);
     const summary = el("div", undefined, "hint"); summary.style.marginTop = "10px"; body.append(summary);
     const err = el("div", undefined, "err"); err.setAttribute("role", "alert"); body.append(err);
-    const create = el("button", "Создать в Proxmox", "btn"), cancel = el("button", "Отмена", "ghost"); cancel.onclick = closeModal;
+    const create = tipped(el("button", "Создать в Proxmox", "btn"), "Центр клонирует шаблон в Proxmox, выдаёт ресурсы и сеть, запускает машину; агент внутри поднимет выбранные ловушки"), cancel = el("button", "Отмена", "ghost"); cancel.onclick = closeModal;
     const actions = el("div", undefined, "actions"); actions.append(create, cancel); body.append(actions);
     const update = () => {
       const ports = [...selected].flatMap((n) => portsOf(n)).sort((a, b) => a - b);
@@ -592,7 +651,7 @@ $("c-status").onchange = (e) => { S.cFilter.status = e.target.value; renderConta
 function trapRow(t) {
   const tr = el("tr", undefined, "click");
   const s = el("td"); s.append(stateBadge(trapState(t)));
-  const lv = el("td"); lv.append(el("span", levelLabel(t.profile), "tag " + levelOf(t.profile)));
+  const lv = el("td"); lv.append(levelTag(levelOf(t.profile)));
   const ev = el("td", String(t.events), "c-ev"); ev.dataset.trap = t.id;
   const c = containerByName(t.container);
   tr.append(el("td", t.name), el("td", t.container + (c ? " · " + TYPE_INFO[c.type].kind + " " + c.vmid : "")), s, el("td", t.profile), lv, el("td", portsOf(t.profile).join(", "), "m"), ev);
@@ -659,7 +718,7 @@ function openTrap(name) {
     const table = el("table", undefined, "mini"); const tb = el("tbody");
     if (!mine.length) tb.append(emptyRow(4, "Событий пока нет"));
     for (const ev of mine) {
-      const tr = el("tr", undefined, "click"); const tag = el("td"); tag.append(el("span", ev.type, "tag t-" + ev.type));
+      const tr = el("tr", undefined, "click"); const tag = el("td"); tag.append(typeTag(ev.type));
       tr.append(el("td", fmtTime(ev.ts), "m"), tag, el("td", ev.src_ip, "m"), el("td", ev.command || "", "m"));
       makeClickable(tr, () => openEvent(ev)); tb.append(tr);
     }
@@ -678,7 +737,7 @@ function matches(ev) {
 function eventRow(ev, animate) {
   const tr = el("tr", undefined, "click" + (animate ? " new" : ""));
   tr.append(el("td", fmtTime(ev.ts), "m"), el("td", ev.trap));
-  const tag = el("td"); tag.append(el("span", ev.type, "tag t-" + ev.type)); tr.append(tag);
+  const tag = el("td"); tag.append(typeTag(ev.type)); tr.append(tag);
   tr.append(el("td", ev.src_ip, "m"), el("td", ev.command || ev.username || "", "m"));
   makeClickable(tr, () => openEvent(ev));
   return tr;
@@ -753,7 +812,7 @@ function renderFilters() {
 
 // ============ ПРОФИЛИ (имена пользователей-приманок, без паролей) ============
 function profileRow(p) {
-  const tr = el("tr", undefined, "click" + (p.name === S.editing ? " sel" : "")); const lv = el("td"); lv.append(el("span", p.level === "low" ? "Low" : "Medium", "tag " + p.level));
+  const tr = el("tr", undefined, "click" + (p.name === S.editing ? " sel" : "")); const lv = el("td"); lv.append(levelTag(p.level));
   tr.append(el("td", p.name), lv, el("td", p.services.map((s) => s.port + " (" + s.proto + ")").join(", ")), el("td", String(traps.filter((t) => t.profile === p.name).length)));
   makeClickable(tr, () => editProfile(p.name));
   return tr;
