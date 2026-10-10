@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.models.models import Event
 from app.schemas.telemetry import TelemetryEvent
+from app.services.telegram_service import send_alert
 from datetime import datetime
 
 router = APIRouter()
@@ -30,6 +31,10 @@ async def collect_telemetry(event: TelemetryEvent, request: Request, db: AsyncSe
         await db.commit() # Сохраняем!
         
         print(f"🚨 [БД] Атака '{event.event_name}' от {attacker_ip} успешно сохранена в базу!")
+        
+        # Отправляем алерт в Telegram (если токен настроен)
+        import asyncio
+        asyncio.create_task(send_alert(event.event_name, attacker_ip, event.properties))
         
     except Exception as e:
         print(f"Ошибка сохранения лога в БД: {e}")

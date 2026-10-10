@@ -17,6 +17,8 @@ services:
       - PROXMOX_HOST=${PROXMOX_HOST:-100.64.0.12}
       - PROXMOX_USER=${PROXMOX_USER:-root@pam}
       - PROXMOX_PASSWORD=${PROXMOX_PASSWORD:?задайте PROXMOX_PASSWORD в .env}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
     depends_on:
       - postgres
     networks:
