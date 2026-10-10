@@ -1,0 +1,35 @@
+# Центр управления HoneyForge: веб-интерфейс + API + PostgreSQL.
+# Секреты — в .env рядом (HF_SECRET_KEY, HF_DB_PASSWORD), см. .env.example.
+name: honeyforge-center
+
+services:
+  center:
+    build: .
+    container_name: hf-center
+    ports:
+      - "4000:4000"
+    env_file: .env
+    environment:
+      HF_DATABASE_URL: postgresql+psycopg://honeyforge:${HF_DB_PASSWORD:?задайте HF_DB_PASSWORD в .env}@db:5432/honeyforge
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    container_name: hf-center-db
+    environment:
+      POSTGRES_USER: honeyforge
+      POSTGRES_PASSWORD: ${HF_DB_PASSWORD:?задайте HF_DB_PASSWORD в .env}
+      POSTGRES_DB: honeyforge
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U honeyforge"]
+      interval: 3s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  pgdata:
