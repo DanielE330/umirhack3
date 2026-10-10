@@ -44,9 +44,9 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict):
                 ]
             ]
         }
-    }
-    
     proxy_url = os.getenv("TELEGRAM_PROXY")
+    if not proxy_url:
+        proxy_url = None
     
     try:
         async with httpx.AsyncClient(proxy=proxy_url) as client:
@@ -65,6 +65,8 @@ async def start_polling():
 
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
     proxy_url = os.getenv("TELEGRAM_PROXY")
+    if not proxy_url:
+        proxy_url = None
     offset = 0
 
     print("✅ Запущен Telegram Long-Polling для интерактивных алертов!")
