@@ -7,11 +7,11 @@ print("--- ТЕСТ: АВТОРАЗВЕРТКА PROXMOX ---")
 
 try:
     manager = ProxmoxManager(
-        host="100.64.0.6",
+        host="100.64.0.12",
         user="root@pam",       # Имя пользователя в Proxmox (обычно root@pam)
         password="10293847",   # Пароль от Proxmox
         verify_ssl=False,
-        port=8006              # Пробуем снова стандартный порт
+        port=8006              # Даниэль вернул доступ на 8006 порт
     )
     
     print("Успешно подключились к Proxmox! Запускаем клонирование...")

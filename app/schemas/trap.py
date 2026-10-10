@@ -5,3 +5,7 @@ class TrapCreate(BaseModel):
     image: str
     container_port: int
     host_port: int
+
+class ProxmoxTrapCreate(BaseModel):
+    name: str
+    template_vmid: int = 104

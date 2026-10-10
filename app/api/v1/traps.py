@@ -1,9 +1,17 @@
 from fastapi import APIRouter, HTTPException
 from app.services.docker_manager import DockerManager
-from app.schemas.trap import TrapCreate
+from app.services.proxmox_manager import ProxmoxManager
+from app.schemas.trap import TrapCreate, ProxmoxTrapCreate
+import random
 
 router = APIRouter()
 docker_manager = DockerManager()
+proxmox_manager = ProxmoxManager(
+    host="100.64.0.12",
+    user="root@pam",
+    password="10293847", 
+    port=8006
+)
 
 @router.post("/")
 def create_trap(trap: TrapCreate):
@@ -13,6 +21,22 @@ def create_trap(trap: TrapCreate):
             image=trap.image,
             container_port=trap.container_port,
             host_port=trap.host_port
+        )
+        return result
+    except Exception as e:
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/proxmox")
+def create_proxmox_trap(trap: ProxmoxTrapCreate):
+    """Эндпоинт для фронтенда: создает реальный контейнер в Proxmox"""
+    try:
+        vmid = random.randint(2000, 3000)
+        result = proxmox_manager.create_trap_vm(
+            vmid=vmid, 
+            name=trap.name, 
+            template_vmid=trap.template_vmid, 
+            is_lxc=True
         )
         return result
     except Exception as e:
