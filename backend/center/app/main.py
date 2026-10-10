@@ -36,6 +36,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
         else:
+            # Страницы и статика: браузер каждый раз сверяет ETag, после деплоя сразу берёт новую версию
+            response.headers["Cache-Control"] = "no-cache"
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'")
         return response
