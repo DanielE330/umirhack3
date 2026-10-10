@@ -63,9 +63,6 @@ async def start_polling():
     if not TELEGRAM_BOT_TOKEN:
         return
 
-    from app.services.proxmox_manager import ProxmoxManager
-    pm = ProxmoxManager.from_env()
-
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
     proxy_url = os.getenv("TELEGRAM_PROXY")
     offset = 0
@@ -95,6 +92,10 @@ async def start_polling():
                         if cb_data.startswith("block_"):
                             ip_to_block = cb_data.split("_")[1]
                             print(f"🛡️ Получена команда блокировки IP {ip_to_block} из Telegram!")
+                            
+                            # Инициализируем Proxmox прямо перед блокировкой, чтобы не ронять цикл при старте
+                            from app.services.proxmox_manager import ProxmoxManager
+                            pm = ProxmoxManager.from_env()
                             
                             # Блокируем в Proxmox
                             pm.block_ip(ip_to_block)
