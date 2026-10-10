@@ -2,6 +2,7 @@ import httpx
 import os
 import json
 import html
+import asyncio
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
@@ -34,7 +35,15 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict):
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
         "text": message,
-        "parse_mode": "HTML"
+        "parse_mode": "HTML",
+        "reply_markup": {
+            "inline_keyboard": [
+                [
+                    {"text": "❌ Заблокировать IP", "callback_data": f"block_{attacker_ip}"},
+                    {"text": "🗑️ Скрыть", "callback_data": "ignore"}
+                ]
+            ]
+        }
     }
     
     proxy_url = os.getenv("TELEGRAM_PROXY")
@@ -48,3 +57,75 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict):
                 print("✅ Уведомление успешно отправлено в Telegram!")
     except Exception as e:
         print(f"❌ Ошибка соединения с Telegram: {e}")
+
+async def start_polling():
+    """Фоновая задача (long-polling) для получения нажатий кнопок от Telegram"""
+    if not TELEGRAM_BOT_TOKEN:
+        return
+
+    from app.services.proxmox_manager import ProxmoxManager
+    pm = ProxmoxManager.from_env()
+
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
+    proxy_url = os.getenv("TELEGRAM_PROXY")
+    offset = 0
+
+    print("✅ Запущен Telegram Long-Polling для интерактивных алертов!")
+    
+    async with httpx.AsyncClient(proxy=proxy_url, timeout=35.0) as client:
+        while True:
+            try:
+                # Long polling: ждем до 30 секунд новые сообщения/нажатия
+                resp = await client.get(url, params={"offset": offset, "timeout": 30})
+                if resp.status_code != 200:
+                    await asyncio.sleep(5)
+                    continue
+                
+                data = resp.json()
+                for update in data.get("result", []):
+                    offset = update["update_id"] + 1
+                    
+                    if "callback_query" in update:
+                        cb = update["callback_query"]
+                        cb_data = cb.get("data", "")
+                        cb_id = cb["id"]
+                        message_id = cb["message"]["message_id"]
+                        
+                        # Обработка кнопки "Заблокировать IP"
+                        if cb_data.startswith("block_"):
+                            ip_to_block = cb_data.split("_")[1]
+                            print(f"🛡️ Получена команда блокировки IP {ip_to_block} из Telegram!")
+                            
+                            # Блокируем в Proxmox
+                            pm.block_ip(ip_to_block)
+                            
+                            # Отвечаем телеграму, что кнопка нажата
+                            await client.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/answerCallbackQuery", 
+                                              json={"callback_query_id": cb_id, "text": f"IP {ip_to_block} ЗАБЛОКИРОВАН!"})
+                            
+                            # Изменяем сообщение (убираем кнопки и пишем вердикт)
+                            await client.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/editMessageText", json={
+                                "chat_id": TELEGRAM_CHAT_ID,
+                                "message_id": message_id,
+                                "text": cb["message"]["text"] + f"\n\n🛑 <b>ВЕРДИКТ:</b> IP {ip_to_block} ЗАБЛОКИРОВАН В PROXMOX!",
+                                "parse_mode": "HTML",
+                                "reply_markup": {"inline_keyboard": []}
+                            })
+                            
+                        # Обработка кнопки "Игнорировать"
+                        elif cb_data == "ignore":
+                            await client.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/answerCallbackQuery", 
+                                              json={"callback_query_id": cb_id, "text": "Алерт скрыт."})
+                            await client.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/editMessageText", json={
+                                "chat_id": TELEGRAM_CHAT_ID,
+                                "message_id": message_id,
+                                "text": "<i>Алерт проигнорирован и скрыт.</i>",
+                                "parse_mode": "HTML",
+                                "reply_markup": {"inline_keyboard": []}
+                            })
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                print(f"❌ Ошибка в Telegram Long-Polling: {e}")
+                await asyncio.sleep(5)
+

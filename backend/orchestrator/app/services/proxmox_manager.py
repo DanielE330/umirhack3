@@ -200,3 +200,16 @@ class ProxmoxManager:
         if api.status.current.get().get("status") == "running":
             self._wait(api.status.stop.post(), timeout=180)
         self._wait(api.delete(purge=1, **{"destroy-unreferenced-disks": 1}), timeout=300)
+
+    def block_ip(self, ip: str) -> None:
+        """Жесткая блокировка IP хакера на уровне всего кластера (Datacenter) Proxmox"""
+        try:
+            self.proxmox.cluster.firewall.rules.post(
+                type="in",
+                action="DROP",
+                source=ip,
+                enable=1,
+                comment="Blocked via HoneyForge Telegram Bot"
+            )
+        except Exception as e:
+            print(f"Ошибка при блокировке IP {ip} в фаерволе Proxmox: {e}")

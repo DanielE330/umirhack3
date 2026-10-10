@@ -11,6 +11,11 @@ async def create_tables():
     from app.models import models  # noqa: F401 — регистрирует модели
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        
+    # Запускаем фоновый лонг-поллинг для Telegram-бота
+    from app.services.telegram_service import start_polling
+    import asyncio
+    asyncio.create_task(start_polling())
 
 app.include_router(traps.router, prefix="/api/v1/traps", tags=["Traps"])
 app.include_router(machines.router, prefix="/api/v1/machines", tags=["Machines (Proxmox)"])
