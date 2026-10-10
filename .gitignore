@@ -1,2 +1,7 @@
+__pycache__/
+.venv/
+*.pyc
+.pytest_cache/
+.env
 HoneyForgeGit/
 vpn-rostik.sh

@@ -6,12 +6,14 @@ import random
 
 router = APIRouter()
 docker_manager = DockerManager()
-proxmox_manager = ProxmoxManager(
-    host="100.64.0.12",
-    user="root@pam",
-    password="10293847", 
-    port=8006
-)
+
+def get_proxmox_manager():
+    return ProxmoxManager(
+        host="100.64.0.12",
+        user="root@pam",
+        password="10293847", 
+        port=8006
+    )
 
 @router.post("/")
 def create_trap(trap: TrapCreate):
@@ -24,15 +26,15 @@ def create_trap(trap: TrapCreate):
         )
         return result
     except Exception as e:
-    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/proxmox")
 def create_proxmox_trap(trap: ProxmoxTrapCreate):
     """Эндпоинт для фронтенда: создает реальный контейнер в Proxmox"""
     try:
+        manager = get_proxmox_manager()
         vmid = random.randint(2000, 3000)
-        result = proxmox_manager.create_trap_vm(
+        result = manager.create_trap_vm(
             vmid=vmid, 
             name=trap.name, 
             template_vmid=trap.template_vmid, 
