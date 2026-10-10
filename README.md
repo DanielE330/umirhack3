@@ -39,7 +39,7 @@ backend/
 agent/            агент ловушки: пакет netsvc (low/medium-сервисы, буфер, канал в центр) и тесты
 frontend/         веб-интерфейс (статические HTML/JS/CSS), его отдаёт центр по / и /static/*
 infra/            весь стек: docker-compose.yml, Caddyfile, .env.example, initdb/ (SQL первого запуска)
-docs/             условие кейса (pdf), планы, ресёрч, задачи (tasks/)
+docs/             инструкция по установке (INSTALL.md), условие кейса (pdf), планы, ресёрч, задачи (tasks/)
 ```
 
 ## Сервисы
@@ -90,6 +90,17 @@ export $(.venv/bin/python -m app.cli gen-key)
 
 Веб-интерфейс берётся из `frontend/` в корне репозитория (переопределяется `HF_STATIC_DIR`). Без оркестратора раздел машин отвечает 503.
 Отдельный compose центра с PostgreSQL: `backend/center/docker-compose.yml` (`.env` рядом, см. `backend/center/.env.example`).
+
+### Хост Proxmox
+
+Подготовка хоста (DMZ-мост с файрволом, пул/роли/API-токен, шаблон ловушек, `hf-agent-ctl`, ключ оркестратора) и её откат — одним скриптом:
+
+```sh
+rsync -aR --exclude __pycache__ infra/proxmox agent/netsvc root@<proxmox>:/root/honeyforge/
+ssh root@<proxmox> /root/honeyforge/infra/proxmox/hf-proxmox.sh install --center-ip <IP центра>   # uninstall / status
+```
+
+Значения для `infra/.env` и ключи оркестратора появятся в `/root/honeyforge-secrets/` на хосте. Подробности — `infra/proxmox/README.md`, пошаговая установка, обновление и удаление всего стека — `docs/INSTALL.md`.
 
 ### Агент
 
