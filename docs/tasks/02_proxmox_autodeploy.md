@@ -1,6 +1,6 @@
 # Задача: Авторазвертка в Proxmox
 
-**Файл реализации:** `app/services/proxmox_manager.py`
+**Файл реализации:** `backend/orchestrator/app/services/proxmox_manager.py`
 
 ## Описание задачи от Даниэля (Тимлид)
 Необходимо написать функцию для оркестратора (FR-C6), которая будет автоматически создавать виртуальные машины (High-interaction ловушки) в гипервизоре Proxmox с жестко заданными лимитами.
@@ -16,6 +16,6 @@
 3. **Безопасность:** Так как это High-interaction ловушка (настоящая ОС), оркестратор должен убедиться, что ловушка подключается только к изолированному сетевому мосту (DMZ), чтобы хакер не смог атаковать панель на `100.64.0.30`.
 
 ## Что нужно доделать:
-- [ ] Добавить в `requirements.txt` библиотеку `proxmoxer`.
-- [ ] Добавить в `docker-compose.yml` ENV переменные `PROXMOX_HOST`, `PROXMOX_USER`, `PROXMOX_PASSWORD`.
+- [ ] Добавить в `backend/orchestrator/requirements.txt` библиотеку `proxmoxer`.
+- [ ] Добавить в `backend/orchestrator/docker-compose.yml` (и `infra/docker-compose.yml`) ENV переменные `PROXMOX_HOST`, `PROXMOX_USER`, `PROXMOX_PASSWORD`.
 - [ ] Настроить сеть при клонировании виртуалки (чтобы она смотрела только в DMZ).

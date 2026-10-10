@@ -1,3 +1,5 @@
+# Оркестратор отдельно, режим разработки (код монтируется, Docker-сокет для docker-ловушек).
+# Весь стек — infra/docker-compose.yml.
 services:
   honeyforge-api:
     build: .

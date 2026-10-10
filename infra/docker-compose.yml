@@ -3,7 +3,7 @@
 #   center       — вход с 2FA, веб-интерфейс, профили, ловушки, приём телеметрии агентов, события
 #   db           — PostgreSQL центра
 #   orchestrator — сервис управления машинами-ловушками в Proxmox (только по межсервисному токену)
-# Запуск: cp .env.example .env && заполнить && docker compose up -d --build
+# Запуск из папки infra/: cp .env.example .env && заполнить && docker compose up -d --build
 name: honeyforge-center
 
 services:
@@ -21,7 +21,9 @@ services:
     restart: unless-stopped
 
   center:
-    build: ../backend
+    build:
+      context: ..                       # корень репозитория: в образ центра кладётся frontend/
+      dockerfile: backend/center/Dockerfile
     container_name: hf-center
     env_file: .env
     environment:
@@ -51,7 +53,7 @@ services:
     restart: unless-stopped
 
   orchestrator:
-    build: ..
+    build: ../backend/orchestrator
     container_name: hf-orchestrator
     environment:
       ORCH_TOKEN: ${ORCH_TOKEN:?задайте ORCH_TOKEN}

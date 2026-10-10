@@ -3,192 +3,67 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HoneyForge — панель</title>
-<link rel="icon" href="../backend/app/static/favicon.png">
-<style>
-  :root { --bg:#0d0a08; --card:#1a110b; --line:#3a2a1d; --fg:#f4ebe0; --muted:#a8977f; --honey:#f5a623; --bad:#ff7a7a; --ok:#6fdc9a; --warn:#ffd166; }
-  * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 system-ui, sans-serif; }
-  header { display:flex; align-items:center; gap:14px; padding:10px 20px; border-bottom:1px solid var(--line); background:var(--card); position:sticky; top:0; }
-  header img { width:34px; height:34px; border-radius:50%; background:var(--honey); }
-  header b { font-size:18px; } header b span { color:var(--honey); }
-  nav { display:flex; gap:4px; margin-left:20px; }
-  nav button { background:none; border:0; color:var(--muted); padding:8px 14px; border-radius:8px; cursor:pointer; font:inherit; }
-  nav button.on { background:#2a1d12; color:var(--honey); }
-  .who { margin-left:auto; color:var(--muted); font-size:13px; }
-  main { padding:20px; max-width:1200px; margin:0 auto; }
-  .grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); margin-bottom:16px; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; }
-  .card h3 { margin:0 0 10px; font-size:12px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); }
-  .num { font-size:28px; font-weight:700; } .num.bad { color:var(--bad); } .num.ok { color:var(--ok); }
-  .cols { display:grid; gap:14px; grid-template-columns:2fr 1fr; } @media (max-width:900px) { .cols { grid-template-columns:1fr; } }
-  table { width:100%; border-collapse:collapse; }
-  th, td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
-  th { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; font-weight:600; }
-  td.m { font-family:ui-monospace, monospace; font-size:12.5px; word-break:break-all; }
-  .tag { display:inline-block; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:700; border:1px solid var(--line); }
-  .t-auth_attempt { color:var(--warn); border-color:#6b5a1f; } .t-alert { color:var(--bad); border-color:#7a2f2f; }
-  .t-honeytoken { color:#c792ea; border-color:#5b3f78; } .t-command { color:#7fd6ff; border-color:#2f5b73; }
-  .t-connect, .t-http_request, .t-payload { color:var(--muted); }
-  .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; background:#666; }
-  .dot.online { background:var(--ok); box-shadow:0 0 8px var(--ok); } .dot.offline { background:var(--bad); }
-  .feed { max-height:420px; overflow:auto; } .feed tr.new { animation:flash 1.4s; }
-  @keyframes flash { from { background:#3a280f; } to { background:transparent; } }
-  .bars { display:flex; align-items:flex-end; gap:2px; height:90px; }
-  .bars i { flex:1; background:var(--honey); border-radius:2px 2px 0 0; min-height:2px; opacity:.85; }
-  .bar-row { display:flex; justify-content:space-between; padding:3px 0; font-size:13px; } .bar-row span:last-child { color:var(--honey); font-family:ui-monospace, monospace; }
-  .toolbar { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-  select, input, textarea { background:#120c08; border:1px solid var(--line); color:var(--fg); border-radius:8px; padding:7px 10px; font:inherit; }
-  button.btn { background:linear-gradient(135deg, var(--honey), #ff7a1a); color:#2a1503; border:0; border-radius:8px; padding:8px 14px; font:600 13px inherit; cursor:pointer; }
-  button.ghost { background:none; color:var(--muted); border:1px solid var(--line); border-radius:8px; padding:6px 10px; cursor:pointer; font:inherit; }
-  label { display:block; font-size:12px; color:var(--muted); margin:10px 0 4px; text-transform:uppercase; letter-spacing:.4px; }
-  .banner { background:#2a1d12; border:1px dashed var(--honey); color:var(--honey); padding:6px 12px; border-radius:8px; font-size:12px; margin-bottom:14px; }
-  .hidden { display:none; }
-  pre { margin:0; white-space:pre-wrap; font:12.5px/1.5 ui-monospace, monospace; color:var(--honey); }
-</style>
+<meta name="color-scheme" content="dark">
+<title>HoneyForge — вход</title>
+<link rel="icon" href="/static/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/static/favicon.png">
+<link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<header>
-  <img src="../backend/app/static/logo-256.png" alt="">
-  <b>Honey<span>Forge</span></b>
-  <nav id="nav">
-    <button data-tab="dash" class="on">Обзор</button>
-    <button data-tab="traps">Ловушки</button>
-    <button data-tab="profiles">Профили</button>
-  </nav>
-  <div class="who">daniel · admin</div>
-</header>
-
+<div class="honeycomb" aria-hidden="true"></div>
 <main>
-  <div class="banner">Демо-интерфейс: данные примерные, события генерируются в браузере. К бэкенду не подключён.</div>
+  <header>
+    <div class="mascot"><img src="/static/logo-256.png" width="96" height="96" alt=""></div>
+    <h1>Honey<span>Forge</span></h1>
+    <p class="sub">Центр управления ловушками</p>
+  </header>
 
-  <!-- Обзор -->
-  <section id="tab-dash">
-    <div class="grid">
-      <div class="card"><h3>Событий за 24 ч</h3><div class="num" id="k-total">0</div></div>
-      <div class="card"><h3>Ловушки онлайн</h3><div class="num ok" id="k-online">0</div></div>
-      <div class="card"><h3>Попыток входа</h3><div class="num" id="k-auth">0</div></div>
-      <div class="card"><h3>Алертов</h3><div class="num bad" id="k-alert">0</div></div>
-    </div>
-    <div class="cols">
-      <div class="card">
-        <h3>Лента атак в реальном времени</h3>
-        <div class="feed"><table><thead><tr><th>Время</th><th>Ловушка</th><th>Тип</th><th>Источник</th><th>Детали</th></tr></thead><tbody id="feed"></tbody></table></div>
-      </div>
-      <div style="display:grid; gap:14px; align-content:start">
-        <div class="card"><h3>Активность за час</h3><div class="bars" id="bars"></div></div>
-        <div class="card"><h3>Топ источников</h3><div id="top-src"></div></div>
-        <div class="card"><h3>Топ паролей</h3><div id="top-pw"></div></div>
-      </div>
-    </div>
+  <form id="f-login" autocomplete="on">
+    <label for="u">Пользователь</label>
+    <input id="u" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+    <label for="p">Пароль</label>
+    <input id="p" type="password" autocomplete="current-password" required>
+    <button class="primary">Войти</button>
+  </form>
+
+  <form id="f-setup" class="hidden">
+    <p class="note">Первый вход: включите двухфакторную защиту. Отсканируйте QR в Google Authenticator, Aegis или 2FAS.</p>
+    <img id="qr" class="qr" width="200" height="200" alt="QR-код для приложения-аутентификатора">
+    <p class="note">Или введите ключ вручную:<br><code id="secret"></code></p>
+    <label for="c1">Код из приложения</label>
+    <input id="c1" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" required>
+    <button class="primary">Подтвердить и включить</button>
+  </form>
+
+  <form id="f-code" class="hidden">
+    <p class="note">Введите код из приложения-аутентификатора или резервный код.</p>
+    <label for="c2">Код подтверждения</label>
+    <input id="c2" class="code" autocomplete="one-time-code" maxlength="14" placeholder="000000" required>
+    <button class="primary">Продолжить</button>
+    <button type="button" class="ghost" id="back">Назад</button>
+  </form>
+
+  <section id="s-codes" class="hidden">
+    <p class="ok">Двухфакторная защита включена</p>
+    <p class="note">Сохраните резервные коды. Каждый работает один раз, повторно они показаны не будут.</p>
+    <ul class="codes" id="codes"></ul>
+    <button class="primary" id="saved">Я сохранил(а) коды</button>
   </section>
 
-  <!-- Ловушки -->
-  <section id="tab-traps" class="hidden">
-    <div class="toolbar"><button class="btn" id="add-trap">+ Новая ловушка</button></div>
-    <div class="card"><table>
-      <thead><tr><th>Имя</th><th>Статус</th><th>Профиль</th><th>Уровень</th><th>Хост</th><th>Был на связи</th><th>Событий</th><th></th></tr></thead>
-      <tbody id="traps"></tbody></table></div>
-    <div class="card hidden" id="artifact" style="margin-top:14px"><h3>Команда развёртывания (токен показывается один раз)</h3><pre id="artifact-text"></pre></div>
+  <section id="s-home" class="hidden">
+    <p class="welcome">Вы вошли как <b id="who"></b><span class="badge" id="role"></span></p>
+    <button id="logout" class="ghost">Выйти</button>
   </section>
 
-  <!-- Профили -->
-  <section id="tab-profiles" class="hidden">
-    <div class="cols">
-      <div class="card"><h3>Профили</h3><table><thead><tr><th>Имя</th><th>Уровень</th><th>Сервисы</th><th>Ловушек</th></tr></thead><tbody id="profiles"></tbody></table></div>
-      <div class="card">
-        <h3>Конструктор профиля</h3>
-        <label>Название</label><input id="p-name" placeholder="web-admin-medium" style="width:100%">
-        <label>Уровень</label>
-        <select id="p-level" style="width:100%"><option value="low">Low: баннеры портов</option><option value="medium">Medium: fake-SSH / fake-HTTP</option></select>
-        <label>Сервисы (порт:протокол:баннер, по одному в строке)</label>
-        <textarea id="p-services" rows="4" style="width:100%">22:ssh:SSH-2.0-OpenSSH_8.2p1 Ubuntu
-8080:http:Apache/2.4.41 (Ubuntu)</textarea>
-        <label>Учётки-приманки (логин:пароль)</label>
-        <textarea id="p-users" rows="2" style="width:100%">admin:admin123</textarea>
-        <label>Honeytokens (путь)</label>
-        <textarea id="p-tokens" rows="2" style="width:100%">/root/.aws/credentials
-/backup.sql</textarea>
-        <label>Интервал маяка, с / джиттер</label>
-        <div style="display:flex; gap:8px"><input id="p-beacon" type="number" value="15" style="width:50%"><input id="p-jitter" type="number" step="0.1" value="0.3" style="width:50%"></div>
-        <div style="margin-top:14px"><button class="btn" id="p-save">Сохранить профиль</button></div>
-      </div>
-    </div>
-  </section>
+  <div id="msg" role="alert" aria-live="polite"></div>
 </main>
-
-<script>
-"use strict";
-const $ = (id) => document.getElementById(id);
-const el = (tag, text, cls) => { const e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; };
-const pick = (a) => a[Math.floor(Math.random() * a.length)];
-
-// ---- данных нет: заполняются из API (/api/stats, /api/events, /api/traps, /api/profiles, WS /api/ws/events) ----
-const profiles = [];
-const traps = [];
-const state = { total: 0, auth: 0, alert: 0, src: {}, pw: {}, buckets: new Array(60).fill(0) };
-
-function emptyRow(cols, text) {
-  const tr = el("tr"); const td = el("td", text, "empty"); td.colSpan = cols; tr.append(td); return tr;
-}
-
-// Добавление события в ленту (вызывать при получении данных из WebSocket или API).
-function addEvent(ev, animate) {
-  const feed = $("feed");
-  if (feed.querySelector(".empty")) feed.replaceChildren();
-  const tr = el("tr", undefined, animate ? "new" : "");
-  tr.append(el("td", new Date(ev.ts).toLocaleTimeString("ru-RU"), "m"), el("td", ev.trap));
-  const tag = el("td"); tag.append(el("span", ev.type, "tag t-" + ev.type)); tr.append(tag);
-  tr.append(el("td", ev.src_ip, "m"), el("td", ev.command || ev.username || "", "m"));
-  feed.prepend(tr);
-  while (feed.children.length > 60) feed.lastChild.remove();
-}
-
-function top(list, box) {
-  if (!list.length) { box.replaceChildren(el("div", "Нет данных", "empty")); return; }
-  box.replaceChildren(...list.map(({ value, count }) => {
-    const row = el("div", undefined, "bar-row"); row.append(el("span", value), el("span", String(count))); return row;
-  }));
-}
-
-function render() {
-  $("k-total").textContent = state.total.toLocaleString("ru-RU");
-  $("k-auth").textContent = state.auth.toLocaleString("ru-RU");
-  $("k-alert").textContent = state.alert;
-  $("k-online").textContent = traps.filter((t) => t.status === "online").length + " / " + traps.length;
-  const max = Math.max(...state.buckets, 1);
-  $("bars").replaceChildren(...state.buckets.map((n) => { const b = el("i"); b.style.height = Math.max(3, (n / max) * 100) + "%"; b.title = n + " событий"; return b; }));
-  top([], $("top-src")); top([], $("top-pw"));
-}
-
-function renderTraps() {
-  $("traps").replaceChildren(...(traps.length ? traps.map((t) => {
-    const tr = el("tr");
-    const st = el("td"); st.append(el("span", undefined, "dot " + t.status), el("span", t.status));
-    const lv = el("td"); lv.append(el("span", t.level || "—", "tag"));
-    tr.append(el("td", t.name), st, el("td", t.profile || "—"), lv, el("td", t.host || "—", "m"),
-      el("td", t.last_seen || "никогда"), el("td", String(t.events)), el("td"));
-    return tr;
-  }) : [emptyRow(8, "Ловушек пока нет")]));
-  $("profiles").replaceChildren(...(profiles.length ? profiles.map((p) => {
-    const tr = el("tr"); const lv = el("td"); lv.append(el("span", p.level, "tag"));
-    tr.append(el("td", p.name), lv, el("td", p.services.map((s) => s.port + " (" + s.proto + ")").join(", ")), el("td", String(p.traps)));
-    return tr;
-  }) : [emptyRow(4, "Профилей пока нет")]));
-}
-
-// ---- вкладки ----
-$("nav").onclick = (e) => {
-  const tab = e.target.dataset && e.target.dataset.tab; if (!tab) return;
-  for (const b of $("nav").children) b.classList.toggle("on", b === e.target);
-  for (const s of ["dash", "traps", "profiles"]) $("tab-" + s).classList.toggle("hidden", s !== tab);
-};
-
-// Кнопки пока без логики: подключатся к API на следующем шаге.
-for (const id of ["add-trap", "p-save"]) { $(id).disabled = true; $(id).title = "Появится после подключения к API"; }
-
-// ---- запуск ----
-renderTraps(); render();
-</script>
+<footer class="credits">
+  <span>HoneyForge · UmirHack III</span>
+  <span>Команда:</span>
+  <a href="https://github.com/DanielE330" target="_blank" rel="noopener" title="Автор и тимлид проекта">DanielE330</a><span class="role">автор</span>
+  <span>·</span>
+  <a href="https://github.com/Lunarflux-hub" target="_blank" rel="noopener" title="Контрибьютер: бэкенд, Docker, интеграция с Proxmox">Lunarflux-hub</a><span class="role">контрибьютер</span>
+</footer>
+<script src="/static/app.js"></script>
 </body>
 </html>
