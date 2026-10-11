@@ -286,7 +286,7 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | MASK-3 разделение интерфейсов | сделано: DMZ `vmbr1` с файрволом — из ловушки доступен только канал агента к центру | `infra/proxmox/hf-dmz-fw.sh`, `proxmox_manager.py` |
 | MASK-4 скрытность агента | сделано | `agent/netsvc/__main__.py` |
 | MASK-5 джиттер и рандомизация | сделано | `agent/netsvc/core.py`, `center.py` |
-| MASK-6 анти-фингерпринтинг | частично: реалистичные баннеры SSH/HTTP, 404 как у Apache, правдоподобные ФС/`uname`/`ps` | `traps/ssh.py`, `traps/http.py` |
+| MASK-6 анти-фингерпринтинг | сделано: баннер OpenSSH по версии ОС, три ключа хоста и порядок алгоритмов как у OpenSSH, MOTD Ubuntu; HTTP — Date/Keep-Alive/Vary, страницы ошибок Apache (403/404/405/501), HEAD; консоль — bash-эмуляция с цепочками, пайпами, переменными, общей изменяемой ФС и согласованными `ps`/`ss`/`uname`/`/proc` | `traps/ssh.py`, `traps/shell.py`, `traps/http.py` |
 | MASK-7 mTLS, pinning, ротация | частично: свой CA (`HF_CA_FILE`), перевыпуск токена при deploy; mTLS нет | `center.py`, `routers/traps.py` |
 
 ## Безопасность и сеть
@@ -305,9 +305,11 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 
 - TLS на стенде выключен (`auto_https off`, `HF_COOKIE_SECURE=false`).
 - Оркестратор подключается к Proxmox без проверки сертификата (`verify_ssl=False`).
-- `/api/v1/stats/` и `/api/v1/analytics/track` оркестратора открыты без авторизации и проброшены наружу через proxy; телеметрию агенты шлют в центр, не сюда.
+- `/api/v1/analytics/track` оркестратора открыт без авторизации (приём телеметрии), `/api/v1/stats/` и `/api/v1/events/` закрыты межсервисным токеном; из подсети DMZ (10.20.0.0/24) proxy отдаёт только `/assets/v1/*`, всё остальное — 404.
 - High-interaction и запись сессий не реализованы; mTLS не реализован.
 - Нет Dockerfile агента, хотя ручной артефакт `docker` ссылается на образ `honeyforge-agent:latest` (на машинах Proxmox агент ставится без Docker).
+
+- Поддельная консоль SSH — эмуляция bash, а не настоящая оболочка: нет heredoc, циклов, функций; `python3`/`perl` ничего не выполняют; SFTP/scp-загрузки не принимаются.
 - Автоматическое включение агентов работает только для LXC-машин из шаблона с предустановленным агентом (`9101`).
 - Docker-ловушки оркестратора (`/api/v1/traps/`) требуют Docker-сокет; он смонтирован только в `backend/orchestrator/docker-compose.yml`, в infra — нет.
 - Автотестов оркестратора нет.

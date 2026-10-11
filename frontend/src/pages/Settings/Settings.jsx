@@ -103,6 +103,10 @@ export default function Settings() {
             : t('Привяжите Telegram: туда будут приходить алерты об атаках и код, если вы забудете пароль.')}>
           {user.telegramLinked ? (
             <div className="inline">
+              <span className="tg-account" data-tip={t('Аккаунт Telegram, привязанный к вашей учётной записи')}>
+                <Send size={14} strokeWidth={1.6} aria-hidden="true" />
+                {user.telegramUsername ? `@${user.telegramUsername}` : t('без имени пользователя')}
+              </span>
               <button type="button" className="btn" onClick={testTelegram}
                 data-tip={t('Бот пришлёт вам тестовое сообщение — так проверяется связь')}>{t('Отправить тест в Telegram')}</button>
               <ArmedButton label={t('Отвязать')} armLabel={t('Точно отвязать?')} className="ghost danger" onConfirm={unlink}

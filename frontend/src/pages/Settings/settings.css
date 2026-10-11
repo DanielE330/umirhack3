@@ -37,3 +37,13 @@
 .docs-link:hover { filter: brightness(1.06); box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 18%, transparent); }
 .docs-link:active { transform: translateY(1px); }
 .docs-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tg-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border, currentColor);
+  border-radius: 999px;
+  font-weight: 600;
+}

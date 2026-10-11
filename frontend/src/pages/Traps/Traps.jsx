@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LevelTag } from '../../components/common.jsx'
+import CatalogAddModal from '../../components/modals/CatalogAddModal.jsx'
 import { useData } from '../../context/data.js'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
 import { CATALOG, CAT_LEVELS, HELP, formFromTemplate } from '../../lib/model.js'
 
-function CatalogCard({ entry, used, onUse }) {
+function CatalogCard({ entry, used, onUse, onAdd }) {
   const { t } = useLanguage()
   const showBanner = (b) => (b ? t('Баннер: {b}', { b: b.replace(/\r\n/g, ' ⏎ ') }) : t('Без баннера: порт молча ждёт данных'))
   return (
@@ -40,7 +41,12 @@ function CatalogCard({ entry, used, onUse }) {
         )}
         {entry.planned
           ? <button className="ghost small" disabled data-tip={t('Появится в следующих версиях')}>{t('Скоро')}</button>
-          : <button className="btn lg" data-tip={t('Открыть конструктор профиля, заполненный этим шаблоном')} onClick={() => onUse(entry)}>{t('Создать профиль')}</button>}
+          : (
+            <>
+              <button className="ghost" data-tip={t('Открыть конструктор профиля, заполненный этим шаблоном')} onClick={() => onUse(entry)}>{t('Создать профиль')}</button>
+              <button className="btn lg" data-tip={t('Сразу поставить такую ловушку в выбранный контейнер: профиль создастся сам')} onClick={() => onAdd(entry)}>{t('Добавить в контейнер')}</button>
+            </>
+          )}
       </div>
     </article>
   )
@@ -48,7 +54,7 @@ function CatalogCard({ entry, used, onUse }) {
 
 export default function Traps() {
   const { traps, profileByName, setEditor } = useData()
-  const { showToast } = useUi()
+  const { showToast, openModal } = useUi()
   const { t } = useLanguage()
   const navigate = useNavigate()
   const [level, setLevel] = useState('')
@@ -70,6 +76,7 @@ export default function Traps() {
     navigate('/profiles')
     showToast(t('Конструктор заполнен по шаблону «{name}» — проверьте и сохраните', { name: t(entry.name) }))
   }
+  const addToContainer = (entry) => openModal(t('Добавить «{name}» в контейнер', { name: t(entry.name) }), <CatalogAddModal entry={entry} />)
   const ready = CATALOG.filter((e) => !e.planned).length
 
   return (
@@ -93,7 +100,7 @@ export default function Traps() {
       </p>
       <div className="catalog">
         {list.length
-          ? list.map((e) => <CatalogCard key={e.id} entry={e} used={usage(e)} onUse={useTemplate} />)
+          ? list.map((e) => <CatalogCard key={e.id} entry={e} used={usage(e)} onUse={useTemplate} onAdd={addToContainer} />)
           : <div className="cnone">{t('Ничего не найдено')}</div>}
       </div>
     </section>
