@@ -227,3 +227,40 @@ class ProxmoxManager:
         except Exception:
             return False
 
+    def list_blocked_ips(self) -> list[dict]:
+        """Возвращает список всех IP, заблокированных в фаерволе Proxmox."""
+        try:
+            rules = self.proxmox.cluster.firewall.rules.get()
+            blocked = []
+            for r in rules:
+                action = str(r.get("action", "")).upper()
+                src = str(r.get("source", "")).strip()
+                if (action in ("DROP", "REJECT")) and src:
+                    blocked.append({
+                        "pos": r.get("pos"),
+                        "ip": src,
+                        "comment": r.get("comment", ""),
+                        "enable": r.get("enable", 1),
+                    })
+            return blocked
+        except Exception as e:
+            print(f"Ошибка получения правил фаервола Proxmox: {e}")
+            return []
+
+    def unblock_ip(self, ip: str) -> bool:
+        """Снимает блокировку с IP в фаерволе Proxmox."""
+        try:
+            rules = self.proxmox.cluster.firewall.rules.get()
+            found = False
+            for r in rules:
+                if str(r.get("source", "")).strip() == ip.strip() and str(r.get("action", "")).upper() in ("DROP", "REJECT"):
+                    pos = r.get("pos")
+                    if pos is not None:
+                        self.proxmox.cluster.firewall.rules(pos).delete()
+                        found = True
+            return found
+        except Exception as e:
+            print(f"Ошибка разблокировки IP {ip} в Proxmox: {e}")
+            return False
+
+
