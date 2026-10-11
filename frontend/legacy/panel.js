@@ -278,6 +278,16 @@ const q = (text) => { const s = el("span", "?", "q"); s.tabIndex = 0; s.dataset.
 const levelTag = (level) => tipped(el("span", level === "low" ? "Low" : level === "medium" ? "Medium" : "—", "tag " + level), HELP[level] || "Профиль не задан");
 const typeTag = (type) => tipped(el("span", type, "tag t-" + type), EVENT_HELP[type] || type);
 
+// Оценка HoneyMind (AI): threat_score 0–100, порог алерта 60. null — ещё не оценено (сервис недоступен/ждёт очереди).
+function threatTag(ev) {
+  if (ev.threat_score === null || ev.threat_score === undefined) return tipped(el("span", "…", "tag"), "Ещё не оценено HoneyMind (AI-анализатором)");
+  const sev = ev.threat_score >= 60 ? "high" : ev.threat_score >= 30 ? "medium" : "low";
+  const label = ev.threat_score + (ev.category ? " · " + ev.category : "");
+  const hint = "Оценка HoneyMind: " + ev.threat_score + "/100" + (ev.category ? ", категория: " + ev.category : "")
+    + (ev.needs_review ? " — требует проверки человеком" : "");
+  return tipped(el("span", label, "tag " + sev), hint);
+}
+
 function stateBadge(state) {
   const wrap = el("span", undefined, "cstate"); wrap.title = STATES[state].hint;
   wrap.append(el("span", undefined, "dot " + state), el("span", STATES[state].label, "st-label " + state));
@@ -906,12 +916,13 @@ function eventRow(ev, animate) {
   tr.append(el("td", fmtTime(ev.ts), "m"), el("td", ev.trap));
   const tag = el("td"); tag.append(typeTag(ev.type)); tr.append(tag);
   tr.append(el("td", ev.src_ip, "m"), el("td", ev.command || ev.username || "", "m"));
+  const score = el("td"); score.append(threatTag(ev)); tr.append(score);
   makeClickable(tr, () => openEvent(ev));
   return tr;
 }
 function renderFeed() {
   const rows = S.events.filter(matches).slice(0, 60).map((e) => eventRow(e, false));
-  $("feed").replaceChildren(...(rows.length ? rows : [emptyRow(5, S.events.length ? "По фильтру ничего нет" : "Событий пока нет")]));
+  $("feed").replaceChildren(...(rows.length ? rows : [emptyRow(6, S.events.length ? "По фильтру ничего нет" : "Событий пока нет")]));
 }
 function addToFeed(ev) {  // новая строка вставляется сверху, остальные не трогаются
   if (!matches(ev)) return;
@@ -925,13 +936,29 @@ function setFilter(patch) {
   $("f-type").value = S.filter.type; $("f-trap").value = S.filter.trap; $("f-q").value = S.filter.q;
   renderFeed(); renderTops(true);
 }
+function humanBotLabel(s) {
+  const verdict = s.is_human === true ? "похоже на человека" : s.is_human === false ? "похоже на бота" : "не определено";
+  const p = s.human_probability != null ? " (p=" + s.human_probability.toFixed(2) + ")" : "";
+  return verdict + p + (s.human_reason ? " — " + s.human_reason : "");
+}
 function openEvent(ev) {
+  const scoreText = ev.threat_score === null || ev.threat_score === undefined ? "ещё не оценено"
+    : ev.threat_score + "/100 · " + (ev.category || "—") + (ev.needs_review ? " · требует проверки" : "");
+  const rows = [
+    ["Время", new Date(ev.ts).toLocaleString("ru-RU")], ["Машина", ev.container], ["Ловушка", ev.trap], ["Тип", ev.type],
+    ["Источник", ev.src_ip + ":" + ev.src_port], ["Порт ловушки", ev.dst_port], ["Протокол", ev.proto], ["Сессия", ev.session_id],
+    ["Логин", ev.username], ["Пароль", ev.password], ["Команда / запрос", ev.command],
+    ["Оценка HoneyMind (AI)", scoreText],
+  ];
+  let humanSpan = null;
+  if (ev.session_id) { humanSpan = el("span", "проверяется…"); rows.push(["Сессия: человек или бот", humanSpan]); }
   openModal("Событие #" + ev.id, (body) => {
-    body.append(kv([
-      ["Время", new Date(ev.ts).toLocaleString("ru-RU")], ["Машина", ev.container], ["Ловушка", ev.trap], ["Тип", ev.type],
-      ["Источник", ev.src_ip + ":" + ev.src_port], ["Порт ловушки", ev.dst_port], ["Протокол", ev.proto], ["Сессия", ev.session_id],
-      ["Логин", ev.username], ["Пароль", ev.password], ["Команда / запрос", ev.command],
-    ]));
+    body.append(kv(rows));
+    if (humanSpan) {
+      api("/api/sessions/" + encodeURIComponent(ev.session_id))
+        .then((s) => { if ($("modal-title").textContent === "Событие #" + ev.id) humanSpan.textContent = humanBotLabel(s); })
+        .catch(() => { if ($("modal-title").textContent === "Событие #" + ev.id) humanSpan.textContent = "ещё не оценено"; });
+    }
     const row = el("div", undefined, "inline");
     const b1 = el("button", "⌕ Все события этого IP", "ghost"); b1.onclick = () => { closeModal(); showTab("dash"); setFilter({ q: ev.src_ip, type: "", trap: "" }); };
     const b2 = el("button", "☰ События этой ловушки", "ghost"); b2.onclick = () => { closeModal(); showTab("dash"); setFilter({ q: "", type: "", trap: ev.trap }); };
@@ -1147,6 +1174,112 @@ makeClickable($("kpi-auth"), () => setFilter({ type: "auth_attempt", trap: "", q
 makeClickable($("kpi-alert"), () => setFilter({ type: "alert", trap: "", q: "" }));
 makeClickable($("kpi-online"), () => { showTab("containers"); S.cFilter.status = "online"; $("c-status").value = "online"; renderContainers(); });
 
+// ============ МОДАЛЬНОЕ ОКНО ============
+function showModal(title, html) {
+  $("modal-title").textContent = title;
+  $("modal-body").innerHTML = html;
+  $("modal").classList.remove("hidden");
+}
+function closeModal() {
+  $("modal").classList.add("hidden");
+}
+$("modal-close").onclick = closeModal;
+$("modal").onclick = (e) => { if (e.target === $("modal")) closeModal(); };
+
+// ============ TELEGRAM ПРИВЯЗКА ============
+let currentTgState = { linked: false, username: "" };
+
+function updateTgButton(linked, tgUser) {
+  currentTgState = { linked: !!linked, username: tgUser || "" };
+  const btn = $("tg-btn");
+  if (!btn) return;
+  if (linked) {
+    btn.textContent = "🟢 TG: @" + (tgUser || "подключен");
+    btn.title = "Telegram подключен (нажмите для управления или отвязки)";
+    btn.style.color = "var(--ok)";
+    btn.style.borderColor = "var(--ok)";
+  } else {
+    btn.textContent = "📱 Подключить TG";
+    btn.title = "Подключить Telegram для алертов и блокировок";
+    btn.style.color = "";
+    btn.style.borderColor = "";
+  }
+}
+
+$("tg-btn").onclick = async () => {
+  if (currentTgState.linked) {
+    showModal("Управление Telegram", `
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="background:var(--card-2); border:1px solid var(--line); border-radius:12px; padding:16px;">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <span style="font-size:24px;">🛡️</span>
+            <div>
+              <b style="color:var(--ok);">Telegram успешно привязан</b>
+              <div style="color:var(--muted); font-size:13px;">Аккаунт: <code>@${currentTgState.username || "не указан"}</code></div>
+            </div>
+          </div>
+          <p style="margin:0; font-size:13px; color:var(--muted); line-height:1.45;">
+            Вы получаете оперативные интерактивные алерты платформы HoneyForge и можете блокировать атакующие IP прямо из чата Telegram.
+          </p>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button class="ghost danger" id="tg-unlink-btn">Отвязать Telegram</button>
+          <button class="btn" id="tg-close-btn">Готово</button>
+        </div>
+      </div>
+    `);
+    const unbtn = $("tg-unlink-btn");
+    if (unbtn) {
+      unbtn.onclick = async () => {
+        try {
+          await api("/api/auth/me/telegram", { method: "DELETE" });
+          updateTgButton(false, null);
+          closeModal();
+          toast("Telegram успешно отвязан");
+        } catch (e) { fail(e); }
+      };
+    }
+    const cls = $("tg-close-btn");
+    if (cls) cls.onclick = closeModal;
+    return;
+  }
+
+  // Не привязан: запрашиваем свежий код
+  try {
+    const res = await api("/api/auth/me/telegram/code", { method: "POST" });
+    const code = res.code;
+    const bot = res.bot_username || "";
+    const link = res.link || (bot ? `https://t.me/${bot}?start=${code}` : "");
+
+    showModal("Подключение Telegram к HoneyForge", `
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <p style="margin:0; color:var(--muted); font-size:13.5px; line-height:1.5;">
+          Привяжите ваш Telegram-аккаунт для мгновенного получения алертов о кибератаках и блокировки IP хакеров в один клик.
+        </p>
+
+        <div style="background:var(--bg-2); border:1px dashed var(--accent); border-radius:12px; padding:16px; text-align:center;">
+          <div style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Одноразовый код привязки (действует 15 мин)</div>
+          <div style="font-family:ui-monospace, monospace; font-size:26px; font-weight:700; color:var(--accent); letter-spacing:2px; user-select:all;" id="tg-copy-code">${code}</div>
+        </div>
+
+        <ol class="steps" style="margin:0; padding-left:20px; font-size:13.5px;">
+          <li>${link ? `<a class="btn" href="${link}" target="_blank" style="display:inline-block; margin-bottom:8px; text-decoration:none;">🚀 Открыть бота в Telegram</a>` : `Откройте вашего бота в Telegram: <b>@${bot || "HoneyForgeBot"}</b>`}</li>
+          <li>Нажмите кнопку <b>Start</b> или отправьте боту команду:<br><code style="background:var(--card-2); padding:3px 8px; border-radius:6px; font-family:ui-monospace, monospace; color:var(--fg); display:inline-block; margin-top:4px;">/link ${code}</code></li>
+          <li>Бот подтвердит авторизацию и начнет присылать интерактивные алерты.</li>
+        </ol>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button class="ghost" id="tg-modal-close-btn">Закрыть</button>
+        </div>
+      </div>
+    `);
+    const mcb = $("tg-modal-close-btn");
+    if (mcb) mcb.onclick = closeModal;
+  } catch (e) {
+    fail(e);
+  }
+};
+
 // ============ СЕССИЯ ============
 $("logout").onclick = async () => {
   try { await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin", headers: { "X-CSRF-Token": csrf } }); }
@@ -1161,10 +1294,12 @@ fetch("/api/auth/me", { credentials: "same-origin" })
     csrf = d.csrf; $("who").textContent = d.username; $("role").textContent = d.role;
     me = { username: d.username, role: d.role };
     $("nav-users").classList.toggle("hidden", d.role !== "admin");
+    updateTgButton(d.telegram_linked, d.telegram_username);
     await refresh(); await Promise.all([loadEvents(), loadStats()]);
     connectStream();
     setInterval(refresh, 5000);       // машины, ловушки, профили: статусы и «на связи»
     setInterval(loadStats, 30000);    // агрегаты пересчитывает центр
+    setInterval(loadEvents, 20000);   // подхватывает оценку HoneyMind: она считается в фоне, после приёма события
     setInterval(() => { S.buckets.shift(); S.buckets.push(0); renderKpis(); }, 60000);
     setInterval(refreshCells, 1000);
   })

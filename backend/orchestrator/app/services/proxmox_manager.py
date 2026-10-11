@@ -26,6 +26,8 @@ class ProxmoxManager:
         # Подключение к Proxmox API: API-токен предпочтительнее пароля
         auth = {"token_name": token_name, "token_value": token_value} if token_name else {"password": password}
         self.proxmox = ProxmoxAPI(host, user=user, verify_ssl=verify_ssl, port=port, **auth)
+        if hasattr(self.proxmox, "_backend") and hasattr(self.proxmox._backend, "session"):
+            self.proxmox._backend.session.trust_env = False
         # Имя ноды берём из Proxmox, если не задано явно
         self.node = node or self.proxmox.nodes.get()[0]["node"]
         self.storage, self.bridge, self.nameserver = storage, bridge, nameserver
@@ -200,3 +202,16 @@ class ProxmoxManager:
         if api.status.current.get().get("status") == "running":
             self._wait(api.status.stop.post(), timeout=180)
         self._wait(api.delete(purge=1, **{"destroy-unreferenced-disks": 1}), timeout=300)
+
+    def block_ip(self, ip: str) -> None:
+        """Жесткая блокировка IP хакера на уровне всего кластера (Datacenter) Proxmox"""
+        try:
+            self.proxmox.cluster.firewall.rules.post(
+                type="in",
+                action="DROP",
+                source=ip,
+                enable=1,
+                comment="Blocked via HoneyForge Telegram Bot"
+            )
+        except Exception as e:
+            print(f"Ошибка при блокировке IP {ip} в фаерволе Proxmox: {e}")

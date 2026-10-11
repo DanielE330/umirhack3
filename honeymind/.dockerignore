@@ -1,0 +1,10 @@
+tests
+reports
+data
+scripts
+models/*
+!models/human.json
+!models/human.json.sha256
+**/__pycache__
+.pytest_cache
+*.md

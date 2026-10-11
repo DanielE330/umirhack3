@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from .. import auth
 from ..db import get_db
-from ..models import Event, Trap, User, utcnow
+from ..models import Event, SessionAssessment, Trap, User, utcnow
 from ..services import event_view, trap_status
 
 router = APIRouter(prefix="/api", tags=["events"])
@@ -59,6 +59,17 @@ def list_events(trap_id: int | None = None, type: str | None = None, src_ip: str
     rows = db.scalars(stmt.order_by(Event.id.desc()).limit(limit + 1)).all()
     page = rows[:limit]
     return {"items": [event_view(e) for e in page], "next_before_id": page[-1].id if len(rows) > limit else None}
+
+
+@router.get("/sessions/{session_id}")
+def get_session_assessment(session_id: str, _: User = Depends(auth.current_user), db: Session = Depends(get_db)):
+    """Оценка HoneyMind «человек или бот» по сессии (считается при событии session_end, app/scoring.py)."""
+    a = db.get(SessionAssessment, session_id)
+    if a is None:
+        raise HTTPException(404, "Сессия ещё не оценена")
+    return {"session_id": a.session_id, "is_human": a.is_human, "human_probability": a.human_probability,
+            "human_method": a.human_method, "human_reason": a.human_reason,
+            "script_seen_before": a.script_seen_before, "updated_at": a.updated_at.isoformat() + "Z"}
 
 
 def _csv_cell(value) -> str:

@@ -1,0 +1,301 @@
+{
+  "kind": "logreg",
+  "human_threshold": 0.5,
+  "bot_threshold": 0.3,
+  "minimal_in_train": 0.0,
+  "synthetic_test": {
+    "bot_brute": {
+      "human": 0.0,
+      "bot": 0.9808,
+      "unknown": 0.0192,
+      "n": 208
+    },
+    "bot_instant": {
+      "human": 0.0,
+      "bot": 0.719,
+      "unknown": 0.281,
+      "n": 306
+    },
+    "bot_jitter": {
+      "human": 0.0,
+      "bot": 0.7452,
+      "unknown": 0.2548,
+      "n": 157
+    },
+    "bot_mimic": {
+      "human": 0.87,
+      "bot": 0.04,
+      "unknown": 0.09,
+      "n": 300
+    },
+    "bot_paced": {
+      "human": 0.0,
+      "bot": 0.7379,
+      "unknown": 0.2621,
+      "n": 248
+    },
+    "bot_timeout": {
+      "human": 0.0,
+      "bot": 0.6914,
+      "unknown": 0.3086,
+      "n": 81
+    },
+    "human": {
+      "human": 1.0,
+      "bot": 0.0,
+      "unknown": 0.0,
+      "n": 561
+    },
+    "human_minimal": {
+      "human": 0.54,
+      "bot": 0.2867,
+      "unknown": 0.1733,
+      "n": 300
+    },
+    "human_paste": {
+      "human": 1.0,
+      "bot": 0.0,
+      "unknown": 0.0,
+      "n": 84
+    },
+    "human_shifted": {
+      "human": 0.9944,
+      "bot": 0.0028,
+      "unknown": 0.0028,
+      "n": 355
+    }
+  },
+  "synthetic_test_old_heuristic": {
+    "bot_brute": {
+      "human": 0.0,
+      "bot": 0.0337,
+      "unknown": 0.9663,
+      "n": 208
+    },
+    "bot_instant": {
+      "human": 0.0,
+      "bot": 0.7712,
+      "unknown": 0.2288,
+      "n": 306
+    },
+    "bot_jitter": {
+      "human": 0.6115,
+      "bot": 0.0,
+      "unknown": 0.3885,
+      "n": 157
+    },
+    "bot_mimic": {
+      "human": 0.98,
+      "bot": 0.0,
+      "unknown": 0.02,
+      "n": 300
+    },
+    "bot_paced": {
+      "human": 0.0,
+      "bot": 0.0242,
+      "unknown": 0.9758,
+      "n": 248
+    },
+    "bot_timeout": {
+      "human": 0.358,
+      "bot": 0.0494,
+      "unknown": 0.5926,
+      "n": 81
+    },
+    "human": {
+      "human": 0.9786,
+      "bot": 0.0,
+      "unknown": 0.0214,
+      "n": 561
+    },
+    "human_minimal": {
+      "human": 0.8333,
+      "bot": 0.0067,
+      "unknown": 0.16,
+      "n": 300
+    },
+    "human_paste": {
+      "human": 1.0,
+      "bot": 0.0,
+      "unknown": 0.0,
+      "n": 84
+    },
+    "human_shifted": {
+      "human": 0.9746,
+      "bot": 0.0,
+      "unknown": 0.0254,
+      "n": 355
+    }
+  },
+  "real_bots_test": {
+    "per_sampled_session": {
+      "human": 0.0,
+      "bot": 0.9886,
+      "unknown": 0.0114,
+      "n": 176
+    },
+    "weighted_to_all_sessions": {
+      "human": 0.0,
+      "bot": 0.9999,
+      "unknown": 0.0001,
+      "n": 176
+    },
+    "old_heuristic_per_session": {
+      "human": 0.0739,
+      "bot": 0.6591,
+      "unknown": 0.267,
+      "n": 176
+    },
+    "old_heuristic_weighted": {
+      "human": 0.0349,
+      "bot": 0.9051,
+      "unknown": 0.06,
+      "n": 176
+    },
+    "n_scripts": 87
+  },
+  "share_called_human_by_threshold": {
+    "0.5": {
+      "bot_brute": 0.0,
+      "bot_instant": 0.0,
+      "bot_jitter": 0.0,
+      "bot_mimic": 0.87,
+      "bot_paced": 0.0,
+      "bot_timeout": 0.0,
+      "human": 1.0,
+      "human_minimal": 0.54,
+      "human_paste": 1.0,
+      "human_shifted": 0.994,
+      "real_bots": 0.0
+    },
+    "0.6": {
+      "bot_brute": 0.0,
+      "bot_instant": 0.0,
+      "bot_jitter": 0.0,
+      "bot_mimic": 0.793,
+      "bot_paced": 0.0,
+      "bot_timeout": 0.0,
+      "human": 1.0,
+      "human_minimal": 0.467,
+      "human_paste": 1.0,
+      "human_shifted": 0.989,
+      "real_bots": 0.0
+    },
+    "0.7": {
+      "bot_brute": 0.0,
+      "bot_instant": 0.0,
+      "bot_jitter": 0.0,
+      "bot_mimic": 0.67,
+      "bot_paced": 0.0,
+      "bot_timeout": 0.0,
+      "human": 1.0,
+      "human_minimal": 0.35,
+      "human_paste": 1.0,
+      "human_shifted": 0.98,
+      "real_bots": 0.0
+    },
+    "0.8": {
+      "bot_brute": 0.0,
+      "bot_instant": 0.0,
+      "bot_jitter": 0.0,
+      "bot_mimic": 0.477,
+      "bot_paced": 0.0,
+      "bot_timeout": 0.0,
+      "human": 1.0,
+      "human_minimal": 0.283,
+      "human_paste": 1.0,
+      "human_shifted": 0.952,
+      "real_bots": 0.0
+    },
+    "0.9": {
+      "bot_brute": 0.0,
+      "bot_instant": 0.0,
+      "bot_jitter": 0.0,
+      "bot_mimic": 0.187,
+      "bot_paced": 0.0,
+      "bot_timeout": 0.0,
+      "human": 0.998,
+      "human_minimal": 0.147,
+      "human_paste": 0.976,
+      "human_shifted": 0.834,
+      "real_bots": 0.0
+    },
+    "0.95": {
+      "bot_brute": 0.0,
+      "bot_instant": 0.0,
+      "bot_jitter": 0.0,
+      "bot_mimic": 0.053,
+      "bot_paced": 0.0,
+      "bot_timeout": 0.0,
+      "human": 0.991,
+      "human_minimal": 0.063,
+      "human_paste": 0.929,
+      "human_shifted": 0.651,
+      "real_bots": 0.0
+    }
+  },
+  "ablation_synthetic_only_on_real_bots": {
+    "human": 0.0,
+    "bot": 0.9886,
+    "unknown": 0.0114,
+    "n": 176
+  },
+  "real_suspected_humans": [
+    {
+      "verdict": null,
+      "p_human": 0.496,
+      "commands": [
+        "we",
+        null,
+        "w",
+        "whomai",
+        "clear",
+        "ls",
+        "free -h"
+      ]
+    }
+  ],
+  "weights_top": [
+    [
+      "frac_nav",
+      1.86
+    ],
+    [
+      "log_n_cmd",
+      1.15
+    ],
+    [
+      "frac_gap_gt_5",
+      1.03
+    ],
+    [
+      "log_med_gap",
+      0.87
+    ],
+    [
+      "log_mean_len",
+      -0.79
+    ],
+    [
+      "frac_probe",
+      -0.7
+    ],
+    [
+      "frac_typo_retry",
+      0.65
+    ],
+    [
+      "log_max_gap",
+      0.61
+    ],
+    [
+      "frac_login",
+      -0.6
+    ],
+    [
+      "frac_chained",
+      -0.58
+    ]
+  ],
+  "model_sha256": "dd8e795e81d1ce4a6afb90c95f9b61a1a3afc2fd3aa5ccd4f73f2b21a4039e80"
+}

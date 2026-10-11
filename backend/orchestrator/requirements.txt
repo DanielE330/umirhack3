@@ -11,3 +11,4 @@ python-multipart==0.0.12
 websockets==13.1
 proxmoxer==2.0.1
 paramiko==3.4.0
+PySocks==1.7.1

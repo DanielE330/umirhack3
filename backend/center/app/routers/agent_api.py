@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import auth
+from .. import scoring
 from ..db import get_db
 from ..models import Trap, utcnow
 from ..schemas import AgentBatch
@@ -77,8 +78,14 @@ async def collect(request: Request, background: BackgroundTasks, trap: Trap = De
 
     views, dup = await run_in_threadpool(work)
     hub = request.app.state.hub
+    honeymind, orchestrator = request.app.state.honeymind, request.app.state.orchestrator
     for view in views:
         hub.publish(view)
         if view["type"] in NOTIFY_TYPES:
-            background.add_task(_notify, request.app.state.orchestrator, view)
+            background.add_task(_notify, orchestrator, view)
+        # Оценка HoneyMind — в ограниченном пуле потоков (app/scoring.py), уже после db.commit()
+        # внутри work(); не блокирует ответ агенту, падение HoneyMind не роняет приём событий.
+        scoring.submit_score_event(request.app.state.session_factory, honeymind, orchestrator, view)
+        if view["type"] == "session_end":
+            scoring.submit_session_assessment(request.app.state.session_factory, honeymind, view["session_id"])
     return {"ok": len(batch.events) - dup, "dup": dup}

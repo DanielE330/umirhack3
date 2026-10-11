@@ -3,6 +3,9 @@
 #   center       — вход с 2FA, веб-интерфейс, профили, ловушки, приём телеметрии агентов, события
 #   db           — PostgreSQL центра
 #   orchestrator — сервис управления машинами-ловушками в Proxmox (только по межсервисному токену)
+#   honeymind    — AI-аналитика событий (threat_score/category/is_human); только во внутренней
+#                  сети backend, порт наружу не публикуется — доступен лишь центру (он принимает
+#                  события от агентов, см. backend/center/app/routers/agent_api.py)
 # Запуск из папки infra/: cp .env.example .env && заполнить && docker compose up -d --build
 name: honeyforge-center
 
@@ -31,9 +34,19 @@ services:
       HF_ORCHESTRATOR_URL: http://orchestrator:4000
       HF_ORCHESTRATOR_TOKEN: ${ORCH_TOKEN:?задайте ORCH_TOKEN}
       HF_TRUSTED_PROXIES: 172.31.40.10
+      # AI-аналитика событий агента (threat_score/category/is_human) — honeymind виден только
+      # через внутреннюю сеть backend, см. honeymind/README.md
+      HF_HONEYMIND_URL: http://honeymind:8001
+      HF_HONEYMIND_TOKEN: ${HONEYMIND_TOKEN:?задайте HONEYMIND_TOKEN}
+      HF_TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
+      NO_PROXY: "127.0.0.1,localhost,192.168.1.94,10.20.0.0/24,orchestrator,center,db,honeymind"
+      no_proxy: "127.0.0.1,localhost,192.168.1.94,10.20.0.0/24,orchestrator,center,db,honeymind"
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      default: {}
+      backend: {}
     restart: unless-stopped
 
   db:
@@ -55,7 +68,8 @@ services:
   orchestrator:
     build: ../backend/orchestrator
     container_name: hf-orchestrator
-    environment:
+    environment:   # только нужное оркестратору: ключи центра (HF_SECRET_KEY и др.) сюда не попадают
+      PYTHONUNBUFFERED: "1"
       ORCH_TOKEN: ${ORCH_TOKEN:?задайте ORCH_TOKEN}
       DATABASE_URL: postgresql+asyncpg://honeyforge:${HF_DB_PASSWORD}@db:5432/orchestrator
       PROXMOX_HOST: ${PROXMOX_HOST:-192.168.1.94}
@@ -69,10 +83,17 @@ services:
       PROXMOX_NETWORK: ${PROXMOX_NETWORK:-10.20.0.0/24}
       PROXMOX_GATEWAY: ${PROXMOX_GATEWAY:-10.20.0.1}
       PROXMOX_POOL: ${PROXMOX_POOL:-honeyforge}
+      PROXMOX_NODE: ${PROXMOX_NODE:-}
+      PROXMOX_PORT: ${PROXMOX_PORT:-8006}
+      PROXMOX_NAMESERVER: ${PROXMOX_NAMESERVER:-1.1.1.1}
+      PROXMOX_TEMPLATE_KVM: ${PROXMOX_TEMPLATE_KVM:-}
       # Уведомления об атаках в Telegram; пусто — выключены
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
       TELEGRAM_PROXY: ${TELEGRAM_PROXY:-}
+      HF_CENTER_URL: http://center:4000
+      NO_PROXY: "127.0.0.1,localhost,192.168.1.94,10.20.0.0/24,orchestrator,center,db,honeymind"
+      no_proxy: "127.0.0.1,localhost,192.168.1.94,10.20.0.0/24,orchestrator,center,db,honeymind"
       # Узкий SSH-доступ к хосту Proxmox для включения агентов (infra/proxmox/hf-agent-ctl)
       PVE_SSH_HOST: ${PVE_SSH_HOST:-}
     volumes:
@@ -82,11 +103,23 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  honeymind:
+    build: ../honeymind
+    container_name: hf-honeymind
+    environment:
+      HONEYMIND_TOKEN: ${HONEYMIND_TOKEN:?задайте HONEYMIND_TOKEN}
+      HONEYMIND_DOCS: "0"
+    networks:
+      backend: {}          # только внутренняя сеть — порт наружу и в default не публикуем
+    restart: unless-stopped
+
 networks:
   default:
     ipam:
       config:
         - subnet: 172.31.40.0/24
+  backend:
+    internal: true          # нет выхода наружу; доступен только сервисам, подключённым к ней (center)
 
 volumes:
   pgdata:

@@ -21,7 +21,21 @@ def make_engine(url: str) -> Engine:
 
 
 # Колонки, добавленные после первого релиза: create_all не меняет существующие таблицы
-LATE_COLUMNS = {"traps": {"machine_vmid": "INTEGER"}}
+LATE_COLUMNS = {
+    "traps": {"machine_vmid": "INTEGER"},
+    "events": {
+        "threat_score": "INTEGER",
+        "category": "VARCHAR(64)",
+        "needs_review": "BOOLEAN",
+        "honeymind_result": "JSON",
+    },
+    "users": {
+        "telegram_chat_id": "VARCHAR(64)",
+        "telegram_username": "VARCHAR(64)",
+        "telegram_link_code": "VARCHAR(32)",
+        "telegram_link_expires": "TIMESTAMP",
+    },
+}
 
 
 def init_db(engine: Engine) -> None:
