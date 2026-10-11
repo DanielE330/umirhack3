@@ -66,14 +66,9 @@ export default function Settings() {
 
         <SettingCard icon={LayoutPanelTop} title={t('Расположение навигации')}
           desc={t('Сверху — как раньше, слева — боковая панель. Изменение применяется сразу.')}>
-          <div className="seg" role="radiogroup" aria-label={t('Расположение навигации')}>
-            <button type="button" role="radio" aria-checked={layout === 'top'} className={layout === 'top' ? 'on' : ''} onClick={() => setLayout('top')}>
-              <b><LayoutPanelTop size={16} strokeWidth={1.5} aria-hidden="true" />{t('Сверху')}</b>
-            </button>
-            <button type="button" role="radio" aria-checked={layout === 'side'} className={layout === 'side' ? 'on' : ''} onClick={() => setLayout('side')}>
-              <b><LayoutPanelLeft size={16} strokeWidth={1.5} aria-hidden="true" />{t('Слева')}</b>
-            </button>
-          </div>
+          <ToggleSwitch label={t('Навигация слева')} checked={layout === 'side'} onChange={(side) => setLayout(side ? 'side' : 'top')}
+            off={<><LayoutPanelTop size={16} strokeWidth={1.6} aria-hidden="true" />{t('Сверху')}</>}
+            on={<><LayoutPanelLeft size={16} strokeWidth={1.6} aria-hidden="true" />{t('Слева')}</>} />
         </SettingCard>
 
         <SettingCard icon={Send} title={t('Telegram')}

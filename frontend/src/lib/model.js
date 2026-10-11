@@ -22,6 +22,10 @@ export const PVE = {
   bridgeLabel: 'vmbr1 · DMZ 10.20.0.0/24 (изолированная сеть)',
   templates: { lxc: 9101 }, // шаблон для клонирования (настраивается в оркестраторе)
   storage: 'hdd',
+  pool: 'honeyforge', // пул Proxmox: права оркестратора ограничены им
+  network: '10.20.0.0/24',
+  gateway: '10.20.0.1',
+  vmidFrom: 1100, // VMID ловушек выдаются начиная с этого номера
   defaults: { cores: 1, ram: 1, disk: 10 },
   limits: { cores: [1, 32], ram: [1, 128], disk: [10, 1000] },
 }

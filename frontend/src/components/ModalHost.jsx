@@ -21,7 +21,7 @@ export default function ModalHost() {
     <>
       {modal && (
         <div className="modal" onMouseDown={(e) => e.target === e.currentTarget && closeModal()}>
-          <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <div className={'sheet' + (modal.wide ? ' wide' : '')} role="dialog" aria-modal="true" aria-labelledby="modal-title">
             <div className="sheet-head">
               <h2 id="modal-title">{modal.title}</h2>
               <button className="icon-btn" aria-label={t('Закрыть')} data-tip={t('Закрыть (Esc)')} onClick={closeModal}>

@@ -298,10 +298,41 @@ pre { margin: 0; white-space: pre-wrap; font: 12.5px/1.55 var(--font-mono); colo
 
 /* ---------- ползунок между двумя вариантами (язык, тема) ---------- */
 .toggle { display: inline-flex; align-items: center; gap: 12px; }
-.toggle-opt { background: none; border: 0; padding: 4px 2px; font: inherit; font-weight: 600; color: var(--faint); cursor: pointer; transition: color 0.2s; }
+.toggle-opt { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 4px 2px; font: inherit; font-weight: 600; color: var(--faint); cursor: pointer; transition: color 0.2s; }
 .toggle-opt.on { color: var(--fg); }
 .toggle-opt:hover { color: var(--accent); }
 .toggle-sw .track { width: 52px; height: 28px; background: var(--accent-soft); border-color: var(--accent); }
 .toggle-sw .knob { width: 22px; height: 22px; background: var(--accent); }
 .toggle-sw[aria-checked='true'] .track { background: var(--accent-soft); border-color: var(--accent); }
 .toggle-sw[aria-checked='true'] .knob { transform: translateX(24px); background: var(--accent); }
+
+/* ---------- мастер создания машины (как «Create CT» в Proxmox) ---------- */
+.sheet.wide { max-width: 860px; }
+.wiz-tabs { display: flex; gap: 2px; margin: -4px 0 16px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.wiz-tabs::-webkit-scrollbar { display: none; }
+.wiz-tabs button { position: relative; flex: none; background: none; border: 0; padding: 9px 14px; color: var(--muted); font-weight: 500; cursor: pointer; white-space: nowrap; border-radius: 8px 8px 0 0; }
+.wiz-tabs button:hover { color: var(--fg); background: var(--hover-soft); }
+.wiz-tabs button.done { color: var(--fg); }
+.wiz-tabs button.on { color: var(--accent); }
+.wiz-tabs button.on::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 2px; background: var(--accent); border-radius: 2px; }
+.wiz-body { min-height: 250px; }
+.wiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+.wiz-grid.one { grid-template-columns: minmax(0, 520px); }
+.wiz-row { display: grid; grid-template-columns: 150px 1fr; align-items: center; gap: 12px; margin-bottom: 10px; }
+.wiz-label { color: var(--muted); font-size: 13px; }
+.wiz-field input { padding: 8px 12px; }
+.wiz-field input:disabled { color: var(--muted); background: var(--bg-2); border-style: dashed; cursor: default; opacity: 1; }
+.wiz-seg button { padding: 6px 16px; }
+.wiz-note { grid-column: 1 / -1; margin: 4px 0 0; }
+.wiz-confirm { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 12px; }
+.wiz-confirm th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12px; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+.wiz-confirm td { padding: 6px 10px; border-bottom: 1px solid var(--line); }
+.wiz-confirm td:first-child { color: var(--muted); width: 170px; }
+.wiz-check { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 6px; color: var(--muted); font-size: 13px; }
+.wiz-check input { width: auto; }
+.wiz-foot { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+.wiz-foot .spacer { flex: 1; }
+@media (max-width: 720px) {
+  .wiz-grid { grid-template-columns: 1fr; }
+  .wiz-row { grid-template-columns: 1fr; gap: 4px; }
+}
