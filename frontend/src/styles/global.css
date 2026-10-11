@@ -355,4 +355,5 @@ pre { margin: 0; white-space: pre-wrap; font: 12.5px/1.55 var(--font-mono); colo
 .users-table td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 .users-table tbody tr { cursor: default; }
 .users-table .users-role { min-width: 130px; }
-.users-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.users-table td:last-child { white-space: nowrap; width: 1%; }
+.users-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: nowrap; }

@@ -116,14 +116,14 @@ export default function Users() {
                   <td><span className={'tag ' + (u.is_active ? 'low' : 'high')}>{u.is_active ? t('активен') : t('заблокирован')}</span></td>
                   <td>{u.totp_enabled ? t('включена') : t('не настроена')}</td>
                   <td className="m">{fmtDateTime(Date.parse(u.created_at + 'Z'))}</td>
-                  <td className="users-actions">
+                  <td>
                     {!me && (
-                      <>
+                      <div className="users-actions">
                         <ArmedButton label={u.is_active ? t('Заблокировать') : t('Разблокировать')} armLabel={t('Точно?')} className="ghost small"
                           onConfirm={() => patch(u, { is_active: !u.is_active }, u.is_active ? t('«{name}» заблокирован', { name: u.username }) : t('«{name}» разблокирован', { name: u.username }))} />
                         <ArmedButton label={t('Сбросить 2FA')} armLabel={t('Точно?')} className="ghost small" onConfirm={() => reset2fa(u)}
                           tip={t('Пользователь настроит 2FA заново при следующем входе')} />
-                      </>
+                      </div>
                     )}
                   </td>
                 </tr>
