@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .. import auth
+from .. import auth, security
 from ..config import Settings
 from ..db import get_db
 from ..models import User, utcnow
@@ -21,6 +21,13 @@ def require_internal_token(request: Request, x_internal_token: str | None = Head
         raise HTTPException(401, "Неверный внутренний токен")
 
 
+class TelegramLoginIn(BaseModel):
+    username: str = Field(min_length=1, max_length=64)
+    password: str = Field(min_length=1, max_length=128)
+    chat_id: str = Field(min_length=1, max_length=64)
+    tg_username: str | None = None
+
+
 class TelegramBindIn(BaseModel):
     code: str = Field(min_length=1, max_length=64)
     chat_id: str = Field(min_length=1, max_length=64)
@@ -33,6 +40,29 @@ class TelegramCheckIn(BaseModel):
 
 class TelegramUnbindIn(BaseModel):
     chat_id: str = Field(min_length=1, max_length=64)
+
+
+@router.post("/telegram/login", dependencies=[Depends(require_internal_token)])
+def login_telegram(body: TelegramLoginIn, db: Session = Depends(get_db)):
+    """Прямая авторизация оператора через Telegram по логину и паролю."""
+    user = db.scalar(select(User).where(User.username == body.username, User.is_active == True))
+    if not user or not security.verify_password(body.password, user.password_hash):
+        raise HTTPException(401, "Неверный логин или пароль")
+
+    # Если chat_id был привязан к другому, отвязываем старого
+    other = db.scalar(select(User).where(User.telegram_chat_id == body.chat_id, User.id != user.id))
+    if other:
+        other.telegram_chat_id = None
+        other.telegram_username = None
+
+    user.telegram_chat_id = body.chat_id
+    user.telegram_username = body.tg_username.lstrip("@") if body.tg_username else None
+    user.telegram_link_code = None
+    user.telegram_link_expires = None
+    auth.audit(db, user.username, "telegram.direct_login", f"chat_id={body.chat_id}")
+    db.commit()
+
+    return {"ok": True, "username": user.username, "role": user.role}
 
 
 @router.post("/telegram/bind", dependencies=[Depends(require_internal_token)])

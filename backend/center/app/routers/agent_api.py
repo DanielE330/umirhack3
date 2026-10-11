@@ -54,8 +54,8 @@ def _notify(orchestrator, view: dict) -> None:
         orchestrator.request("POST", "/", {"event_name": view["type"], "attacker_ip": view["src_ip"],
                                            "properties": {"trap": view["trap"], "detail": view["command"] or view["username"]}},
                              timeout=20, base="/api/v1/notify")
-    except HTTPException:
-        pass  # уведомление вторично: событие уже сохранено и показано в ленте
+    except Exception as exc:
+        print(f"⚠️ [Center Notify] Ошибка отправки алерта в оркестратор: {exc}", flush=True)
 
 
 @router.post("/log")
