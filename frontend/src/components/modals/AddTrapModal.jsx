@@ -39,7 +39,7 @@ export default function AddTrapModal({ vmid }) {
       return setErr(e.message)
     }
     closeModal()
-    showToast(t('Ловушка «{name}» добавлена — подключите к ней агента в окне ловушки', { name: n }))
+    showToast(t('Ловушка «{name}» добавлена — агент включится в машине сам', { name: n }))
     return refresh()
   }
 

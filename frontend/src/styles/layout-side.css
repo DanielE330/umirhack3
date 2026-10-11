@@ -1,25 +1,33 @@
-/* Расположение «Слева»: вертикальная панель шириной 224px, контент справа от неё */
-:root { --side-w: 224px; }
+/* Расположение «Слева»: вертикальная панель, контент справа от неё.
+   Ширина тянется за экраном; на средних экранах панель сжимается до колонки иконок, на узких — становится шапкой. */
+:root { --side-w: clamp(236px, 16vw, 288px); }
 
 .layout-side .topbar {
   position: fixed; top: 0; bottom: 0; left: 0; z-index: 6;
-  width: var(--side-w); height: 100vh; padding: 18px 12px;
-  flex-direction: column; align-items: stretch; gap: 18px;
-  background: var(--bg-2); border-bottom: 0; border-right: 1px solid var(--line);
-  backdrop-filter: none; overflow-y: auto;
+  width: var(--side-w); height: 100vh; min-height: 0; padding: 22px 14px;
+  flex-direction: column; align-items: stretch; gap: 22px;
+  background: var(--surface-glass); border-bottom: 0; border-right: 1px solid var(--line);
+  overflow-y: auto; transition: width 0.25s ease-in-out;
   animation: side-in 0.25s ease-in-out;
 }
 .layout-side .brand { padding: 0 8px; }
-.layout-side .topbar nav { flex-direction: column; gap: 4px; margin: 0; overflow: visible; }
-.layout-side .topbar nav a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; }
-.layout-side .topbar nav a.on::after { left: auto; right: 0; top: 8px; bottom: 8px; width: 2px; height: auto; }
-.layout-side .who { margin: auto 0 0; flex-direction: column; align-items: stretch; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+.layout-side .brand img { width: 40px; height: 40px; }
+.layout-side .brand b { font-size: clamp(19px, 1.2vw, 22px); }
+.layout-side .topbar nav { flex-direction: column; gap: 6px; margin: 0; overflow: visible; }
+.layout-side .topbar nav a {
+  display: flex; align-items: center; gap: 13px;
+  padding: clamp(11px, 0.8vw, 13px) 16px; font-size: clamp(15px, 0.35vw + 10px, 16.5px);
+}
+.layout-side .topbar nav a svg { width: 1.3em; height: 1.3em; }
+.layout-side .topbar nav a.on::after { left: auto; right: 0; top: 9px; bottom: 9px; width: 3px; height: auto; }
+.layout-side .who { margin: auto 0 0; flex-direction: column; align-items: stretch; gap: 10px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 14px; }
 .layout-side .who span { line-height: 1.4; word-break: break-all; }
-.layout-side .who button { width: 100%; }
+.layout-side .who button { width: 100%; padding: 9px 14px; }
 
 /* контент сдвигается вправо плавно, а не прыжком */
 .layout-side main,
 .layout-side .credits { margin-left: var(--side-w); transition: margin-left 0.25s ease-in-out; }
+.layout-side main { margin-right: 0; max-width: none; padding-left: clamp(18px, 2.4vw, 40px); padding-right: clamp(18px, 2.4vw, 40px); }
 .layout-top main, .layout-top .credits { transition: margin-left 0.25s ease-in-out; }
 
 @keyframes side-in {
@@ -27,10 +35,30 @@
   to { opacity: 1; transform: none; }
 }
 
+/* средние экраны: колонка иконок (названия — во всплывающих подсказках) */
+@media (max-width: 1180px) and (min-width: 721px) {
+  :root { --side-w: 84px; }
+  .layout-side .topbar { padding: 18px 12px; align-items: center; }
+  .layout-side .brand { padding: 0; }
+  .layout-side .brand b,
+  .layout-side .topbar nav a span,
+  .layout-side .who > span { display: none; }
+  .layout-side .topbar nav { align-items: center; }
+  .layout-side .topbar nav a { justify-content: center; width: 56px; padding: 13px 0; }
+  .layout-side .topbar nav a.on::after { right: -12px; }
+  .layout-side .who { align-self: stretch; }
+  .layout-side .who button { padding: 8px 4px; font-size: 12px; }
+}
+
 @media (max-width: 720px) {
   /* на узком экране боковая панель становится обычной шапкой, иначе она перекрывает контент */
-  .layout-side .topbar { position: sticky; width: auto; height: auto; flex-direction: row; flex-wrap: wrap; padding: 8px 14px; border-right: 0; border-bottom: 1px solid var(--line); overflow: visible; animation: none; }
-  .layout-side .topbar nav { flex-direction: row; overflow-x: auto; }
-  .layout-side .who { margin: 0 0 0 auto; flex-direction: row; border-top: 0; padding-top: 0; }
+  .layout-side .topbar { position: sticky; width: auto; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 8px 14px; gap: 8px 12px; border-right: 0; border-bottom: 1px solid var(--line); overflow: visible; animation: none; }
+  .layout-side .brand img { width: 34px; height: 34px; }
+  .layout-side .topbar nav { order: 3; flex-basis: 100%; flex-direction: row; overflow-x: auto; }
+  .layout-side .topbar nav a { padding: 9px 12px; font-size: 14px; }
+  .layout-side .topbar nav a.on::after { left: 12px; right: 12px; top: auto; bottom: 3px; width: auto; height: 2px; }
+  .layout-side .who { margin: 0 0 0 auto; flex-direction: row; align-items: center; border-top: 0; padding-top: 0; font-size: 12px; }
+  .layout-side .who button { width: auto; padding: 6px 12px; }
   .layout-side main, .layout-side .credits { margin-left: 0; }
+  .layout-side main { padding: 14px; }
 }

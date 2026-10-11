@@ -22,3 +22,7 @@
 
 /* Окно привязки Telegram: код крупно, его удобно продиктовать или скопировать */
 .tg-code { margin: 10px 0 14px; text-align: center; font-size: 26px; letter-spacing: 3px; }
+.tg-code-row { display: flex; align-items: stretch; gap: 10px; margin: 10px 0 14px; }
+.tg-code-row .tg-code { flex: 1; margin: 0; }
+.tg-copy { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; }
+.tg-copy.done { color: var(--ok); border-color: var(--ok); }

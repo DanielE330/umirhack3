@@ -1,32 +1,55 @@
-/* Палитра исходной панели HoneyForge (panel.css), приведённая к единым токенам */
+/* Токены темы HoneyForge. Тёмная («медовая», как страница входа) — по умолчанию,
+   светлая — html[data-theme='light'] (переключатель в «Настройках», выбор хранится в браузере). */
 :root {
+  color-scheme: dark;
+
   /* Поверхности */
-  --bg: #111319;
-  --bg-2: #161922;
-  --card: #1b1f2b;
-  --card-2: #242a37;
-  --line: #2d3443;
-  --line-2: #3b4457;
+  --bg: #0d0a08;
+  --bg-2: #17100b;
+  --card: #1c140e;
+  --card-2: #271c14;
+  --line: #3a2a1d;
+  --line-2: #4c3828;
+  --glow: #3b2208;                         /* тёплое свечение сверху страницы */
+  --surface-glass: rgb(23 16 11 / 86%);    /* шапка и боковая панель поверх контента */
+  --input-bg: #120c08;
+  --placeholder: #5b4c3c;
+  --tip-bg: #100b07;
+  --overlay: rgb(8 5 3 / 66%);
+  --hover-soft: rgb(255 255 255 / 5%);
+  --inset-hi: rgb(255 255 255 / 2%);
+  --shadow: rgb(0 0 0 / 55%);
+  --shadow-soft: rgb(0 0 0 / 22%);
 
   /* Текст */
-  --fg: #e5e9f0;
-  --muted: #969eae;
-  --faint: #6a7285;
+  --fg: #f4ebe0;
+  --muted: #a8977f;
+  --faint: #7d6d5a;
 
-  /* Акцент — янтарный мёд */
-  --accent: #f4b74d;
-  --accent-2: #f59f58;
-  --accent-soft: rgb(244 183 77 / 12%);
-  --on-accent: #2b1d05;
+  /* Акцент — мёд */
+  --accent: #f5a623;
+  --accent-2: #ff7a1a;
+  --accent-soft: rgb(245 166 35 / 12%);
+  --on-accent: #2a1503;
+  --btn-from: #f5a623;                     /* заливка основных кнопок — яркая в обеих темах */
+  --btn-to: #ff7a1a;
+  --note-fg: #f0cf8f;                      /* текст на мягком акцентном фоне */
 
   /* Статусы */
-  --ok: #65d6a7;
-  --ok-soft: rgb(101 214 167 / 14%);
+  --ok: #6fdc9a;
+  --ok-soft: rgb(111 220 154 / 14%);
   --wait: #7aa7e6;
   --wait-soft: rgb(122 167 230 / 14%);
-  --off: #8a93a6;
-  --coral: #f08b91;
-  --coral-soft: rgb(240 139 145 / 13%);
+  --info-fg: #b3cdf2;
+  --off: #8f8576;
+  --coral: #ff7a7a;
+  --coral-soft: rgb(255 122 122 / 13%);
+  --warn-fg: #efb1b1;
+  --danger-line: #5a3434;
+
+  /* Переключатель */
+  --track: #3a2a1d;
+  --knob: #b8a690;
 
   /* Уровни и типы событий */
   --lv-low: #9fd3b4;
@@ -34,6 +57,9 @@
   --lv-medium: #e9c37a;
   --lv-medium-line: #5a4a2c;
   --lv-high-line: #5e3a3a;
+  --soon-line: #34496b;
+  --kvm: #b9a6ee;
+  --kvm-line: #4a3f6e;
   --ev-honeytoken: #c3a6ee;
   --ev-honeytoken-line: #4d3d70;
   --ev-command: #86c9ee;
@@ -46,4 +72,65 @@
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+/* Светлая тема: кремовая бумага и тёмно-медовые акценты (контраст текста на белом) */
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f7f2ea;
+  --bg-2: #efe6d9;
+  --card: #fffdf9;
+  --card-2: #f5ede2;
+  --line: #e4d7c5;
+  --line-2: #d3c1a8;
+  --glow: #fbe1b3;
+  --surface-glass: rgb(255 252 247 / 88%);
+  --input-bg: #fffaf3;
+  --placeholder: #b3a28c;
+  --tip-bg: #fffdf9;
+  --overlay: rgb(60 40 20 / 32%);
+  --hover-soft: rgb(42 31 21 / 5%);
+  --inset-hi: transparent;
+  --shadow: rgb(60 40 20 / 18%);
+  --shadow-soft: rgb(60 40 20 / 12%);
+
+  --fg: #2a1f15;
+  --muted: #6d5c49;
+  --faint: #8c7b67;
+
+  --accent: #b46400;
+  --accent-2: #d9600b;
+  --accent-soft: rgb(245 166 35 / 16%);
+  --on-accent: #2a1503;
+  --btn-from: #f5a623;
+  --btn-to: #ff8a2a;
+  --note-fg: #7a4a00;
+
+  --ok: #17865a;
+  --ok-soft: rgb(23 134 90 / 12%);
+  --wait: #2f62ad;
+  --wait-soft: rgb(47 98 173 / 11%);
+  --info-fg: #2c528a;
+  --off: #7d7468;
+  --coral: #c3364a;
+  --coral-soft: rgb(195 54 74 / 10%);
+  --warn-fg: #962a39;
+  --danger-line: #e8b8bf;
+
+  --track: #e4d7c5;
+  --knob: #ffffff;
+
+  --lv-low: #2b7a52;
+  --lv-low-line: #b9dcc8;
+  --lv-medium: #94640a;
+  --lv-medium-line: #ead3a3;
+  --lv-high-line: #e6b8b8;
+  --soon-line: #bcd0ee;
+  --kvm: #6a4fb0;
+  --kvm-line: #d7cdf0;
+  --ev-honeytoken: #7651b8;
+  --ev-honeytoken-line: #d7c8f0;
+  --ev-command: #1f6d98;
+  --ev-command-line: #bcdcee;
 }

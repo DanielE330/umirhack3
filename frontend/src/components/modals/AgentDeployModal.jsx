@@ -2,6 +2,7 @@ import { useData } from '../../context/data.js'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
 import { TYPE_INFO } from '../../lib/model.js'
+import { copyText } from '../../lib/clipboard.js'
 
 // Токен выпускается заново и показывается один раз, поэтому артефакт приходит готовым из TrapModal
 export default function AgentDeployModal({ trapId, artifact }) {
@@ -13,7 +14,7 @@ export default function AgentDeployModal({ trapId, artifact }) {
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(artifact)
+      await copyText(artifact)
       showToast(t('Скопировано'))
     } catch {
       showToast(t('Не удалось скопировать: выделите текст вручную'), true)

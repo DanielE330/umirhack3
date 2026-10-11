@@ -50,6 +50,19 @@ export function Switch({ on, tip, onToggle, disabled }) {
   )
 }
 
+// Ползунок между двумя вариантами (язык, тема): подписи по сторонам кликабельны, сам переключатель — role=switch
+export function ToggleSwitch({ label, off, on, checked, onChange }) {
+  return (
+    <div className="toggle">
+      <button type="button" className={'toggle-opt' + (checked ? '' : ' on')} tabIndex={-1} aria-hidden="true" onClick={() => onChange(false)}>{off}</button>
+      <button type="button" role="switch" aria-checked={checked} aria-label={label} className="switch toggle-sw" onClick={() => onChange(!checked)}>
+        <span className="track"><span className="knob" /></span>
+      </button>
+      <button type="button" className={'toggle-opt' + (checked ? ' on' : '')} tabIndex={-1} aria-hidden="true" onClick={() => onChange(true)}>{on}</button>
+    </div>
+  )
+}
+
 // Опасное действие подтверждается вторым нажатием в течение 3 секунд
 export function ArmedButton({ label, armLabel, onConfirm, className = 'ghost', tip, ...rest }) {
   const [armed, setArmed] = useState(false)

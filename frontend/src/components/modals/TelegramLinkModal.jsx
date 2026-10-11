@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/auth.js'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
+import { Check, Copy } from 'lucide-react'
 import { api } from '../../lib/api.js'
+import { copyText } from '../../lib/clipboard.js'
 
 // Привязка Telegram: центр выдаёт одноразовый код, бот принимает его по ссылке t.me/<бот>?start=<код>
 // или командой /start <код>. Окно само ждёт подтверждения от бота и закрывается.
@@ -12,6 +14,7 @@ export default function TelegramLinkModal() {
   const { t } = useLanguage()
   const [link, setLink] = useState(null)
   const [err, setErr] = useState('')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -50,7 +53,23 @@ export default function TelegramLinkModal() {
       <p className="hint">
         {t('Откройте бота и отправьте ему код — окно закроется само, как только бот подтвердит привязку. Код действует 15 минут.')}
       </p>
-      <pre className="tg-code">{link.code}</pre>
+      <div className="tg-code-row">
+        <pre className="tg-code">{link.code}</pre>
+        <button type="button" className={'ghost tg-copy' + (copied ? ' done' : '')} aria-label={t('Копировать код')} data-tip={t('Копировать код')}
+          onClick={async () => {
+            try {
+              await copyText(link.code)
+              setCopied(true)
+              showToast(t('Код скопирован'))
+              setTimeout(() => setCopied(false), 1800)
+            } catch {
+              showToast(t('Не удалось скопировать: выделите текст вручную'), true)
+            }
+          }}>
+          {copied ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}
+          <span>{copied ? t('Скопировано') : t('Копировать')}</span>
+        </button>
+      </div>
       {link.link ? (
         <p><a className="btn" href={link.link} target="_blank" rel="noopener noreferrer">{t('Открыть @{bot} в Telegram', { bot: link.bot_username })}</a></p>
       ) : (

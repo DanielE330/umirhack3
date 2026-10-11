@@ -44,7 +44,7 @@ export default function TrapModal({ trapId }) {
     if (target === tr.container) return undefined
     const errs = portConflicts([...trapsOf(target), tr].map((x) => ({ name: x.name, profile: x.profile })), profileByName)
     if (errs.length) return showToast(t('Нельзя переместить: {err}', { err: errs[0] }), true)
-    return patch({ machine_vmid: containerByName(target).vmid }, t('Ловушка перемещена в «{name}» — подключите к ней агента там', { name: target }))
+    return patch({ machine_vmid: containerByName(target).vmid }, t('Ловушка перемещена в «{name}» — агент переедет туда сам', { name: target }))
   }
   const apply = () => {
     const errs = portConflicts(
@@ -53,6 +53,17 @@ export default function TrapModal({ trapId }) {
     )
     if (errs.length) return showToast(t('Нельзя сменить тип: {err}', { err: errs[0] }), true)
     return patch({ profile_id: profileByName(profile).id }, t('Тип ловушки обновлён — агент подтянет конфиг'))
+  }
+  // Ловушка в машине: новый токен и перезапуск агента внутри — автоматически, токен никто не видит
+  const reinstall = async () => {
+    showToast(t('Переустанавливаю агента в «{name}»…', { name: tr.container }))
+    try {
+      await api('/api/traps/' + tr.id + '/agent', { method: 'POST' })
+      showToast(t('Агент «{name}» перезапущен — выйдет на связь через несколько секунд', { name: tr.name }))
+    } catch (e) {
+      fail(e)
+    }
+    await refresh()
   }
   const deploy = async () => {
     let d
@@ -100,8 +111,11 @@ export default function TrapModal({ trapId }) {
       <div className="inline">
         <button className="ghost" onClick={() => { closeModal(); setCFilter((f) => ({ ...f, q: tr.container })); navigate('/containers') }}>{t('▦ Показать машину')}</button>
         <button className="ghost" onClick={() => { closeModal(); setEventFilter({ trap: tr.name, type: '', q: '' }); navigate('/overview') }}>{t('☰ Все события ловушки')}</button>
-        <ArmedButton label={t('⚡ Подключить агента')} armLabel={t('Старый токен перестанет работать. Точно?')}
-          tip={t('Выпустить новый токен и показать команду запуска агента для этой ловушки')} onConfirm={deploy} />
+        <ArmedButton label={tr.vmid ? t('⚡ Переустановить агента') : t('⚡ Подключить агента')} armLabel={t('Старый токен перестанет работать. Точно?')}
+          tip={tr.vmid
+            ? t('Выпустить новый токен и перезапустить агента внутри машины — автоматически, токен никто не видит')
+            : t('Ловушка не в машине: выпустить токен и показать команду для ручного запуска агента')}
+          onConfirm={tr.vmid ? reinstall : deploy} />
         <ArmedButton label={t('🗑 Удалить')} armLabel={t('Точно удалить?')} className="ghost danger" onConfirm={() => { closeModal(); removeTrap(tr) }} />
       </div>
       <h4>{t('Последние события')}</h4>

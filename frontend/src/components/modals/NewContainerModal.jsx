@@ -13,7 +13,7 @@ export default function NewContainerModal() {
   const { closeModal, showToast } = useUi()
   const { t } = useLanguage()
   const [type, setType] = useState('lxc')
-  const [name, setName] = useState(() => uniqueContainerName('edge-dmz'))
+  const [name, setName] = useState(() => uniqueContainerName('web-prod'))
   const [res, setRes] = useState({ ...PVE.defaults })
   const [selected, setSelected] = useState(() => (profiles[0] ? [profiles[0].name] : []))
   const [err, setErr] = useState('')
@@ -44,7 +44,7 @@ export default function NewContainerModal() {
         await api('/api/traps', { method: 'POST', body: { name: tn, profile_id: profileByName(pn).id, machine_vmid: m.vmid } })
       }
       closeModal()
-      showToast(t('Создаю {kind} {vmid} в Proxmox (адрес {ip})…', { kind: TYPE_INFO[type].kind, vmid: m.vmid, ip: m.ip }))
+      showToast(t('Создаю {kind} {vmid} (адрес {ip}): клон, запуск и агенты — автоматически, около минуты', { kind: TYPE_INFO[type].kind, vmid: m.vmid, ip: m.ip }))
     } catch (e) {
       setErr(e.message)
       setBusy(false)

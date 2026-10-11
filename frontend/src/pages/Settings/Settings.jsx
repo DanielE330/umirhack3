@@ -1,4 +1,5 @@
-import { Languages, LayoutPanelLeft, LayoutPanelTop, Lightbulb, RotateCcw, Send } from 'lucide-react'
+import { useState } from 'react'
+import { Languages, LayoutPanelLeft, LayoutPanelTop, Lightbulb, MoonStar, RotateCcw, Send } from 'lucide-react'
 import { useAuth } from '../../context/auth.js'
 import { useLanguage } from '../../context/language.js'
 import { useLayout } from '../../context/layout.js'
@@ -6,7 +7,8 @@ import { useUi } from '../../context/ui.js'
 import IdeaModal from '../../components/modals/IdeaModal.jsx'
 import PasswordModal from '../../components/modals/PasswordModal.jsx'
 import TelegramLinkModal from '../../components/modals/TelegramLinkModal.jsx'
-import { ArmedButton } from '../../components/common.jsx'
+import { ArmedButton, ToggleSwitch } from '../../components/common.jsx'
+import { applyTheme, getTheme } from '../../lib/theme.js'
 import { api } from '../../lib/api.js'
 import './settings.css'
 
@@ -29,6 +31,12 @@ export default function Settings() {
   const { layout, setLayout } = useLayout()
   const { openModal, showToast } = useUi()
   const { user, refresh } = useAuth()
+  const [theme, setTheme] = useState(getTheme)
+  const switchTheme = (light) => {
+    const next = light ? 'light' : 'dark'
+    applyTheme(next)
+    setTheme(next)
+  }
   const unlink = async () => {
     try {
       await api('/api/auth/me/telegram', { method: 'DELETE' })
@@ -48,14 +56,12 @@ export default function Settings() {
 
       <div className="settings-grid">
         <SettingCard icon={Languages} title={t('Язык')} desc={t('Язык интерфейса. Выбор сохраняется в этом браузере.')}>
-          <div className="seg" role="radiogroup" aria-label={t('Язык')}>
-            <button type="button" role="radio" aria-checked={lang === 'ru'} className={lang === 'ru' ? 'on' : ''} onClick={() => setLang('ru')}>
-              <b>Русский</b>
-            </button>
-            <button type="button" role="radio" aria-checked={lang === 'en'} className={lang === 'en' ? 'on' : ''} onClick={() => setLang('en')}>
-              <b>English</b>
-            </button>
-          </div>
+          <ToggleSwitch label={t('Английский язык интерфейса')} off="Русский" on="English" checked={lang === 'en'}
+            onChange={(en) => setLang(en ? 'en' : 'ru')} />
+        </SettingCard>
+
+        <SettingCard icon={MoonStar} title={t('Тема')} desc={t('Тёмная «медовая» или светлая. Выбор сохраняется в этом браузере.')}>
+          <ToggleSwitch label={t('Светлая тема')} off={t('Тёмная')} on={t('Светлая')} checked={theme === 'light'} onChange={switchTheme} />
         </SettingCard>
 
         <SettingCard icon={LayoutPanelTop} title={t('Расположение навигации')}
