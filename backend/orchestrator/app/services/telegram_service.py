@@ -162,6 +162,7 @@ async def start_polling():
             try:
                 resp = await tg_client.get(f"{base_tg}/getUpdates", params={"offset": offset, "timeout": 30})
                 if resp.status_code != 200:
+                    print(f"❌ Telegram getUpdates HTTP {resp.status_code}: {resp.text}")
                     await asyncio.sleep(5)
                     continue
 
@@ -179,6 +180,8 @@ async def start_polling():
 
                         if not text:
                             continue
+
+                        print(f"📩 Telegram сообщение от chat_id={chat_id} (@{tg_username}): {text!r}")
 
                         # Команда привязки: /start HF-XXXXXX или /link HF-XXXXXX
                         if text.startswith("/start") or text.startswith("/link") or text.startswith("/bind"):
@@ -217,10 +220,14 @@ async def start_polling():
                                         f"2. В верхнем меню нажмите <b>«📱 Подключить Telegram»</b>\n"
                                         f"3. Отправьте боту полученную команду вида: <code>/link HF-XXXXXX</code>"
                                     )
-                            await tg_client.post(
+                            send_res = await tg_client.post(
                                 f"{base_tg}/sendMessage",
                                 json={"chat_id": chat_id, "text": reply_text, "parse_mode": "HTML"},
                             )
+                            if send_res.status_code != 200:
+                                print(f"❌ Ошибка отправки в Telegram HTTP {send_res.status_code}: {send_res.text}")
+                            else:
+                                print(f"📤 Ответ успешно отправлен в Telegram chat_id={chat_id}")
 
                         elif text == "/status":
                             auth_status = await check_user_auth(chat_id)
@@ -344,5 +351,7 @@ async def start_polling():
             except asyncio.CancelledError:
                 break
             except Exception as e:
+                import traceback
                 print(f"❌ Ошибка в Telegram Long-Polling: {e}")
+                traceback.print_exc()
                 await asyncio.sleep(5)
