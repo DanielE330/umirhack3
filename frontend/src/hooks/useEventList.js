@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useData } from '../context/data.js'
 import { useUi } from '../context/ui.js'
 import { api } from '../lib/api.js'
@@ -29,9 +29,13 @@ export function useEventList(extra, limit = PAGE) {
   const [next, setNext] = useState(null)
   const [busy, setBusy] = useState(false)
   const base = useMemo(() => ({ ...filters, ...extra }), [filters, extra])
+  // список ловушек обновляется опросом каждые 5 с; через ref он не заставляет перезагружать ленту и сбрасывать «Показать ещё»
+  const trapsRef = useRef(traps)
+  useEffect(() => { trapsRef.current = traps }, [traps])
 
   const load = useCallback(async (before) => {
-    const q = eventQuery(base, traps)
+    const known = trapsRef.current
+    const q = eventQuery(base, known)
     q.set('limit', String(limit))
     if (before) q.set('before_id', before)
     setBusy(true)
@@ -39,7 +43,7 @@ export function useEventList(extra, limit = PAGE) {
       const d = await api('/api/events?' + q)
       const rows = d.items.map((e) => {
         const ev = eventFromApi(e)
-        return { ...ev, container: (traps.find((x) => x.id === ev.trap_id) || {}).container || '' }
+        return { ...ev, container: (known.find((x) => x.id === ev.trap_id) || {}).container || '' }
       })
       setItems((old) => (before && old ? [...old, ...rows] : rows))
       setNext(d.next_before_id)
@@ -48,7 +52,7 @@ export function useEventList(extra, limit = PAGE) {
     } finally {
       setBusy(false)
     }
-  }, [base, traps, limit, showToast])
+  }, [base, limit, showToast])
 
   return { filters, setFilters, items, next, busy, load, base, traps }
 }

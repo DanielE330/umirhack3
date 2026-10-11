@@ -138,7 +138,8 @@ export async function demoApi(path, method, body) {
       t: String(i).padStart(2, '0') + ':00',
       n: db.events.filter((e) => Math.floor((Date.now() - Date.parse(e.ts)) / 3600000) === 23 - i).length,
     }))
-    return { total_24h: db.events.length, by_type: byType, top_sources: top('src_ip'), top_usernames: top('username'), top_passwords: top('password'), timeline }
+    const by_hour = timeline.map((x) => ({ t: x.t, n: x.n, auth: Math.floor(x.n / 2), alert: x.n > 3 ? 1 : 0 }))
+    return { total_24h: db.events.length, by_type: byType, by_hour, top_countries: [{ value: 'Germany', count: 7 }, { value: 'China', count: 4 }], top_asn: [{ value: 'AS24940', count: 6 }], top_sources: top('src_ip'), top_usernames: top('username'), top_passwords: top('password'), timeline }
   }
   if (res === 'events') return { items: db.events.slice(0, 200), next_before_id: null }
   throw fail('Демо: не поддерживается ' + path)
