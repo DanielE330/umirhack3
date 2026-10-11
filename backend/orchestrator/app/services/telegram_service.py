@@ -147,15 +147,31 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_i
 
 async def start_polling():
     """Фоновая задача (long-polling) для приёма команд операторов и обработки нажатий кнопок."""
-    if not TELEGRAM_BOT_TOKEN:
-        print("ℹ️ TELEGRAM_BOT_TOKEN не задан, long-polling отключён.")
+    token = os.getenv("TELEGRAM_BOT_TOKEN", TELEGRAM_BOT_TOKEN)
+    proxy_url = get_proxy_url()
+
+    print(f"🔍 Запуск Telegram сервиса: токен={'[ЗАДАН]' if token else '[НЕ ЗАДАН]'}, прокси={proxy_url or 'напрямую'}", flush=True)
+
+    if not token:
+        print("ℹ️ TELEGRAM_BOT_TOKEN не задан в .env, Telegram-бот отключён.", flush=True)
         return
 
-    base_tg = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
-    proxy_url = get_proxy_url()
+    base_tg = f"https://api.telegram.org/bot{token}"
     offset = 0
 
-    print("✅ Запущен интерактивный Telegram Long-Polling с поддержкой аутентификации операторов!")
+    # Проверяем связь с Telegram
+    try:
+        async with httpx.AsyncClient(proxy=proxy_url, timeout=12.0) as check_client:
+            me_resp = await check_client.get(f"{base_tg}/getMe")
+            if me_resp.status_code == 200:
+                binfo = me_resp.json().get("result", {})
+                print(f"🤖 Telegram бот успешно подключен: @{binfo.get('username')} ({binfo.get('first_name')})", flush=True)
+            else:
+                print(f"❌ Ошибка проверки бота через Telegram API (HTTP {me_resp.status_code}): {me_resp.text}", flush=True)
+    except Exception as e:
+        print(f"❌ Не удалось достучаться до Telegram API ({proxy_url or 'без прокси'}): {e}", flush=True)
+
+    print("✅ Запущен интерактивный Telegram Long-Polling с поддержкой аутентификации операторов!", flush=True)
 
     async with httpx.AsyncClient(proxy=proxy_url, timeout=35.0) as tg_client:
         while True:

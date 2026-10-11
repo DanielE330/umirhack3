@@ -70,7 +70,9 @@ services:
   orchestrator:
     build: ../backend/orchestrator
     container_name: hf-orchestrator
+    env_file: .env
     environment:
+      PYTHONUNBUFFERED: "1"
       ORCH_TOKEN: ${ORCH_TOKEN:?задайте ORCH_TOKEN}
       DATABASE_URL: postgresql+asyncpg://honeyforge:${HF_DB_PASSWORD}@db:5432/orchestrator
       PROXMOX_HOST: ${PROXMOX_HOST:-192.168.1.94}
