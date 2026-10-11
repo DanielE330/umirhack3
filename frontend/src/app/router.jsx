@@ -7,6 +7,7 @@ import Containers from '../pages/Containers/Containers.jsx'
 import Events from '../pages/Events/Events.jsx'
 import Files from '../pages/Files/Files.jsx'
 import IoC from '../pages/IoC/IoC.jsx'
+import AttackMap from '../pages/Map/Map.jsx'
 import Login from '../pages/Login/Login.jsx'
 import Overview from '../pages/Overview/Overview.jsx'
 import Profiles from '../pages/Profiles/Profiles.jsx'
@@ -30,6 +31,7 @@ export const router = createHashRouter([
       { path: 'events', element: <Events /> },
       { path: 'alerts', element: <Alerts /> },
       { path: 'analytics', element: <Analytics /> },
+      { path: 'map', element: <AttackMap /> },
       { path: 'ioc', element: <IoC /> },
       { path: 'traps', element: <Traps /> },
       { path: 'profiles', element: <Profiles /> },

@@ -29,7 +29,8 @@ def is_public(ip: str) -> bool:
 def info_view(row: IpInfo | None) -> dict | None:
     if row is None:
         return None
-    return {"country_code": row.country_code, "country": row.country, "city": row.city, "asn": row.asn, "org": row.org}
+    return {"country_code": row.country_code, "country": row.country, "city": row.city, "asn": row.asn, "org": row.org,
+            "lat": row.lat, "lon": row.lon}
 
 
 def cached(db: Session, ips: set[str]) -> dict[str, dict]:
@@ -41,7 +42,7 @@ def cached(db: Session, ips: set[str]) -> dict[str, dict]:
 
 
 def _fetch(url: str, ips: list[str]) -> dict[str, dict]:
-    body = json.dumps([{"query": ip, "fields": "status,country,countryCode,city,as,asname,query"} for ip in ips]).encode()
+    body = json.dumps([{"query": ip, "fields": "status,country,countryCode,city,lat,lon,as,asname,query"} for ip in ips]).encode()
     req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=8) as resp:  # noqa: S310 — адрес задаёт администратор
         rows = json.loads(resp.read())
@@ -64,7 +65,7 @@ def enrich(factory: sessionmaker, url: str, ips: set[str]) -> None:
                 if row is None:
                     db.add(IpInfo(ip=ip, country_code="--", country="Локальная сеть", org="Частный адрес"))
                 continue
-            if row is not None and now - row.fetched_at < TTL:
+            if row is not None and now - row.fetched_at < TTL and row.lat is not None:
                 continue
             with _lock:
                 if _failed.get(ip) and now - _failed[ip] < RETRY_AFTER:
@@ -89,5 +90,6 @@ def enrich(factory: sessionmaker, url: str, ips: set[str]) -> None:
                 row = have.get(ip) or IpInfo(ip=ip)
                 row.country_code, row.country, row.city = r.get("countryCode", ""), r.get("country", ""), r.get("city", "")
                 row.asn, row.org, row.fetched_at = asn[0], r.get("asname") or (asn[1] if len(asn) > 1 else ""), now
+                row.lat, row.lon = r.get("lat"), r.get("lon")
                 db.merge(row)
         db.commit()

@@ -70,3 +70,21 @@ def test_session_summary_filters_and_hourly_stats(admin):
     assert admin.get("/api/events?min_score=50").json()["items"] == []
     st = admin.get("/api/stats").json()
     assert len(st["by_hour"]) == 24 and sum(h["n"] for h in st["by_hour"]) == 4
+
+
+def test_sources_map_data(admin, app, monkeypatch):
+    t = mk_trap(admin)
+    monkeypatch.setattr(geo, "_fetch", lambda url, ips: {ip: {"query": ip, "country": "Germany", "countryCode": "DE", "city": "Berlin",
+                                                              "lat": 52.5, "lon": 13.4, "as": "AS24940 Hetzner", "asname": "HETZNER"}
+                                                         for ip in ips})
+    evs = [event(src_ip="8.8.8.8", type="auth_attempt"), event(src_ip="8.8.8.8", type="command"), event(src_ip="1.1.1.1"),
+           event(src_ip="10.0.0.5")]
+    admin.post("/assets/v1/log", json={"events": evs}, headers=agent_headers(t["token"]))
+    geo.enrich(app.state.session_factory, "http://geo.test", {"8.8.8.8", "1.1.1.1", "10.0.0.5"})
+    d = admin.get("/api/sources?period=7d").json()
+    top = d["items"][0]
+    assert top["ip"] == "8.8.8.8" and top["events"] == 2 and top["auth_attempts"] == 1 and top["commands"] == 1
+    assert top["geo"]["lat"] == 52.5 and top["geo"]["country_code"] == "DE"
+    assert d["countries"][0] == {"country_code": "DE", "country": "Germany", "events": 3, "ips": 2}
+    assert d["unlocated"] == 1  # частный адрес без координат
+    assert admin.get("/api/sources?period=bad").status_code == 422

@@ -366,3 +366,9 @@ pre { margin: 0; white-space: pre-wrap; font: 12.5px/1.55 var(--font-mono); colo
 .risk-score.hot { background: #7f1d1d; color: #fecaca; }
 .chart-box { width: 100%; height: 280px; }
 .chart-box.short { height: 230px; }
+
+.attack-map { width: 100%; height: auto; display: block; }
+.attack-map .sea { fill: var(--card-2); }
+.attack-map .land { fill: color-mix(in srgb, currentColor 22%, transparent); stroke: var(--line); stroke-width: 0.4; }
+.attack-map .dot { fill: #ef4444; fill-opacity: 0.55; stroke: #fecaca; stroke-width: 1; cursor: default; }
+.attack-map .dot:hover { fill-opacity: 0.85; }

@@ -1,4 +1,4 @@
-import { Bell, ChartColumn, FileDown, FileWarning, Layers, LayoutDashboard, Radar, ScrollText, Server, Settings, Users } from 'lucide-react'
+import { Bell, ChartColumn, Globe2, FileDown, FileWarning, Layers, LayoutDashboard, Radar, ScrollText, Server, Settings, Users } from 'lucide-react'
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import ModalHost from '../components/ModalHost.jsx'
 import Tooltips from '../components/Tooltips.jsx'
@@ -15,6 +15,7 @@ const NAV = [
   { to: '/events', label: 'События', tip: 'Вся история событий с фильтрами по времени, источнику, типу и опасности', icon: ScrollText },
   { to: '/alerts', label: 'Тревоги', tip: 'Перебор паролей и срабатывания файлов-приманок', icon: Bell },
   { to: '/analytics', label: 'Аналитика', tip: 'Графики за 24 часа: динамика, источники, страны, пароли', icon: ChartColumn },
+  { to: '/map', label: 'Карта', tip: 'Карта источников атак и список: кто и откуда нападает', icon: Globe2 },
   { to: '/ioc', label: 'IoC', tip: 'Индикаторы компрометации: список IP и экспорт в CSV и STIX', icon: FileDown },
   { to: '/traps', label: 'Ловушки', tip: 'Каталог всех типов ловушек, которые умеет платформа', icon: Radar },
   { to: '/profiles', label: 'Профили', tip: 'Шаблоны ловушек: уровень, порты, баннеры, приманки', icon: Layers },

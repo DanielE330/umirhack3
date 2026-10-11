@@ -204,6 +204,8 @@ class IpInfo(Base):
     city: Mapped[str] = mapped_column(String(120), default="")
     asn: Mapped[str] = mapped_column(String(24), default="")       # AS15169
     org: Mapped[str] = mapped_column(String(200), default="")
+    lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    lon: Mapped[float | None] = mapped_column(Float, nullable=True)
     fetched_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
