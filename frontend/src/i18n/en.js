@@ -610,6 +610,7 @@ const en = {
   '2FA «{name}» сброшена': '2FA of “{name}” was reset',
   'Пользователь настроит 2FA заново при следующем входе': 'The user will set up 2FA again at next sign-in',
   'Пользователей нет': 'No users',
+  'Оглавление': 'Contents',
 }
 
 export default en

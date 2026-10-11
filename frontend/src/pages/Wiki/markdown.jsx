@@ -3,6 +3,8 @@
 // разделители, `код`, **жирный** и ссылки. Всё выводится как элементы React, поэтому HTML из текста не исполняется.
 
 // Ссылки разрешены только http(s), относительные и якорные. javascript: и другие схемы отбрасываются.
+import { headings } from './toc.js'
+
 const SAFE_HREF = /^(https?:\/\/|\/|#|\.\.?\/)/i
 
 function inline(text, keyBase = 'i') {
@@ -42,6 +44,8 @@ export default function Markdown({ source }) {
   let i = 0
   let k = 0
   const key = () => 'b' + k++
+  const ids = headings(source) // те же id, что в оглавлении
+  let hi = 0
 
   // строка начинает новый блок: тогда абзац на ней заканчивается
   const startsBlock = (l) =>
@@ -67,7 +71,8 @@ export default function Markdown({ source }) {
     const heading = /^(#{1,6})\s+(.*)$/.exec(line)
     if (heading) {
       const Tag = 'h' + heading[1].length
-      blocks.push(<Tag key={key()}>{inline(heading[2])}</Tag>)
+      const id = heading[1].length >= 2 && heading[1].length <= 3 ? (ids[hi++] || {}).id : undefined
+      blocks.push(<Tag key={key()} id={id}>{inline(heading[2])}</Tag>)
       i++
       continue
     }

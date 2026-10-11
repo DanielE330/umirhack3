@@ -71,6 +71,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         def index():
             return FileResponse(static / "index.html")
 
+        @app.get("/wiki", include_in_schema=False)
+        def wiki():  # документация: тот же index.html, фронт открывает свой маршрут /#/wiki
+            return FileResponse(static / "index.html")
+
         @app.get("/favicon.ico", include_in_schema=False)
         def favicon():
             return FileResponse(static / "favicon.ico")

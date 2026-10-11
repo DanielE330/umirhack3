@@ -54,3 +54,19 @@
   .wiki-body { padding: 20px 14px 60px; }
   .wiki-body h2 { font-size: 19px; }
 }
+
+/* оглавление: слева липкая колонка, на узких экранах — над текстом */
+.wiki-layout { display: grid; grid-template-columns: 270px minmax(0, 820px); gap: 40px; justify-content: center; padding: 0 22px; }
+.wiki-layout .wiki-body { margin: 0; padding-left: 0; padding-right: 0; }
+.wiki-toc { position: sticky; top: 64px; align-self: start; max-height: calc(100vh - 80px); overflow-y: auto; padding: 28px 0 24px; font-size: 13.5px; }
+.wiki-toc-title { margin-bottom: 10px; color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; }
+.wiki-toc ul { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line); }
+.wiki-toc li a { display: block; padding: 5px 12px; margin-left: -1px; border-left: 2px solid transparent; color: var(--muted); text-decoration: none; transition: color 0.2s, border-color 0.2s, background 0.2s; }
+.wiki-toc li.l3 a { padding-left: 26px; font-size: 13px; }
+.wiki-toc li a:hover { color: var(--fg); }
+.wiki-toc li a.on { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); }
+.wiki-body h2, .wiki-body h3 { scroll-margin-top: 76px; }
+@media (max-width: 1000px) {
+  .wiki-layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .wiki-toc { position: static; max-height: 260px; padding: 18px 0 0; }
+}

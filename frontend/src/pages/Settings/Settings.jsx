@@ -27,8 +27,8 @@ function SettingCard({ icon: Icon, title, desc, children }) {
 }
 
 export default function Settings() {
-  // свой домен документации: VITE_WIKI_URL=https://wiki.example.ru при сборке (по умолчанию — встроенная страница)
-  const WIKI_URL = import.meta.env.VITE_WIKI_URL || '/#/wiki'
+  // свой домен документации: VITE_WIKI_URL=https://wiki.example.ru при сборке (по умолчанию — /wiki на этом же хосте)
+  const WIKI_URL = import.meta.env.VITE_WIKI_URL || '/wiki'
   const { t, lang, setLang } = useLanguage()
   const { layout, setLayout } = useLayout()
   const { openModal, showToast } = useUi()
