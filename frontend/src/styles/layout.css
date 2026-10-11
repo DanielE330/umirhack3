@@ -1,0 +1,70 @@
+/* Верхняя навигация (как в исходной панели) и страница входа */
+.topbar {
+  display: flex; align-items: center; gap: 14px; padding: 8px 22px;
+  background: rgb(27 31 43 / 85%); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5;
+}
+.brand { display: flex; align-items: center; gap: 10px; color: var(--fg); text-decoration: none; flex: none; }
+.brand img { width: 32px; height: 32px; object-fit: contain; flex: none; }
+.brand b { font-size: 18px; letter-spacing: 0.2px; }
+.brand b span { color: var(--accent); }
+.topbar nav { display: flex; gap: 4px; margin-left: 18px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.topbar nav::-webkit-scrollbar { display: none; }
+.topbar nav a {
+  position: relative; color: var(--muted); text-decoration: none; padding: 8px 14px; border-radius: 10px;
+  white-space: nowrap; transition: color 0.2s, background 0.2s;
+}
+.topbar nav a:hover { color: var(--fg); background: var(--card-2); }
+.topbar nav a.on { background: var(--accent-soft); color: var(--accent); }
+.topbar nav a.on::after {
+  content: ''; position: absolute; left: 14px; right: 14px; bottom: -9px; height: 2px;
+  background: var(--accent); border-radius: 2px;
+}
+.who { margin-left: auto; display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; flex: none; }
+.who b { color: var(--fg); font-weight: 600; }
+main { padding: 22px; max-width: 1240px; margin: 0 auto; }
+
+@media (max-width: 720px) {
+  .topbar { flex-wrap: wrap; gap: 8px 12px; padding: 8px 14px; }
+  .topbar nav { order: 3; flex-basis: 100%; margin-left: 0; }
+  .topbar nav a.on::after { bottom: -1px; }
+  .who { font-size: 12px; }
+  main { padding: 14px; }
+  .credits { padding: 12px 14px 0; }
+}
+
+/* ---------- страница входа ---------- */
+.login { min-height: 100vh; display: grid; place-items: center; padding: 16px; position: relative; }
+.login-wrap { position: relative; width: 100%; max-width: 400px; padding-top: 56px; }
+/* Соты на фоне: чисто декоративно, поэтому через CSS, а не картинку */
+.honeycomb {
+  position: fixed; inset: 0; pointer-events: none; opacity: 0.5;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34zM28 100L0 84V66m56 0v18L28 100' fill='none' stroke='%23f4b74d' stroke-opacity='.09' stroke-width='1.4'/%3E%3C/svg%3E");
+  mask-image: radial-gradient(circle at 50% 35%, #000 0%, transparent 72%);
+}
+.login-card {
+  position: relative; padding: 0 28px 26px; background: rgb(27 31 43 / 90%); border: 1px solid var(--line); border-radius: 18px;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 55%), 0 0 0 1px rgb(244 183 77 / 5%) inset; backdrop-filter: blur(6px);
+}
+.login header { text-align: center; margin-bottom: 18px; }
+.mascot {
+  width: 112px; height: 112px; margin: -56px auto 10px; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 35%, #ffe3a0, #f5a623 78%); border: 2px solid var(--accent);
+  box-shadow: 0 0 0 6px var(--bg), 0 0 36px rgb(244 183 77 / 35%);
+}
+.mascot img { display: block; width: 96px; height: 96px; object-fit: contain; }
+.login h1 { margin: 0; font-size: 26px; letter-spacing: 0.3px; }
+.login h1 span { color: var(--accent); }
+.sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.note { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+.note code { display: inline-block; margin-top: 4px; color: var(--accent); word-break: break-all; font-size: 12px; }
+.login label { margin: 14px 0 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+.login input { padding: 11px 13px; background: #12151c; }
+input.code { text-align: center; font: 600 20px/1.2 var(--font-mono); letter-spacing: 0.28em; }
+.login button.wide { width: 100%; margin-top: 18px; padding: 12px; font-size: 15px; }
+.login button.ghost.wide { margin-top: 10px; }
+.qr { display: block; margin: 6px auto 12px; width: 200px; height: 200px; padding: 8px; background: #fff; border-radius: 12px; }
+.codes { list-style: none; margin: 12px 0; padding: 14px; columns: 2; column-gap: 20px; background: #12151c; border: 1px solid var(--line); border-radius: 10px; font: 13px/1.9 var(--font-mono); color: var(--accent); user-select: all; }
+.ok { margin: 0 0 6px; color: var(--ok); font-weight: 600; }
+#msg { min-height: 20px; margin-top: 14px; text-align: center; font-size: 13px; color: var(--coral); }
+.login-credits { justify-content: center; text-align: center; border-top: 0; margin: 18px 0 0; padding: 0; }

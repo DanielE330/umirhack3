@@ -161,11 +161,11 @@ docker exec hf-orchestrator python -W ignore -c "import os,httpx; t=os.environ['
 
 **Центр и оркестратор:**
 ```sh
-rsync -az --delete --exclude .git --exclude .venv --exclude __pycache__ --exclude .pytest_cache --exclude .claude --exclude knowledge \
+rsync -az --delete --exclude .git --exclude .venv --exclude __pycache__ --exclude .pytest_cache --exclude .claude --exclude knowledge --exclude node_modules --exclude dist \
   --filter 'P infra/.env' --filter 'P infra/secrets/' ./ root@<центр>:/opt/honeyforge/
 ssh root@<центр> 'cd /opt/honeyforge/infra && docker compose up -d --build'
 ```
-Фильтры `P` обязательны, иначе `--delete` сотрёт `.env` и ключи. Фронтенд запечён в образ центра — после правок `frontend/` пересобрать `center`.
+Фильтры `P` обязательны, иначе `--delete` сотрёт `.env` и ключи. Фронтенд (React + Vite) собирается при сборке образа центра (стадия Node в `backend/center/Dockerfile`) — после правок `frontend/` пересобрать `center`; `node_modules/` и `dist/` на сервер копировать не нужно.
 
 **Агент в ловушках:**
 ```sh

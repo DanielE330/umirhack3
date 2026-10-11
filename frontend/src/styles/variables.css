@@ -1,0 +1,49 @@
+/* Палитра исходной панели HoneyForge (panel.css), приведённая к единым токенам */
+:root {
+  /* Поверхности */
+  --bg: #111319;
+  --bg-2: #161922;
+  --card: #1b1f2b;
+  --card-2: #242a37;
+  --line: #2d3443;
+  --line-2: #3b4457;
+
+  /* Текст */
+  --fg: #e5e9f0;
+  --muted: #969eae;
+  --faint: #6a7285;
+
+  /* Акцент — янтарный мёд */
+  --accent: #f4b74d;
+  --accent-2: #f59f58;
+  --accent-soft: rgb(244 183 77 / 12%);
+  --on-accent: #2b1d05;
+
+  /* Статусы */
+  --ok: #65d6a7;
+  --ok-soft: rgb(101 214 167 / 14%);
+  --wait: #7aa7e6;
+  --wait-soft: rgb(122 167 230 / 14%);
+  --off: #8a93a6;
+  --coral: #f08b91;
+  --coral-soft: rgb(240 139 145 / 13%);
+
+  /* Уровни и типы событий */
+  --lv-low: #9fd3b4;
+  --lv-low-line: #35544a;
+  --lv-medium: #e9c37a;
+  --lv-medium-line: #5a4a2c;
+  --lv-high-line: #5e3a3a;
+  --ev-honeytoken: #c3a6ee;
+  --ev-honeytoken-line: #4d3d70;
+  --ev-command: #86c9ee;
+  --ev-command-line: #2f5468;
+
+  /* Форма и движение */
+  --r: 14px;
+  --radius: 10px;                 /* контролы: кнопки, инпуты, селекты, textarea */
+  --text-muted: var(--faint);     /* приглушённый серый для скроллбара и иконок */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}

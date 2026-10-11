@@ -6,14 +6,20 @@ from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-def _default_static_dir() -> str:
-    """Папка веб-интерфейса frontend/: ищется вверх от кода центра.
+def _is_built(index: Path) -> bool:
+    """index.html готов к отдаче: у исходника Vite скрипт указывает на /src/main.jsx и без сборки не работает."""
+    return index.is_file() and "/src/main.jsx" not in index.read_text(encoding="utf-8", errors="ignore")
 
-    Из репозитория это <корень>/frontend, в Docker-образе — /srv/frontend.
+
+def _default_static_dir() -> str:
+    """Собранный веб-интерфейс: ищется вверх от кода центра.
+
+    Из репозитория это <корень>/frontend/dist (после `npm run build`), в Docker-образе — /srv/frontend.
     """
     for parent in Path(__file__).resolve().parents:
-        if (parent / "frontend" / "index.html").is_file():
-            return str(parent / "frontend")
+        for candidate in (parent / "frontend" / "dist", parent / "frontend"):
+            if _is_built(candidate / "index.html"):
+                return str(candidate)
     return ""
 
 
@@ -48,7 +54,7 @@ class Settings(BaseSettings):
 
     trusted_proxies: str = "127.0.0.1,::1"   # от них верим X-Forwarded-For (Nginx)
     docs_enabled: bool = False               # /docs и /openapi.json
-    # Статика веб-интерфейса (папка frontend/ в корне репозитория); пусто — найти автоматически
+    # Собранный веб-интерфейс (frontend/dist после npm run build); пусто — найти автоматически
     static_dir: str = ""
 
     # Оркестратор Proxmox (отдельный сервис): адрес во внутренней сети и межсервисный токен

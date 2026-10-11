@@ -5,12 +5,13 @@ from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from .. import auth, security
 from ..db import get_db
 from ..models import AuthSession, RecoveryCode, User, utcnow
+from .users import check_password_policy
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -161,6 +162,35 @@ def totp_verify(body: CodeIn, request: Request, response: Response,
 @router.get("/me")
 def me(sess: AuthSession = Depends(auth.current_session)):
     return _user_info(sess.user, sess.csrf)
+
+
+class PasswordIn(BaseModel):
+    current_password: str = Field(min_length=1, max_length=256)
+    new_password: str = Field(min_length=1, max_length=256)
+
+
+@router.post("/password")
+def change_password(body: PasswordIn, request: Request, sess: AuthSession = Depends(auth.current_session),
+                    db: Session = Depends(get_db)):
+    """Смена своего пароля: нужен текущий пароль; остальные сессии пользователя закрываются, эта остаётся."""
+    s = auth.settings_of(request)
+    ip = auth.client_ip(request)
+    user = sess.user
+    if auth.is_locked(db, s, user.username, ip):
+        raise HTTPException(429, auth.LOCKED_ERROR)
+    if not security.verify_password(body.current_password, user.password_hash):
+        auth.record_failure(db, user.username, ip)
+        auth.audit(db, user.username, "password.fail", ip=ip)
+        db.commit()
+        raise HTTPException(403, "Неверный текущий пароль")  # не 401: сессия жива, панель не должна выкидывать на вход
+    check_password_policy(body.new_password, user.username, s.min_password_length)
+    if body.new_password == body.current_password:
+        raise HTTPException(422, "Новый пароль совпадает с текущим")
+    user.password_hash = security.hash_password(body.new_password)
+    db.execute(delete(AuthSession).where(AuthSession.user_id == user.id, AuthSession.id != sess.id))
+    auth.audit(db, user.username, "password.change", ip=ip)
+    db.commit()
+    return {"ok": True}
 
 
 @router.post("/logout")

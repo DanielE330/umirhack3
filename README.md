@@ -37,7 +37,7 @@ backend/
   center/         центр управления: FastAPI-приложение (app/), тесты, Dockerfile, отдельный compose центра
   orchestrator/   сервис управления машинами в Proxmox: FastAPI (app/), Dockerfile, dev-compose, скрипты БД
 agent/            агент ловушки: пакет netsvc (low/medium-сервисы, буфер, канал в центр) и тесты
-frontend/         веб-интерфейс (статические HTML/JS/CSS), его отдаёт центр по / и /static/*
+frontend/         веб-интерфейс (React + Vite, исходники в src/, сборка в dist/), центр отдаёт сборку по / и /static/*; legacy/ — прежняя панель
 infra/            весь стек: docker-compose.yml, Caddyfile, .env.example, initdb/ (SQL первого запуска)
 docs/             инструкция по установке (INSTALL.md), условие кейса (pdf), планы, ресёрч, задачи (tasks/)
 ```
@@ -48,7 +48,7 @@ docs/             инструкция по установке (INSTALL.md), у�
 |---|---|---|---|
 | proxy | единый вход, маршрутизация на center/orchestrator | 4000 (наружу) | Caddy 2 |
 | center (`backend/center`) | вход с 2FA, профили, ловушки, события, алерты, IoC, канал агентов, прокси к оркестратору | 4000 (внутри сети) | Python 3.12, FastAPI, SQLAlchemy, psycopg, pyotp, cryptography |
-| frontend (`frontend/`) | веб-интерфейс оператора (вход, панель) | отдаётся центром | HTML, JS, CSS без сборки |
+| frontend (`frontend/`) | веб-интерфейс оператора (вход, панель, настройки, ru/en) | отдаётся центром | React 19, Vite, React Router; собирается в образе центра |
 | orchestrator (`backend/orchestrator`) | создание/управление LXC/KVM-ловушками в Proxmox, статистика, приём телеметрии `/api/v1/analytics/track` | 4000 (внутри сети) | Python 3.11, FastAPI, SQLAlchemy async, asyncpg, proxmoxer, docker SDK |
 | db | PostgreSQL центра и оркестратора | 5432 (внутри сети) | PostgreSQL 17 |
 | agent (`agent/`) | сервисы-приманки на хосте, отправка событий | порты из профиля | Python 3, asyncio, asyncssh, setproctitle |
@@ -88,7 +88,7 @@ export $(.venv/bin/python -m app.cli gen-key)
 .venv/bin/uvicorn app.main:create_app --factory --port 4100
 ```
 
-Веб-интерфейс берётся из `frontend/` в корне репозитория (переопределяется `HF_STATIC_DIR`). Без оркестратора раздел машин отвечает 503.
+Веб-интерфейс — сборка `frontend/dist` (переопределяется `HF_STATIC_DIR`), перед запуском центра её нужно собрать: `cd frontend && npm ci && npm run build`. Для разработки фронта — `npm run dev` (Vite проксирует `/api` на центр, адрес — `VITE_API_TARGET`, по умолчанию `http://localhost:4000`) или `npm run dev:demo` без центра. Без оркестратора раздел машин отвечает 503.
 Отдельный compose центра с PostgreSQL: `backend/center/docker-compose.yml` (`.env` рядом, см. `backend/center/.env.example`).
 
 ### Хост Proxmox
@@ -150,7 +150,7 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `HF_MAX_BODY_BYTES` | `1000000` | максимальный размер тела `/assets/v1/log` |
 | `HF_TRUSTED_PROXIES` | `127.0.0.1,::1` | адреса, от которых доверяется `X-Forwarded-For` (в infra — `172.31.40.10`, Caddy) |
 | `HF_DOCS_ENABLED` | `false` | включает `/docs` и `/openapi.json` центра |
-| `HF_STATIC_DIR` | пусто → ищется `frontend/` вверх от кода (в образе `/srv/frontend`) | папка веб-интерфейса |
+| `HF_STATIC_DIR` | пусто → ищется `frontend/dist` вверх от кода (в образе `/srv/frontend`); исходный `index.html` Vite не отдаётся | папка собранного веб-интерфейса |
 | `HF_ORCHESTRATOR_URL` | пусто | адрес оркестратора (в infra `http://orchestrator:4000`) |
 | `HF_ORCHESTRATOR_TOKEN` | пусто | межсервисный токен (в infra = `ORCH_TOKEN`) |
 
@@ -207,6 +207,9 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `POST /api/auth/login` | пароль → `next: 2fa_setup / 2fa_verify` | нет (блокировки по логину и IP) |
 | `POST /api/auth/2fa/setup`, `/2fa/enable`, `/2fa/verify` | настройка и ввод TOTP, резервные коды | промежуточная сессия |
 | `GET /api/auth/me`, `POST /api/auth/logout` | текущий пользователь (+ CSRF-токен), выход | сессия + CSRF |
+| `POST /api/auth/password` | смена своего пароля (`current_password`, `new_password`), остальные сессии закрываются | сессия + CSRF |
+| `GET/POST /api/ideas` | идеи новых типов ловушек (вкладка «Настройки») | сессия + CSRF |
+| `PATCH/DELETE /api/ideas/{id}` | статус идеи `new`/`accepted`/`rejected`/`done`, удаление | admin + CSRF |
 | `GET/POST /api/users`, `PATCH /api/users/{id}`, `POST /api/users/{id}/reset-2fa` | пользователи | admin + CSRF |
 | `GET /api/profiles`, `GET /api/profiles/{id}` | профили ловушек | сессия |
 | `POST/PUT/DELETE /api/profiles[/{id}]` | CRUD профилей | оператор + CSRF |

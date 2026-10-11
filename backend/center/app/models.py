@@ -136,3 +136,16 @@ class Event(Base):
     data: Mapped[dict] = mapped_column(JSON, default=dict)
 
     trap: Mapped[Trap] = relationship()
+
+
+class TrapIdea(Base):
+    """Идея нового типа ловушки от оператора (настройки панели → «Предложить идею ловушки»)."""
+
+    __tablename__ = "trap_ideas"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    author: Mapped[str] = mapped_column(String(64))
+    title: Mapped[str] = mapped_column(String(120))
+    description: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(16), default="new")  # new | accepted | rejected | done
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)

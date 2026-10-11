@@ -1,0 +1,36 @@
+/* Расположение «Слева»: вертикальная панель шириной 224px, контент справа от неё */
+:root { --side-w: 224px; }
+
+.layout-side .topbar {
+  position: fixed; top: 0; bottom: 0; left: 0; z-index: 6;
+  width: var(--side-w); height: 100vh; padding: 18px 12px;
+  flex-direction: column; align-items: stretch; gap: 18px;
+  background: var(--bg-2); border-bottom: 0; border-right: 1px solid var(--line);
+  backdrop-filter: none; overflow-y: auto;
+  animation: side-in 0.25s ease-in-out;
+}
+.layout-side .brand { padding: 0 8px; }
+.layout-side .topbar nav { flex-direction: column; gap: 4px; margin: 0; overflow: visible; }
+.layout-side .topbar nav a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; }
+.layout-side .topbar nav a.on::after { left: auto; right: 0; top: 8px; bottom: 8px; width: 2px; height: auto; }
+.layout-side .who { margin: auto 0 0; flex-direction: column; align-items: stretch; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+.layout-side .who span { line-height: 1.4; word-break: break-all; }
+.layout-side .who button { width: 100%; }
+
+/* контент сдвигается вправо плавно, а не прыжком */
+.layout-side main,
+.layout-side .credits { margin-left: var(--side-w); transition: margin-left 0.25s ease-in-out; }
+.layout-top main, .layout-top .credits { transition: margin-left 0.25s ease-in-out; }
+
+@keyframes side-in {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 720px) {
+  /* на узком экране боковая панель становится обычной шапкой, иначе она перекрывает контент */
+  .layout-side .topbar { position: sticky; width: auto; height: auto; flex-direction: row; flex-wrap: wrap; padding: 8px 14px; border-right: 0; border-bottom: 1px solid var(--line); overflow: visible; animation: none; }
+  .layout-side .topbar nav { flex-direction: row; overflow-x: auto; }
+  .layout-side .who { margin: 0 0 0 auto; flex-direction: row; border-top: 0; padding-top: 0; }
+  .layout-side main, .layout-side .credits { margin-left: 0; }
+}
