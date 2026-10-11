@@ -8,7 +8,7 @@ import { api } from '../../lib/api.js'
 export default function Login() {
   const { status, refresh } = useAuth()
   const { t } = useLanguage()
-  const [view, setView] = useState('login') // login | setup | code | codes
+  const [view, setView] = useState('login') // login | setup | code | codes | forgot | reset
   const [msg, setMsg] = useState('')
   const [user, setUser] = useState('')
   const [pass, setPass] = useState('')
@@ -16,12 +16,15 @@ export default function Login() {
   const [qr, setQr] = useState({ img: '', secret: '' })
   const [recovery, setRecovery] = useState([])
   const [busy, setBusy] = useState(false)
+  const [reset, setReset] = useState({ code: '', pass: '', repeat: '' })
+  const [info, setInfo] = useState('') // зелёное сообщение (код отправлен, пароль изменён)
 
   if (status === 'authed' && view !== 'codes') return <Navigate to="/containers" replace />
 
   const go = (v) => {
     setView(v)
     setMsg('')
+    setInfo('')
     setCode('')
   }
   // общий обработчик: блокирует кнопку на время запроса и показывает ошибку
@@ -57,6 +60,21 @@ export default function Login() {
     await post('/api/auth/2fa/verify', { code })
     await refresh()
   })
+  // Забытый пароль: код приходит в привязанный Telegram, вход после сброса — снова с 2FA
+  const requestReset = run(async () => {
+    const r = await post('/api/auth/reset/request', { username: user })
+    setReset({ code: '', pass: '', repeat: '' })
+    go('reset')
+    setInfo(r.detail)
+  })
+  const confirmReset = run(async () => {
+    if (reset.pass !== reset.repeat) throw new Error(t('Пароли не совпадают'))
+    await post('/api/auth/reset/confirm', { username: user, code: reset.code, new_password: reset.pass })
+    setReset({ code: '', pass: '', repeat: '' })
+    go('login')
+    setInfo(t('Пароль изменён. Войдите с новым паролем и кодом 2FA.'))
+  })
+  const setR = (k) => (e) => setReset((r) => ({ ...r, [k]: e.target.value }))
 
   return (
     <div className="login">
@@ -76,6 +94,30 @@ export default function Login() {
               <label htmlFor="p">{t('Пароль')}</label>
               <input id="p" type="password" autoComplete="current-password" required value={pass} onChange={(e) => setPass(e.target.value)} />
               <button className="btn wide" disabled={busy}>{t('Войти')}</button>
+              <button type="button" className="linkbtn" onClick={() => go('forgot')}>{t('Забыли пароль?')}</button>
+            </form>
+          )}
+
+          {view === 'forgot' && (
+            <form onSubmit={requestReset}>
+              <p className="note">{t('Код для сброса придёт в Telegram, привязанный к учётной записи (Настройки → Telegram). Без привязки пароль сбрасывает администратор.')}</p>
+              <label htmlFor="ru">{t('Пользователь')}</label>
+              <input id="ru" autoComplete="username" autoCapitalize="none" spellCheck="false" required autoFocus value={user} onChange={(e) => setUser(e.target.value)} />
+              <button className="btn wide" disabled={busy}>{t('Получить код в Telegram')}</button>
+              <button type="button" className="ghost wide" onClick={() => go('login')}>{t('Назад')}</button>
+            </form>
+          )}
+
+          {view === 'reset' && (
+            <form onSubmit={confirmReset}>
+              <label htmlFor="rc">{t('Код из Telegram')}</label>
+              <input id="rc" className="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="000000" required autoFocus value={reset.code} onChange={setR('code')} />
+              <label htmlFor="rp">{t('Новый пароль')}</label>
+              <input id="rp" type="password" autoComplete="new-password" required minLength={12} maxLength={128} value={reset.pass} onChange={setR('pass')} />
+              <label htmlFor="rp2">{t('Повторите новый пароль')}</label>
+              <input id="rp2" type="password" autoComplete="new-password" required value={reset.repeat} onChange={setR('repeat')} />
+              <button className="btn wide" disabled={busy}>{t('Сменить пароль')}</button>
+              <button type="button" className="ghost wide" onClick={() => go('forgot')}>{t('Отправить код ещё раз')}</button>
             </form>
           )}
 
@@ -109,6 +151,7 @@ export default function Login() {
             </section>
           )}
 
+          {info && !msg && <p className="ok login-info" role="status">{info}</p>}
           <div id="msg" role="alert" aria-live="polite">{msg}</div>
         </div>
       </div>

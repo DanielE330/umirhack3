@@ -19,3 +19,6 @@
 .setting-control .seg button { display: inline-flex; align-items: center; gap: 6px; text-align: center; }
 .setting-control .seg button b { display: inline-flex; align-items: center; gap: 6px; }
 .setting-control button[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; }
+
+/* Окно привязки Telegram: код крупно, его удобно продиктовать или скопировать */
+.tg-code { margin: 10px 0 14px; text-align: center; font-size: 26px; letter-spacing: 3px; }

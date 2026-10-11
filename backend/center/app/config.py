@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     max_totp_attempts: int = 5          # неверных кодов на одну промежуточную сессию
 
     min_password_length: int = 12
+    reset_code_minutes: int = 10        # срок кода сброса пароля через Telegram
+    reset_max_per_hour: int = 3         # запросов кода на один логин в час
+    reset_max_attempts: int = 5         # неверных вводов одного кода
     totp_issuer: str = "HoneyForge"
     recovery_codes_count: int = 8
 

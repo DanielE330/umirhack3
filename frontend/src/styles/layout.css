@@ -68,3 +68,5 @@ input.code { text-align: center; font: 600 20px/1.2 var(--font-mono); letter-spa
 .ok { margin: 0 0 6px; color: var(--ok); font-weight: 600; }
 #msg { min-height: 20px; margin-top: 14px; text-align: center; font-size: 13px; color: var(--coral); }
 .login-credits { justify-content: center; text-align: center; border-top: 0; margin: 18px 0 0; padding: 0; }
+.login .linkbtn { display: block; margin: 12px auto 0; }
+.login-info { margin-top: 14px; text-align: center; font-weight: 500; font-size: 13px; }

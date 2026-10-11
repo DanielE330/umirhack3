@@ -10,7 +10,10 @@ export default function AuthProvider({ children }) {
     try {
       const d = await api('/api/auth/me', { auth: false })
       setCsrf(d.csrf)
-      setState({ status: 'authed', user: { username: d.username, role: d.role } })
+      setState({
+        status: 'authed',
+        user: { username: d.username, role: d.role, telegramLinked: Boolean(d.telegram_linked), telegramUsername: d.telegram_username || '' },
+      })
     } catch {
       setCsrf('')
       setState({ status: 'anon', user: null })

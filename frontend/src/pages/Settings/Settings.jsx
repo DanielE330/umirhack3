@@ -1,9 +1,13 @@
-import { Languages, LayoutPanelLeft, LayoutPanelTop, Lightbulb, RotateCcw } from 'lucide-react'
+import { Languages, LayoutPanelLeft, LayoutPanelTop, Lightbulb, RotateCcw, Send } from 'lucide-react'
+import { useAuth } from '../../context/auth.js'
 import { useLanguage } from '../../context/language.js'
 import { useLayout } from '../../context/layout.js'
 import { useUi } from '../../context/ui.js'
 import IdeaModal from '../../components/modals/IdeaModal.jsx'
 import PasswordModal from '../../components/modals/PasswordModal.jsx'
+import TelegramLinkModal from '../../components/modals/TelegramLinkModal.jsx'
+import { ArmedButton } from '../../components/common.jsx'
+import { api } from '../../lib/api.js'
 import './settings.css'
 
 // Карточка настроек: иконка, заголовок, описание и контрол снизу
@@ -23,7 +27,17 @@ function SettingCard({ icon: Icon, title, desc, children }) {
 export default function Settings() {
   const { t, lang, setLang } = useLanguage()
   const { layout, setLayout } = useLayout()
-  const { openModal } = useUi()
+  const { openModal, showToast } = useUi()
+  const { user, refresh } = useAuth()
+  const unlink = async () => {
+    try {
+      await api('/api/auth/me/telegram', { method: 'DELETE' })
+      showToast(t('Telegram отвязан'))
+    } catch (e) {
+      showToast(e.message, true)
+    }
+    await refresh()
+  }
 
   return (
     <section className="settings">
@@ -54,6 +68,20 @@ export default function Settings() {
               <b><LayoutPanelLeft size={16} strokeWidth={1.5} aria-hidden="true" />{t('Слева')}</b>
             </button>
           </div>
+        </SettingCard>
+
+        <SettingCard icon={Send} title={t('Telegram')}
+          desc={user.telegramLinked
+            ? t('Привязан @{name}: сюда приходят алерты и коды сброса пароля.', { name: user.telegramUsername || '—' })
+            : t('Привяжите Telegram: туда будут приходить алерты об атаках и код, если вы забудете пароль.')}>
+          {user.telegramLinked ? (
+            <ArmedButton label={t('Отвязать')} armLabel={t('Точно отвязать?')} className="ghost danger" onConfirm={unlink}
+              tip={t('Алерты и сброс пароля через Telegram перестанут работать')} />
+          ) : (
+            <button type="button" className="btn" onClick={() => openModal(t('Привязать Telegram'), <TelegramLinkModal />)}>
+              {t('Привязать')}
+            </button>
+          )}
         </SettingCard>
 
         <SettingCard icon={RotateCcw} title={t('Сменить пароль')}

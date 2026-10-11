@@ -177,3 +177,17 @@ class SessionAssessment(Base):
     script_seen_before: Mapped[int | None] = mapped_column(Integer, nullable=True)
     result: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # полный ответ /session
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+
+
+class PasswordReset(Base):
+    """Одноразовый код сброса пароля, отправленный в привязанный Telegram. Хранится только HMAC кода."""
+
+    __tablename__ = "password_resets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    code_hash: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

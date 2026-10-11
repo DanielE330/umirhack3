@@ -153,6 +153,8 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `HF_STATIC_DIR` | пусто → ищется `frontend/dist` вверх от кода (в образе `/srv/frontend`); исходный `index.html` Vite не отдаётся | папка собранного веб-интерфейса |
 | `HF_ORCHESTRATOR_URL` | пусто | адрес оркестратора (в infra `http://orchestrator:4000`) |
 | `HF_ORCHESTRATOR_TOKEN` | пусто | межсервисный токен (в infra = `ORCH_TOKEN`) |
+| `HF_TELEGRAM_BOT_USERNAME` | пусто | имя бота для ссылки привязки `t.me/<бот>?start=<код>` (в infra — `TELEGRAM_BOT_USERNAME`) |
+| `HF_RESET_CODE_MINUTES`, `HF_RESET_MAX_PER_HOUR`, `HF_RESET_MAX_ATTEMPTS` | `10`, `3`, `5` | сброс пароля через Telegram: срок кода, кодов в час, попыток на код |
 
 Только в compose (`infra/docker-compose.yml`): `HF_DB_PASSWORD` — пароль пользователя `honeyforge` в PostgreSQL.
 
@@ -208,6 +210,9 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `POST /api/auth/2fa/setup`, `/2fa/enable`, `/2fa/verify` | настройка и ввод TOTP, резервные коды | промежуточная сессия |
 | `GET /api/auth/me`, `POST /api/auth/logout` | текущий пользователь (+ CSRF-токен), выход | сессия + CSRF |
 | `POST /api/auth/password` | смена своего пароля (`current_password`, `new_password`), остальные сессии закрываются | сессия + CSRF |
+| `POST /api/auth/me/telegram/code`, `DELETE /api/auth/me/telegram` | одноразовый код `HF-XXXXXX` и ссылка `t.me/<бот>?start=<код>` для привязки Telegram; отвязка | сессия + CSRF |
+| `POST /api/auth/reset/request`, `POST /api/auth/reset/confirm` | забытый пароль: код из 6 цифр приходит в привязанный Telegram (10 мин, 5 попыток, 3 кода в час; только при включённой 2FA), после сброса все сессии закрываются, вход — снова с 2FA | нет (блокировки по логину и IP; ответ одинаковый для любых логинов) |
+| `POST /api/internal/telegram/bind`, `check-auth`, `unbind`, `GET …/subscribers` | бот оркестратора: привязка по коду, права, рассылка алертов | межсервисный токен |
 | `GET/POST /api/ideas` | идеи новых типов ловушек (вкладка «Настройки») | сессия + CSRF |
 | `PATCH/DELETE /api/ideas/{id}` | статус идеи `new`/`accepted`/`rejected`/`done`, удаление | admin + CSRF |
 | `GET/POST /api/users`, `PATCH /api/users/{id}`, `POST /api/users/{id}/reset-2fa` | пользователи | admin + CSRF |
@@ -236,6 +241,7 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `GET/POST /api/v1/machines/`, `POST /api/v1/machines/{vmid}/{action}`, `PUT/DELETE /api/v1/machines/{vmid}` | машины Proxmox с тегом `honeyforge` | межсервисный токен |
 | `POST /api/v1/machines/{vmid}/agents`, `DELETE /api/v1/machines/{vmid}/agents/{trap_id}` | включить/выключить агента ловушки в машине (пока машина создаётся — в очередь) | межсервисный токен |
 | `POST /api/v1/notify/` | отправить алерт центра в Telegram | межсервисный токен |
+| `POST /api/v1/notify/direct` | личное сообщение одному `chat_id` обычным текстом (код сброса пароля) | межсервисный токен |
 | `GET /api/v1/events/` | лента событий из своей БД | нет |
 | `GET/POST /api/v1/traps/`, `POST /api/v1/traps/proxmox`, `DELETE /api/v1/traps/{container_id}`, `POST /api/v1/traps/{container_id}/stop` | docker-ловушки (нужен Docker-сокет, в infra не смонтирован) и создание в Proxmox | межсервисный токен |
 | `GET /api/v1/stats/` | статистика по своей БД | нет |
