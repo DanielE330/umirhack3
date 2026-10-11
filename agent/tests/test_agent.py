@@ -178,13 +178,20 @@ class FakeCenter:
             def do_GET(self):
                 if not center.up or self.headers.get("Authorization") != "Bearer hf_ok":
                     return self._json(503 if not center.up else 404, {})
-                self._json(200, {"rev": "r1", "state": "run", "poll": 1, "cmds": [], "config": {
-                    "level": "low", "services": [{"port": 0, "proto": "banner", "banner": "hello"}], "masking": {"jitter": 0}}})
+                resp_data = {"rev": "r1", "state": "run", "poll": 1, "cmds": [], "config": {
+                    "level": "low", "services": [{"port": 0, "proto": "banner", "banner": "hello"}], "masking": {"jitter": 0}}}
+                if "enc" in self.headers.get("Accept-Encoding-Custom", ""):
+                    from netsvc.crypto import derive_payload_key, encrypt_payload
+                    resp_data = encrypt_payload(resp_data, derive_payload_key("hf_ok"))
+                self._json(200, resp_data)
 
             def do_POST(self):
                 body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
                 if not center.up:
                     return self._json(503, {})
+                if "enc" in body:
+                    from netsvc.crypto import decrypt_payload, derive_payload_key
+                    body = decrypt_payload(body, derive_payload_key("hf_ok"))
                 center.received += body["events"]
                 self._json(200, {"ok": len(body["events"]), "dup": 0})
 
@@ -197,6 +204,37 @@ class FakeCenter:
 
     def close(self):
         self.server.shutdown()
+
+
+def test_crypto_e2e_encryption_and_tamper_detection():
+    from netsvc.crypto import decrypt_payload, derive_payload_key, encrypt_payload
+    from cryptography.exceptions import InvalidTag
+    import base64
+
+    token = "secret_trap_token_123"
+    key = derive_payload_key(token)
+    data = {"events": [{"type": "auth_attempt", "command": "malware.sh", "src_ip": "1.2.3.4"}]}
+
+    envelope = encrypt_payload(data, key)
+    assert envelope["v"] == 2
+    assert "enc" in envelope
+    assert "nonce" in envelope
+    assert "events" not in envelope  # Payload is completely masked
+
+    # Decrypt with correct key
+    decrypted = decrypt_payload(envelope, key)
+    assert decrypted == data
+
+    # Tampering test (simulate attacker modifying 1 byte in transit)
+    raw_ct = bytearray(base64.b64decode(envelope["enc"]))
+    raw_ct[0] ^= 0xFF
+    tampered_envelope = {**envelope, "enc": base64.b64encode(raw_ct).decode("ascii")}
+
+    try:
+        decrypt_payload(tampered_envelope, key)
+        assert False, "Tampered payload should have failed authentication"
+    except InvalidTag:
+        pass  # Expected: integrity check succeeded in detecting tamper
 
 
 def test_agent_buffers_while_center_down_and_flushes_after(tmp_path):

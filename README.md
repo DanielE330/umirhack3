@@ -261,7 +261,7 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | FR-A4 буферизация при потере связи | сделано: SQLite-буфер, досылка с экспоненциальной задержкой | `agent/netsvc/buffer.py`, `core.py` |
 | FR-A5 high-interaction | нет (только создание машин в Proxmox) | `backend/orchestrator/app/services/proxmox_manager.py` |
 | FR-A6 honeytokens | сделано: файлы в SSH-ФС, URL в HTTP | `traps/ssh.py`, `traps/http.py` |
-| MASK-1 TLS | частично (агент поддерживает, на стенде http) | `agent/netsvc/center.py`, `infra/Caddyfile` |
+| MASK-1 Сквозное шифрование и TLS | сделано: сквозное шифрование полезной нагрузки AES-256-GCM (AEAD) между ловушкой и центром, деривация ключей SHA-256 KDF из токена; TLS поддерживается | `agent/netsvc/crypto.py`, `backend/center/app/channel_crypto.py`, `center.py`, `agent_api.py` |
 | MASK-2 неприметный endpoint | сделано | `routers/agent_api.py` |
 | MASK-3 разделение интерфейсов | сделано: DMZ `vmbr1` с файрволом — из ловушки доступен только канал агента к центру | `infra/proxmox/hf-dmz-fw.sh`, `proxmox_manager.py` |
 | MASK-4 скрытность агента | сделано | `agent/netsvc/__main__.py` |
@@ -271,6 +271,7 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 
 ## Безопасность и сеть
 
+- **Сквозное шифрование канала (E2EE AES-256-GCM)**: вся телеметрия от ловушек (введённые команды, логины, пароли, срабатывания honeytoken) и выдача конфигураций от центра зашифрованы алгоритмом AES-256-GCM (AEAD). Ключ шифрования уникален для каждой ловушки и деривируется через SHA-256 KDF из токена. При перехвате трафика в DMZ (`tcpdump`, `wireshark`) атакующий видит только обфусцированный base64-конверт с рандомным паддингом, не способный скомпрометировать наличие ловушки. Попытка модификации данных пресекается контролем целостности GCM-тегов.
 - Ловушки создаются только на мосту `vmbr1`, подсеть `10.20.0.0/24`, шлюз `10.20.0.1` (DMZ), с тегом `honeyforge`; оркестратор управляет только машинами с этим тегом (`NotOurMachine`).
 - Машины кладутся в пул Proxmox `honeyforge`; оркестратор входит API-токеном `honeyforge@pve` с правами только на этот пул, шаблон, хранилище `hdd` и мост `vmbr1` — prod-машины ему не видны. Роли и ACL — в `infra/proxmox/README.md`.
 - Агентов включает отдельный ключ, которому на хосте Proxmox разрешена ровно одна команда (`hf-agent-ctl`) и только с адреса сервера центра; команда работает только с запущенными машинами с тегом `honeyforge`.

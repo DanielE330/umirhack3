@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from .. import auth
 from .. import scoring
+from ..channel_crypto import decrypt_payload, derive_payload_key, encrypt_payload
 from ..db import get_db
 from ..models import Trap, utcnow
 from ..schemas import AgentBatch
@@ -26,6 +27,7 @@ def agent_trap(request: Request, db: Session = Depends(get_db)) -> Trap:
     trap = db.scalar(select(Trap).where(Trap.token_hash == hash_agent_token(token))) if token else None
     if trap is None:
         raise HTTPException(404, "Not Found")  # не раскрываем, что здесь что-то есть
+    request.state.raw_token = token
     return trap
 
 
@@ -43,7 +45,13 @@ def manifest(request: Request, v: str = "", trap: Trap = Depends(agent_trap), db
     digest = hashlib.sha256(json.dumps([state, config], sort_keys=True).encode()).hexdigest()[:16]
     db.commit()
     poll = (config or {}).get("masking", {}).get("beacon_interval", settings.default_beacon_seconds)
-    return {"rev": digest, "state": state, "poll": poll, "config": config, "cmds": commands}
+    manifest_data = {"rev": digest, "state": state, "poll": poll, "config": config, "cmds": commands}
+
+    raw_token = getattr(request.state, "raw_token", "")
+    if raw_token and ("enc" in request.headers.get("accept-encoding-custom", "") or v.startswith("2")):
+        key = derive_payload_key(raw_token)
+        return encrypt_payload(manifest_data, key)
+    return manifest_data
 
 
 NOTIFY_TYPES = {"alert", "honeytoken"}  # о чём сообщать оператору в Telegram
@@ -65,8 +73,18 @@ async def collect(request: Request, background: BackgroundTasks, trap: Trap = De
     if len(raw) > settings.max_body_bytes:
         raise HTTPException(413, "Payload Too Large")
     try:
-        batch = AgentBatch.model_validate_json(raw)
-    except Exception:
+        data = json.loads(raw)
+        if isinstance(data, dict) and "enc" in data and "nonce" in data:
+            raw_token = getattr(request.state, "raw_token", "")
+            if not raw_token:
+                raise ValueError("Отсутствует токен ловушки для дешифрования")
+            key = derive_payload_key(raw_token)
+            data = decrypt_payload(data, key)
+            batch = AgentBatch.model_validate(data)
+        else:
+            batch = AgentBatch.model_validate(data)
+    except Exception as exc:
+        print(f"⚠️ [Agent API] Ошибка парсинга/дешифрования батча: {exc}", flush=True)
         raise HTTPException(422, "Unprocessable Entity")
     factory = request.app.state.session_factory
 
