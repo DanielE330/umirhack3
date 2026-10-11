@@ -611,6 +611,13 @@ const en = {
   'Пользователь настроит 2FA заново при следующем входе': 'The user will set up 2FA again at next sign-in',
   'Пользователей нет': 'No users',
   'Оглавление': 'Contents',
+  'Тестовое сообщение отправлено — проверьте Telegram': 'Test message sent — check Telegram',
+  'Отправить тест в Telegram': 'Send a test to Telegram',
+  'Бот пришлёт вам тестовое сообщение — так проверяется связь': 'The bot will send you a test message to check the link',
+  'Привязать в Telegram': 'Link in Telegram',
+  'Откроется бот: нажмите «Запустить» — привязка завершится сама': 'The bot opens: press “Start” and linking finishes by itself',
+  'Код': 'Code',
+  'Показать код и скопировать его': 'Show the code and copy it',
 }
 
 export default en

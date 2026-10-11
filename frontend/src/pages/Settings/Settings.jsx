@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BookOpen, Languages, LayoutPanelLeft, LayoutPanelTop, Lightbulb, MoonStar, RotateCcw, Send } from 'lucide-react'
 import { useAuth } from '../../context/auth.js'
 import { useLanguage } from '../../context/language.js'
@@ -39,6 +39,30 @@ export default function Settings() {
     applyTheme(next)
     setTheme(next)
   }
+  // Привязка одной кнопкой: код заранее выдаёт центр, ссылка t.me/<бот>?start=<код> сама отправляет боту /start <код>.
+  // Статус проверяем раз в 3 секунды — карточка сама переключится, когда бот подтвердит привязку.
+  const [tg, setTg] = useState(null)
+  useEffect(() => {
+    if (user.telegramLinked) return undefined
+    let alive = true
+    const fresh = () => api('/api/auth/me/telegram/code', { method: 'POST', body: {} }).then((d) => alive && setTg(d)).catch(() => {})
+    fresh()
+    const renew = setInterval(fresh, 10 * 60 * 1000) // код живёт 15 минут
+    const poll = setInterval(refresh, 3000)
+    return () => {
+      alive = false
+      clearInterval(renew)
+      clearInterval(poll)
+    }
+  }, [user.telegramLinked, refresh])
+  const testTelegram = async () => {
+    try {
+      await api('/api/auth/me/telegram/test', { method: 'POST', body: {} })
+      showToast(t('Тестовое сообщение отправлено — проверьте Telegram'))
+    } catch (e) {
+      showToast(e.message, true)
+    }
+  }
   const unlink = async () => {
     try {
       await api('/api/auth/me/telegram', { method: 'DELETE' })
@@ -78,12 +102,23 @@ export default function Settings() {
             ? t('Привязан @{name}: сюда приходят алерты и коды сброса пароля.', { name: user.telegramUsername || '—' })
             : t('Привяжите Telegram: туда будут приходить алерты об атаках и код, если вы забудете пароль.')}>
           {user.telegramLinked ? (
-            <ArmedButton label={t('Отвязать')} armLabel={t('Точно отвязать?')} className="ghost danger" onConfirm={unlink}
-              tip={t('Алерты и сброс пароля через Telegram перестанут работать')} />
+            <div className="inline">
+              <button type="button" className="btn" onClick={testTelegram}
+                data-tip={t('Бот пришлёт вам тестовое сообщение — так проверяется связь')}>{t('Отправить тест в Telegram')}</button>
+              <ArmedButton label={t('Отвязать')} armLabel={t('Точно отвязать?')} className="ghost danger" onConfirm={unlink}
+                tip={t('Алерты и сброс пароля через Telegram перестанут работать')} />
+            </div>
           ) : (
-            <button type="button" className="btn" onClick={() => openModal(t('Привязать Telegram'), <TelegramLinkModal />)}>
-              {t('Привязать')}
-            </button>
+            <div className="inline">
+              {tg && tg.link ? (
+                <a className="btn" href={tg.link} target="_blank" rel="noopener noreferrer"
+                  data-tip={t('Откроется бот: нажмите «Запустить» — привязка завершится сама')}>{t('Привязать в Telegram')}</a>
+              ) : (
+                <button type="button" className="btn" onClick={() => openModal(t('Привязать Telegram'), <TelegramLinkModal />)}>{t('Привязать')}</button>
+              )}
+              <button type="button" className="ghost" onClick={() => openModal(t('Привязать Telegram'), <TelegramLinkModal />)}
+                data-tip={t('Показать код и скопировать его')}>{t('Код')}</button>
+            </div>
           )}
         </SettingCard>
 

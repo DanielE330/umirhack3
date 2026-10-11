@@ -1,5 +1,5 @@
 /* Страница «Настройки»: карточки на токенах из variables.css */
-.settings { max-width: 880px; }
+.settings { width: 100%; } /* на всю ширину, как остальные разделы */
 .page-title { margin-bottom: 16px; }
 .page-title h2 { margin: 0; font-size: 22px; letter-spacing: 0.2px; }
 .page-title .hint { margin: 4px 0 0; }

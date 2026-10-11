@@ -129,3 +129,17 @@ def test_bot_unavailable_is_not_revealed(app):
     link(app)  # оркестратор не настроен — отправка не удаётся, ответ тот же
     r = fresh(app).post("/api/auth/reset/request", json={"username": "admin"})
     assert r.status_code == 200 and "Telegram" in r.json()["detail"]
+
+
+def test_telegram_test_message_goes_to_bound_chat_and_is_throttled(app, bot):
+    from .conftest import csrf
+
+    c = fresh(app)
+    _, me = login_and_enroll(c, "admin")
+    assert c.post("/api/auth/me/telegram/test", headers=csrf(me)).status_code == 409  # не привязан
+    with app.state.session_factory() as db:
+        db.scalar(select(User).where(User.username == "admin")).telegram_chat_id = "555"
+        db.commit()
+    assert c.post("/api/auth/me/telegram/test", headers=csrf(me)).status_code == 200
+    assert bot[-1]["chat_id"] == "555" and "тест связи" in bot[-1]["text"]
+    assert c.post("/api/auth/me/telegram/test", headers=csrf(me)).status_code == 429  # слишком часто

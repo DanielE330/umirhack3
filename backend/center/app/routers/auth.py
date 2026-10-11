@@ -231,6 +231,29 @@ def generate_telegram_link_code(request: Request, sess: AuthSession = Depends(au
     }
 
 
+_last_tg_test: dict[int, float] = {}
+
+
+@router.post("/me/telegram/test")
+def test_telegram(request: Request, sess: AuthSession = Depends(auth.current_session), db: Session = Depends(get_db)):
+    """Проверка связи: бот присылает привязанному оператору тестовое сообщение (не чаще раза в 10 секунд)."""
+    import time
+
+    user = sess.user
+    if not user.telegram_chat_id:
+        raise HTTPException(409, "Telegram не привязан")
+    now = time.monotonic()
+    if now - _last_tg_test.get(user.id, -1e9) < 10:
+        raise HTTPException(429, "Подождите несколько секунд перед повторной проверкой")
+    _last_tg_test[user.id] = now
+    text = f"HoneyForge: тест связи для «{user.username}». Бот работает, алерты будут приходить сюда."
+    request.app.state.orchestrator.request("POST", "/direct", {"chat_id": user.telegram_chat_id, "text": text},
+                                           timeout=20, base="/api/v1/notify")
+    auth.audit(db, user.username, "telegram.test", ip=auth.client_ip(request))
+    db.commit()
+    return {"ok": True}
+
+
 @router.delete("/me/telegram")
 def unlink_telegram(request: Request, sess: AuthSession = Depends(auth.current_session),
                     db: Session = Depends(get_db)):
