@@ -252,8 +252,8 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 
 Уровни (`level` в профиле, `backend/center/app/schemas.py`):
 
-- **Low** — только `banner`: открытый порт с баннером, фиксируются подключение и первые байты (`agent/netsvc/traps/banner.py`).
-- **Medium** — `ssh` (asyncssh: перехват логинов/паролей, поддельная оболочка и ФС, файлы-honeytoken; `traps/ssh.py`) и `http` (админка с формой входа, 404 как у Apache, URL-honeytoken; `traps/http.py`).
+- **Low** — `banner`: открытый порт с баннером и интерактивными протоколами (интерактивный Redis: PING/INFO/AUTH/CONFIG, FTP: USER/PASS с перехватом паролей, многошаговый обмен TCP с фиксацией payload и параметров атак; `agent/netsvc/traps/banner.py`).
+- **Medium** — `ssh` (asyncssh: разбор цепочек команд `&&`, `||`, `;`, эмуляция разведки `lscpu`/`free`/`uptime`/`which`/`env`/`df`/`ip`, эмуляция дропперов `wget`/`curl` с сохранением в ФС, `chmod +x`, `./*` и `sh *`, перехват учёток, honeytoken `/etc/shadow`, `/home/admin/notes.txt`; `traps/ssh.py`) и `http` (админка с формой входа, 404 как у Apache, автоматические honeytoken `/.env`, `/.git/config`, `/robots.txt`, детекция веб-инъекций и шеллов `?cmd=`, `eval`, `../../`; `traps/http.py`).
 - **High** — не реализовано в агенте. Оркестратор создаёт LXC/KVM из шаблона в DMZ, но запись сессии (ввод/вывод, файлы) нет.
 
 Маскировка канала агент → центр:
@@ -308,7 +308,6 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 - `/api/v1/stats/` и `/api/v1/analytics/track` оркестратора открыты без авторизации и проброшены наружу через proxy; телеметрию агенты шлют в центр, не сюда.
 - High-interaction и запись сессий не реализованы; mTLS не реализован.
 - Нет Dockerfile агента, хотя ручной артефакт `docker` ссылается на образ `honeyforge-agent:latest` (на машинах Proxmox агент ставится без Docker).
-- Поддельная консоль SSH выполняет только по одной простой команде в строке: цепочки (`;`, `&&`, `|`) не разбираются.
 - Автоматическое включение агентов работает только для LXC-машин из шаблона с предустановленным агентом (`9101`).
 - Docker-ловушки оркестратора (`/api/v1/traps/`) требуют Docker-сокет; он смонтирован только в `backend/orchestrator/docker-compose.yml`, в infra — нет.
 - Автотестов оркестратора нет.

