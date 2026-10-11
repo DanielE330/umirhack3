@@ -1,6 +1,8 @@
 """Приём телеметрии: дедупликация, запись, алерты, сериализация."""
 from __future__ import annotations
 
+import base64
+import binascii
 import hashlib
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -9,7 +11,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from .config import Settings
-from .models import Event, Profile, Trap, utcnow
+from . import geo
+from .models import Artifact, Event, Profile, Trap, utcnow
 from .schemas import AgentEvent
 
 STATUS_NEVER, STATUS_ONLINE, STATUS_OFFLINE = "never", "online", "offline"
@@ -37,7 +40,11 @@ def profile_config(profile: Profile) -> dict:
             "logging": profile.logging, "masking": profile.masking}
 
 
-def event_view(e: Event) -> dict:
+def event_view(e: Event, geo_map: dict | None = None) -> dict:
+    return {"geo": (geo_map or {}).get(e.src_ip), **_event_fields(e)}
+
+
+def _event_fields(e: Event) -> dict:
     return {"id": e.id, "uid": e.uid, "trap_id": e.trap_id, "trap": e.trap.name if e.trap else "",
             "ts": e.ts.isoformat() + "Z", "type": e.type, "src_ip": e.src_ip, "src_port": e.src_port,
             "dst_port": e.dst_port, "proto": e.proto, "session_id": e.session_id, "username": e.username,
@@ -63,17 +70,47 @@ def ingest_events(db: Session, settings: Settings, trap: Trap, items: list[Agent
         if item.uid in known or item.uid in seen_in_batch:
             continue
         seen_in_batch.add(item.uid)
+        data = _store_artifact(db, settings, trap, item)
         ev = Event(uid=item.uid, trap_id=trap.id, ts=_to_naive_utc(item.ts), type=item.type, src_ip=item.src_ip,
                    src_port=item.src_port, dst_port=item.dst_port, proto=item.proto, session_id=item.session_id,
-                   username=item.username, password=item.password, command=item.command, data=item.data)
+                   username=item.username, password=item.password, command=item.command, data=data)
         db.add(ev)
         created.append(ev)
     db.flush()
 
     alerts = _make_alerts(db, settings, trap, created)
     db.commit()
-    views = [event_view(e) for e in created + alerts]
+    geo_map = geo.cached(db, {e.src_ip for e in created + alerts})
+    views = [event_view(e, geo_map) for e in created + alerts]
     return views, len(items) - len(created)
+
+
+def _store_artifact(db: Session, settings: Settings, trap: Trap, item: AgentEvent) -> dict:
+    """Файл, пойманный на ловушке (data.sha256 [+ content_b64]), попадает в таблицу артефактов; из события содержимое убирается."""
+    data = dict(item.data)
+    content_b64 = data.pop("content_b64", None)
+    sha = str(data.get("sha256", "")).lower()
+    if len(sha) != 64 or any(c not in "0123456789abcdef" for c in sha):
+        return data
+    content = None
+    if content_b64:
+        try:
+            content = base64.b64decode(content_b64, validate=True)[:settings.max_artifact_bytes]
+        except (binascii.Error, ValueError):
+            content = None
+    row = db.get(Artifact, sha)
+    now = utcnow()
+    if row is None:
+        db.add(Artifact(sha256=sha, size=int(data.get("size") or 0), name=str(data.get("filename", ""))[:255],
+                        kind=str(data.get("kind", ""))[:24], first_trap_id=trap.id, src_ip=item.src_ip,
+                        url=str(data.get("url", ""))[:500], first_seen=now, last_seen=now, content=content))
+    else:
+        row.seen_count += 1
+        row.last_seen = now
+        if row.content is None and content is not None:
+            row.content = content
+    data["artifact"] = sha
+    return data
 
 
 def _make_alerts(db: Session, settings: Settings, trap: Trap, created: list[Event]) -> list[Event]:

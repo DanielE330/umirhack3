@@ -129,7 +129,9 @@ export default function Overview() {
                     <td className="m">{fmtTime(ev.ts)}</td>
                     <td>{ev.trap}</td>
                     <td><TypeTag type={ev.type} /></td>
-                    <td className="m">{ev.src_ip}</td>
+                    <td className="m" data-tip={ev.geo ? [ev.geo.country, ev.geo.city, ev.geo.asn, ev.geo.org].filter(Boolean).join(' · ') : undefined}>
+                      {ev.geo && ev.geo.country_code && ev.geo.country_code !== '--' ? <span className="cc">{ev.geo.country_code}</span> : null}{ev.src_ip}
+                    </td>
                     <td className="m">{ev.command || ev.username || ''}</td>
                   </tr>
                 )) : (
@@ -162,6 +164,13 @@ export default function Overview() {
                 {t('Экспорт IoC (CSV)')}
               </button>
             </div>
+          </div>
+          <div className="card">
+            <h3>
+              {t('Откуда атакуют')}<HelpMark text={t('Страны и провайдеры (ASN) источников за 24 часа. Определяются по публичной базе IP; частные адреса не учитываются.')} />
+            </h3>
+            <TopList map={stats.countries} active="" onPick={(v) => setEventFilter({ q: v })} />
+            <div className="mt-10"><TopList map={stats.asn} active="" onPick={(v) => setEventFilter({ q: v })} /></div>
           </div>
           <div className="card">
             <h3>

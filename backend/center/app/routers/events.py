@@ -15,9 +15,9 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
-from .. import auth
+from .. import auth, geo
 from ..db import get_db
-from ..models import Event, SessionAssessment, Trap, User, utcnow
+from ..models import Event, IpInfo, SessionAssessment, Trap, User, utcnow
 from ..services import event_view, trap_status
 
 router = APIRouter(prefix="/api", tags=["events"])
@@ -58,7 +58,8 @@ def list_events(trap_id: int | None = None, type: str | None = None, src_ip: str
         stmt = stmt.where(Event.id < before_id)
     rows = db.scalars(stmt.order_by(Event.id.desc()).limit(limit + 1)).all()
     page = rows[:limit]
-    return {"items": [event_view(e) for e in page], "next_before_id": page[-1].id if len(rows) > limit else None}
+    geo_map = geo.cached(db, {e.src_ip for e in page})
+    return {"items": [event_view(e, geo_map) for e in page], "next_before_id": page[-1].id if len(rows) > limit else None}
 
 
 @router.get("/sessions/{session_id}")
@@ -86,9 +87,13 @@ def export_events(trap_id: int | None = None, type: str | None = None, src_ip: s
     rows = db.scalars(stmt.order_by(Event.id.desc()).limit(10000)).all()
     out = io.StringIO()
     w = csv.writer(out)
-    w.writerow(["id", "ts", "trap", "type", "src_ip", "src_port", "dst_port", "proto", "username", "password", "command"])
+    w.writerow(["id", "ts", "trap", "type", "src_ip", "country", "asn", "src_port", "dst_port", "proto", "username",
+                "password", "command"])
+    geo_map = geo.cached(db, {e.src_ip for e in rows})
     for e in rows:
-        w.writerow([_csv_cell(x) for x in (e.id, e.ts.isoformat() + "Z", e.trap.name, e.type, e.src_ip, e.src_port,
+        g = geo_map.get(e.src_ip) or {}
+        w.writerow([_csv_cell(x) for x in (e.id, e.ts.isoformat() + "Z", e.trap.name, e.type, e.src_ip,
+                                           g.get("country_code", ""), g.get("asn", ""), e.src_port,
                                            e.dst_port, e.proto, e.username, e.password, e.command)])
     return PlainTextResponse(out.getvalue(), media_type="text/csv; charset=utf-8",
                              headers={"Content-Disposition": 'attachment; filename="events.csv"'})
@@ -104,9 +109,13 @@ def _ioc_rows(db: Session):
 def iocs_csv(_: User = Depends(auth.current_user), db: Session = Depends(get_db)):
     out = io.StringIO()
     w = csv.writer(out)
-    w.writerow(["ip", "events", "first_seen", "last_seen"])
-    for ip, n, first, last in _ioc_rows(db):
-        w.writerow([_csv_cell(ip), n, first.isoformat() + "Z", last.isoformat() + "Z"])
+    w.writerow(["ip", "country", "asn", "org", "events", "first_seen", "last_seen"])
+    rows = _ioc_rows(db)
+    geo_map = geo.cached(db, {r[0] for r in rows})
+    for ip, n, first, last in rows:
+        g = geo_map.get(ip) or {}
+        w.writerow([_csv_cell(ip), g.get("country_code", ""), g.get("asn", ""), _csv_cell(g.get("org", "")), n,
+                    first.isoformat() + "Z", last.isoformat() + "Z"])
     return PlainTextResponse(out.getvalue(), media_type="text/csv; charset=utf-8",
                              headers={"Content-Disposition": 'attachment; filename="iocs.csv"'})
 
@@ -144,6 +153,12 @@ def stats(request: Request, _: User = Depends(auth.current_user), db: Session = 
             .group_by(col).order_by(func.count().desc()).limit(10)
         return [{"value": v, "count": n} for v, n in db.execute(stmt).all()]
 
+    def top_geo(col):
+        stmt = select(col, func.count().label("n")).select_from(Event).join(IpInfo, IpInfo.ip == Event.src_ip) \
+            .where(Event.ts >= day, Event.type != "alert", col != "", IpInfo.country_code != "--") \
+            .group_by(col).order_by(func.count().desc()).limit(10)
+        return [{"value": v, "count": n} for v, n in db.execute(stmt).all()]
+
     hour = now - timedelta(minutes=60)
     buckets = {(hour + timedelta(minutes=i)).strftime("%H:%M"): 0 for i in range(1, 61)}
     for (ts,) in db.execute(select(Event.ts).where(Event.ts >= hour, Event.type != "alert")):
@@ -153,6 +168,7 @@ def stats(request: Request, _: User = Depends(auth.current_user), db: Session = 
     traps = db.scalars(select(Trap).options(joinedload(Trap.profile))).all()
     online = sum(1 for t in traps if trap_status(t, settings) == "online")
     return {"total_24h": sum(by_type.values()), "by_type": by_type, "top_sources": top(Event.src_ip, Event.type != "alert"),
+            "top_countries": top_geo(IpInfo.country), "top_asn": top_geo(IpInfo.asn),
             "top_usernames": top(Event.username, Event.type == "auth_attempt"),
             "top_passwords": top(Event.password, Event.type == "auth_attempt"),
             "timeline": [{"t": k, "n": v} for k, v in buckets.items()],

@@ -36,14 +36,18 @@ export default function EventModal({ ev }) {
     <>
       <Kv rows={[
         ['Время', fmtDateTime(ev.ts)], ['Машина', ev.container], ['Ловушка', ev.trap], ['Тип', ev.type],
-        ['Источник', ev.src_ip + ':' + ev.src_port], ['Порт ловушки', ev.dst_port], ['Протокол', ev.proto],
+        ['Источник', ev.src_ip + ':' + ev.src_port],
+        ['Страна / город', ev.geo ? [ev.geo.country, ev.geo.city].filter(Boolean).join(', ') : ''],
+        ['ASN / провайдер', ev.geo ? [ev.geo.asn, ev.geo.org].filter(Boolean).join(' · ') : ''], ['Порт ловушки', ev.dst_port], ['Протокол', ev.proto],
         ['Сессия', ev.session_id], ['Логин', ev.username], ['Пароль', ev.password], ['Команда / запрос', ev.command],
+        ['Файл (SHA-256)', (ev.data && ev.data.sha256) || ''],
       ]} />
       <div className="inline">
         <button className="ghost" onClick={() => filterBy({ q: ev.src_ip })}>{t('⌕ Все события этого IP')}</button>
         <button className="ghost" onClick={() => filterBy({ trap: ev.trap })}>{t('☰ События этой ловушки')}</button>
         <button className="ghost" onClick={copyIp}>{t('⧉ Копировать IP')}</button>
         <button className="ghost" onClick={openTrapOf}>{t('→ Открыть ловушку')}</button>
+        {ev.data && ev.data.artifact && <a className="ghost btn" href={'/api/artifacts/' + ev.data.artifact + '/download'}>{t('⬇ Скачать файл')}</a>}
       </div>
     </>
   )

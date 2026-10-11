@@ -39,7 +39,7 @@ backend/
 agent/            агент ловушки: пакет netsvc (low/medium-сервисы, буфер, канал в центр) и тесты
 frontend/         веб-интерфейс (React + Vite, исходники в src/, сборка в dist/), центр отдаёт сборку по / и /static/*; legacy/ — прежняя панель
 infra/            весь стек: docker-compose.yml, Caddyfile, .env.example, initdb/ (SQL первого запуска)
-docs/             инструкция по установке (INSTALL.md), условие кейса (pdf), планы, ресёрч, задачи (tasks/)
+docs/             инструкция по установке (INSTALL.md), схема БД (DB.md), сценарий демо (DEMO.md), условие кейса (pdf), планы, ресёрч, задачи (tasks/)
 ```
 
 ## Сервисы
@@ -151,6 +151,8 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `HF_TRUSTED_PROXIES` | `127.0.0.1,::1` | адреса, от которых доверяется `X-Forwarded-For` (в infra — `172.31.40.10`, Caddy) |
 | `HF_DOCS_ENABLED` | `false` | включает `/docs` и `/openapi.json` центра |
 | `HF_STATIC_DIR` | пусто → ищется `frontend/dist` вверх от кода (в образе `/srv/frontend`); исходный `index.html` Vite не отдаётся | папка собранного веб-интерфейса |
+| `HF_GEOIP_URL` | `http://ip-api.com/batch` | сервис геолокации и ASN источников атак (пусто — выключено; частные адреса не определяются) |
+| `HF_MAX_ARTIFACT_BYTES` | `65536` | сколько байт пойманного файла хранить (SHA-256 считается по всему файлу) |
 | `HF_ORCHESTRATOR_URL` | пусто | адрес оркестратора (в infra `http://orchestrator:4000`) |
 | `HF_ORCHESTRATOR_TOKEN` | пусто | межсервисный токен (в infra = `ORCH_TOKEN`) |
 | `HF_TELEGRAM_BOT_USERNAME` | пусто | имя бота для ссылки привязки `t.me/<бот>?start=<код>` (в infra — `TELEGRAM_BOT_USERNAME`) |
@@ -227,7 +229,9 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `POST /api/machines`, `POST /api/machines/{vmid}/{action}`, `PUT/DELETE /api/machines/{vmid}` | создание, start/shutdown/reboot/stop, ресурсы, удаление (через оркестратор) | оператор + CSRF |
 | `GET /api/events` | события с фильтрами trap_id, type, src_ip, since, until, q | сессия |
 | `GET /api/events/export.csv` | выгрузка событий в CSV | сессия |
-| `GET /api/stats` | сводка для панели | сессия |
+| `GET /api/stats` | сводка для панели (включая топ стран и ASN) | сессия |
+| `GET /api/artifacts`, `GET /api/artifacts/{sha256}/download` | файлы, пойманные на ловушках (SFTP-загрузки, записи в консоли): список с хэшами, скачивание содержимого | сессия / оператор |
+| `GET /api/audit` | журнал аудита действий операторов, фильтры actor, action, since | admin |
 | `GET /api/iocs.csv`, `GET /api/iocs.stix.json` | IoC в CSV и STIX | сессия |
 | `WS /api/ws/events` | поток новых событий | cookie полной сессии, Origin = Host |
 | `GET /api/health` | проверка живости | нет |
@@ -300,6 +304,10 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 - Управляющие эндпоинты оркестратора закрыты `ORCH_TOKEN`; без токена — 401 на всё.
 - Секреты (`HF_SECRET_KEY`, `HF_DB_PASSWORD`, `ORCH_TOKEN`, `PROXMOX_*`) только в `.env`, файл в `.gitignore`. Токены ловушек хранятся в БД в виде хэша. TOTP-секреты зашифрованы Fernet.
 - Ответы центра: `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, CSP для страниц, `Cache-Control: no-store` для API.
+
+## Схема БД и демо
+
+ER-диаграмма и поток данных — `docs/DB.md`, пошаговый сценарий «атака → событие в центре» — `docs/DEMO.md`.
 
 ## Известные ограничения
 

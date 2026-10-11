@@ -440,7 +440,9 @@ def test_shell_filesystem_state_redirects_and_permissions():
     assert sh_run(shell, "echo a >> f.txt; wc -l < f.txt") == "2\n"
     assert sh_run(shell, "rm -rf /tmp/x; ls /tmp") == ""
     assert sh_run(shell, "cat /root/.aws/credentials") == "AKIAFAKE\n"
-    assert events and events[0][0] == "honeytoken"
+    assert any(k == "honeytoken" for k, _ in events)
+    wrote = [kw["data"] for k, kw in events if k == "payload" and kw["data"].get("kind") == "write"]
+    assert wrote and wrote[0]["sha256"] == __import__("hashlib").sha256(b"hello\n").hexdigest() and wrote[0]["size"] == 6
     user, _ = make_shell("admin")
     assert sh_run(user, "cat /etc/shadow") == "cat: /etc/shadow: Permission denied\n"
     assert "root:" in sh_run(user, "sudo cat /etc/shadow")
@@ -474,4 +476,29 @@ def test_http_trap_apache_style_errors_and_head():
         head = await http(trap.port, b"HEAD / HTTP/1.1\r\nHost: a\r\n\r\n")
         assert head.startswith(b"HTTP/1.1 200") and b"<form" not in head
         await trap.stop()
+    run(go())
+
+
+def test_sftp_upload_is_captured_hashed_and_removed(tmp_path):
+    import base64
+    import hashlib
+
+    async def go():
+        buf = EventBuffer(":memory:")
+        trap = SshTrap({"port": 0}, {"decoys": {"hostname": "web-1"}}, Emitter(buf), str(tmp_path))
+        await trap.start("127.0.0.1")
+        src = tmp_path / "payload.sh"
+        src.write_bytes(b"#!/bin/sh\necho hi\n")
+        async with asyncssh.connect("127.0.0.1", trap.port, username="root", password="x", known_hosts=None) as conn:
+            async with conn.start_sftp_client() as sftp:
+                await sftp.put(str(src), "/tmp/up.sh")
+        await asyncio.sleep(0.3)
+        await trap.stop()
+        ups = [e for e in buf.peek(50) if e["type"] == "payload" and e["data"].get("kind") == "upload"]
+        assert len(ups) == 1
+        d = ups[0]["data"]
+        assert d["sha256"] == hashlib.sha256(src.read_bytes()).hexdigest() and d["size"] == 18
+        assert base64.b64decode(d["content_b64"]) == src.read_bytes()
+        assert "/tmp/up.sh" in trap.fs.files
+        assert not [p for p in tmp_path.iterdir() if p.name.startswith("sftp-")]  # временная папка убрана
     run(go())

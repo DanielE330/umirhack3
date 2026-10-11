@@ -1,6 +1,8 @@
 import { createHashRouter, Navigate } from 'react-router-dom'
 import AppLayout from '../layouts/AppLayout.jsx'
+import Audit from '../pages/Audit/Audit.jsx'
 import Containers from '../pages/Containers/Containers.jsx'
+import Files from '../pages/Files/Files.jsx'
 import Login from '../pages/Login/Login.jsx'
 import Overview from '../pages/Overview/Overview.jsx'
 import Profiles from '../pages/Profiles/Profiles.jsx'
@@ -23,7 +25,9 @@ export const router = createHashRouter([
       { path: 'overview', element: <Overview /> },
       { path: 'traps', element: <Traps /> },
       { path: 'profiles', element: <Profiles /> },
+      { path: 'files', element: <Files /> },
       { path: 'users', element: <Users /> },
+      { path: 'audit', element: <Audit /> },
       { path: 'settings', element: <Settings /> },
       { path: '*', element: <Navigate to="/containers" replace /> },
     ],

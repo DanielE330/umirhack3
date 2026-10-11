@@ -10,7 +10,7 @@ from .db import init_db, make_engine
 from .honeymind import HoneyMind
 from .hub import Hub
 from .orchestrator import Orchestrator
-from .routers import agent_api, events, ideas, internal, machines, profiles, reset, traps
+from .routers import agent_api, artifacts, audit, events, ideas, internal, machines, profiles, reset, traps
 from .routers import auth as auth_router
 from .routers import users as users_router
 from .security import Vault
@@ -56,6 +56,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(machines.router)
     app.include_router(events.router)
     app.include_router(ideas.router)
+    app.include_router(artifacts.router)
+    app.include_router(audit.router)
     app.include_router(agent_api.router)
     app.include_router(internal.router)
 

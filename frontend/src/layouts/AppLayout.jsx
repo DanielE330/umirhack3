@@ -1,4 +1,4 @@
-import { Layers, LayoutDashboard, Radar, Server, Settings, Users } from 'lucide-react'
+import { FileWarning, Layers, LayoutDashboard, Radar, ScrollText, Server, Settings, Users } from 'lucide-react'
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import ModalHost from '../components/ModalHost.jsx'
 import Tooltips from '../components/Tooltips.jsx'
@@ -14,7 +14,9 @@ const NAV = [
   { to: '/overview', label: 'Обзор', tip: 'Сводка и лента атак в реальном времени', icon: LayoutDashboard },
   { to: '/traps', label: 'Ловушки', tip: 'Каталог всех типов ловушек, которые умеет платформа', icon: Radar },
   { to: '/profiles', label: 'Профили', tip: 'Шаблоны ловушек: уровень, порты, баннеры, приманки', icon: Layers },
+  { to: '/files', label: 'Файлы', tip: 'Файлы, которые атакующие загрузили на ловушки: хэши и содержимое', icon: FileWarning },
   { to: '/users', label: 'Пользователи', tip: 'Операторы панели: создание, роли, блокировка, сброс 2FA', icon: Users, admin: true },
+  { to: '/audit', label: 'Аудит', tip: 'Журнал действий операторов: кто и что менял в панели', icon: ScrollText, admin: true },
   { to: '/settings', label: 'Настройки', tip: 'Язык, расположение навигации и учётная запись', icon: Settings },
 ]
 

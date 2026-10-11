@@ -8,7 +8,7 @@ import {
 import { DataContext } from './data.js'
 import { useUi } from './ui.js'
 
-const EMPTY_STATS = { total: 0, auth: 0, alert: 0, src: {}, pw: {}, buckets: Array(60).fill(0) }
+const EMPTY_STATS = { total: 0, auth: 0, alert: 0, src: {}, pw: {}, countries: {}, asn: {}, buckets: Array(60).fill(0) }
 const NO_FILTER = { type: '', trap: '', q: '' }
 
 // Все данные центра: профили, машины (Proxmox), ловушки, события, статистика + живой поток WebSocket.
@@ -64,6 +64,8 @@ export default function DataProvider({ children }) {
         alert: st.by_type.alert || 0,
         src: Object.fromEntries(st.top_sources.map((x) => [x.value, x.count])),
         pw: Object.fromEntries(st.top_passwords.map((x) => [x.value, x.count])),
+        countries: Object.fromEntries((st.top_countries || []).map((x) => [x.value, x.count])),
+        asn: Object.fromEntries((st.top_asn || []).map((x) => [x.value, x.count])),
         buckets: st.timeline.map((x) => x.n),
       })
     } catch {

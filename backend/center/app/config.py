@@ -54,6 +54,8 @@ class Settings(BaseSettings):
     alert_window_seconds: int = 60
     max_batch_events: int = 500
     max_body_bytes: int = 1_000_000
+    geoip_url: str = "http://ip-api.com/batch"   # геолокация/ASN источников; пусто — выключено
+    max_artifact_bytes: int = 65_536          # сколько байт загруженного файла хранить (хэш считается по всему файлу)
 
     trusted_proxies: str = "127.0.0.1,::1"   # от них верим X-Forwarded-For (Nginx)
     docs_enabled: bool = False               # /docs и /openapi.json

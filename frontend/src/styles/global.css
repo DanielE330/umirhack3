@@ -357,3 +357,4 @@ pre { margin: 0; white-space: pre-wrap; font: 12.5px/1.55 var(--font-mono); colo
 .users-table .users-role { min-width: 130px; }
 .users-table td:last-child { white-space: nowrap; width: 1%; }
 .users-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: nowrap; }
+.cc { display: inline-block; min-width: 24px; margin-right: 6px; padding: 0 5px; border-radius: 4px; background: var(--card-2); font-size: 11px; font-weight: 700; text-align: center; }

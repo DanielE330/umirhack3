@@ -455,6 +455,11 @@ class Shell:
             if self.denied(path) or not self.fs.write(path, res.out, append=op == ">>"):
                 why = "Permission denied" if self.denied(path) else "No such file or directory"
                 return Result(code=1, err=f"{res.err}bash: {target}: {why}\n")
+            if res.out.strip():  # файл, записанный атакующим (скрипт, ключ, конфиг), — в артефакты
+                raw = self.fs.files[path].encode()
+                self.emit("payload", command=f"{op} {path}", data={
+                    "kind": "write", "filename": path, "size": len(raw), "sha256": hashlib.sha256(raw).hexdigest(),
+                    "content_b64": base64.b64encode(raw[:65536]).decode()})
             return Result(code=res.code, err=res.err)
         return res
 

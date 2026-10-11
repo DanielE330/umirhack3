@@ -153,7 +153,7 @@ def test_stats_and_ioc_exports(admin):
     assert s["total_24h"] == 3 and s["top_usernames"][0] == {"value": "root", "count": 2}
     assert s["traps"]["total"] == 1 and len(s["timeline"]) == 60
     csv_text = admin.get("/api/iocs.csv").text
-    assert "203.0.113.7,2" in csv_text
+    assert "203.0.113.7,,,,2," in csv_text
     stix = admin.get("/api/iocs.stix.json").json()
     patterns = {o["pattern"] for o in stix["objects"]}
     assert "[ipv4-addr:value = '203.0.113.7']" in patterns and "[ipv6-addr:value = '2001:db8::1']" in patterns

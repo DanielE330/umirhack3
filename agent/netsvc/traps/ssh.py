@@ -2,8 +2,14 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import hashlib
+import os
+import posixpath
 import random
+import shutil
 import socket
+import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -69,6 +75,58 @@ def algorithm_options() -> dict:
         if chosen:
             out[key] = chosen
     return out
+
+
+MAX_UPLOAD = 5 * 1024 * 1024        # больше этого за сессию SFTP не принимаем
+MAX_ARTIFACT = 64 * 1024            # столько байт содержимого уходит в центр (хэш считается по всему файлу)
+
+
+def file_artifact(path: str, data: bytes, kind: str) -> dict:
+    """Описание пойманного файла для события: хэш по всем данным, содержимое — не больше MAX_ARTIFACT."""
+    return {"kind": kind, "filename": path, "size": len(data), "sha256": hashlib.sha256(data).hexdigest(),
+            "content_b64": base64.b64encode(data[:MAX_ARTIFACT]).decode()}
+
+
+class TrapSFTP(asyncssh.SFTPServer):
+    """SFTP (в том числе scp нового образца): загрузки атакующего ловим, считаем хэш и убираем с диска."""
+
+    def __init__(self, chan: asyncssh.SSHServerChannel, trap: "SshTrap"):
+        self.trap = trap
+        self.tmp = tempfile.mkdtemp(prefix="sftp-", dir=trap.key_dir)
+        os.chmod(self.tmp, 0o700)
+        for d in trap.fs.dirs:  # пустой каркас каталогов: загрузка в /tmp, /var/www и т. п. проходит как на настоящем сервере
+            os.makedirs(self.tmp + d, exist_ok=True)
+        peer = chan.get_extra_info("peername") or ("", 0)
+        self.base = dict(src_ip=peer[0], src_port=peer[1], dst_port=trap.service["port"], proto="ssh",
+                         username=chan.get_extra_info("username") or "")
+        self.paths: dict[int, str] = {}
+        self.total = 0
+        super().__init__(chan, chroot=self.tmp.encode())
+
+    def open(self, path, pflags, attrs):
+        handle = super().open(path, pflags, attrs)
+        self.paths[id(handle)] = path.decode("utf-8", "replace") if isinstance(path, bytes) else str(path)
+        return handle
+
+    def write(self, file_obj, offset, data):
+        self.total += len(data)
+        if self.total > MAX_UPLOAD:
+            raise asyncssh.SFTPFailure("Failure")
+        return super().write(file_obj, offset, data)
+
+    def close(self, file_obj):
+        name = self.paths.pop(id(file_obj), "")
+        local = getattr(file_obj, "name", None)
+        super().close(file_obj)
+        if name and local and os.path.isfile(local) and os.path.getsize(local):
+            with open(local, "rb") as f:
+                data = f.read(MAX_UPLOAD)
+            self.trap.emitter.emit("payload", **self.base, command=f"sftp put {name}", data=file_artifact(name, data, "upload"))
+            dest = posixpath.normpath("/" + name.lstrip("/"))
+            self.trap.fs.write(dest, data[:MAX_ARTIFACT].decode("utf-8", "replace"))
+
+    def exit(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
 
 
 def motd(shell: Shell, last_ip: str) -> str:
@@ -184,7 +242,8 @@ class SshTrap:
 
         self.server = await asyncssh.create_server(
             Server, host, self.service["port"], server_host_keys=self._host_keys(), process_factory=handler,
-            server_version=banner, login_timeout=120, line_editor=True, **algorithm_options())
+            server_version=banner, login_timeout=120, line_editor=True,
+            sftp_factory=lambda chan: TrapSFTP(chan, self), **algorithm_options())
 
     @property
     def port(self) -> int:
