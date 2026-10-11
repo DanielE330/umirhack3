@@ -358,3 +358,11 @@ pre { margin: 0; white-space: pre-wrap; font: 12.5px/1.55 var(--font-mono); colo
 .users-table td:last-child { white-space: nowrap; width: 1%; }
 .users-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: nowrap; }
 .cc { display: inline-block; min-width: 24px; margin-right: 6px; padding: 0 5px; border-radius: 4px; background: var(--card-2); font-size: 11px; font-weight: 700; text-align: center; }
+
+.toolbar.wrap { flex-wrap: wrap; row-gap: 8px; }
+.feed.tall { max-height: 62vh; overflow: auto; }
+.w-num { width: 70px; }
+.risk-score { display: inline-block; min-width: 28px; padding: 1px 6px; border-radius: 6px; background: var(--card-2); text-align: center; font-weight: 700; }
+.risk-score.hot { background: #7f1d1d; color: #fecaca; }
+.chart-box { width: 100%; height: 280px; }
+.chart-box.short { height: 230px; }

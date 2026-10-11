@@ -65,14 +65,23 @@ export default function TrapModal({ trapId }) {
     }
     await refresh()
   }
-  const deploy = async () => {
+  const deploy = async (kind) => {
     let d
     try {
-      d = await api('/api/traps/' + tr.id + '/deploy', { method: 'POST', body: { kind: 'script' } })
+      d = await api('/api/traps/' + tr.id + '/deploy', { method: 'POST', body: { kind } })
     } catch (e) {
       return fail(e)
     }
     return openDeploy(tr, d.artifact)
+  }
+  // команда агенту: он выполнит её при ближайшем опросе центра
+  const command = async (cmd, msg) => {
+    try {
+      await api('/api/traps/' + tr.id + '/command', { method: 'POST', body: { command: cmd } })
+      showToast(msg)
+    } catch (e) {
+      fail(e)
+    }
   }
 
   const mine = events.filter((e) => e.trap === tr.name).slice(0, 8)
@@ -115,7 +124,14 @@ export default function TrapModal({ trapId }) {
           tip={tr.vmid
             ? t('Выпустить новый токен и перезапустить агента внутри машины — автоматически, токен никто не видит')
             : t('Ловушка не в машине: выпустить токен и показать команду для ручного запуска агента')}
-          onConfirm={tr.vmid ? reinstall : deploy} />
+          onConfirm={tr.vmid ? reinstall : () => deploy('script')} />
+        <ArmedButton label={t('🐳 Docker-команда')} armLabel={t('Старый токен перестанет работать. Точно?')}
+          tip={t('Выпустить новый токен и показать команду docker run для ручного запуска агента (образ: docker build -t honeyforge-agent agent/)')}
+          onConfirm={() => deploy('docker')} />
+        <button className="ghost" data-tip={t('Агент перезапустит ловушки при ближайшем опросе центра')}
+          onClick={() => command('restart', t('Команда «перезапустить» отправлена: агент выполнит её при ближайшем опросе'))}>{t('↻ Перезапустить ловушку')}</button>
+        <button className="ghost" data-tip={t('Агент заново запросит конфигурацию у центра при ближайшем опросе')}
+          onClick={() => command('refresh', t('Команда «обновить конфиг» отправлена: агент выполнит её при ближайшем опросе'))}>{t('⟳ Обновить конфиг')}</button>
         <ArmedButton label={t('🗑 Удалить')} armLabel={t('Точно удалить?')} className="ghost danger" onConfirm={() => { closeModal(); removeTrap(tr) }} />
       </div>
       <h4>{t('Последние события')}</h4>

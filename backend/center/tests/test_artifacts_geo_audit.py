@@ -53,3 +53,20 @@ def test_geo_enrichment_and_stats(admin, app, monkeypatch):
     s = admin.get("/api/stats").json()
     assert s["top_countries"] == [{"value": "Germany", "count": 1}] and s["top_asn"][0]["value"] == "AS24940"
     assert "DE,AS24940" in admin.get("/api/events/export.csv").text
+
+
+def test_session_summary_filters_and_hourly_stats(admin):
+    t = mk_trap(admin)
+    now = __import__("time").time()
+    evs = [event(session_id="s1", type="connect", ts=now - 30), event(session_id="s1", type="command", command="id", ts=now - 10),
+           event(session_id="s1", type="auth_attempt", username="root", password="x", ts=now - 20),
+           event(session_id="s2", type="connect")]
+    admin.post("/assets/v1/log", json={"events": evs}, headers=agent_headers(t["token"]))
+    s = admin.get("/api/sessions/s1").json()
+    assert s["summary"]["events"] == 3 and s["summary"]["commands"] == 1 and s["summary"]["auth_attempts"] == 1
+    assert 19 <= s["summary"]["duration_seconds"] <= 21 and s["is_human"] is None
+    assert admin.get("/api/sessions/none").status_code == 404
+    assert len(admin.get("/api/events?session_id=s1").json()["items"]) == 3
+    assert admin.get("/api/events?min_score=50").json()["items"] == []
+    st = admin.get("/api/stats").json()
+    assert len(st["by_hour"]) == 24 and sum(h["n"] for h in st["by_hour"]) == 4

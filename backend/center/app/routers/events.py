@@ -25,7 +25,7 @@ router = APIRouter(prefix="/api", tags=["events"])
 EVENT_TYPES = {"connect", "auth_attempt", "command", "http_request", "payload", "honeytoken", "session_end", "alert"}
 
 
-def _filtered(stmt, trap_id, type_, src_ip, since, until, q):
+def _filtered(stmt, trap_id, type_, src_ip, since, until, q, session_id=None, min_score=None):
     if trap_id:
         stmt = stmt.where(Event.trap_id == trap_id)
     if type_:
@@ -36,6 +36,10 @@ def _filtered(stmt, trap_id, type_, src_ip, since, until, q):
         stmt = stmt.where(Event.ts >= since)
     if until:
         stmt = stmt.where(Event.ts <= until)
+    if session_id:
+        stmt = stmt.where(Event.session_id == session_id)
+    if min_score is not None:
+        stmt = stmt.where(Event.threat_score >= min_score)
     if q:
         like = f"%{q}%"
         stmt = stmt.where(Event.username.ilike(like) | Event.command.ilike(like) | Event.password.ilike(like))
@@ -50,10 +54,11 @@ def _validate_type(type_: str | None) -> None:
 @router.get("/events")
 def list_events(trap_id: int | None = None, type: str | None = None, src_ip: str | None = None,
                 since: datetime | None = None, until: datetime | None = None, q: str | None = Query(None, max_length=100),
+                session_id: str | None = Query(None, max_length=64), min_score: int | None = Query(None, ge=0, le=100),
                 before_id: int | None = None, limit: int = Query(50, ge=1, le=200),
                 _: User = Depends(auth.current_user), db: Session = Depends(get_db)):
     _validate_type(type)
-    stmt = _filtered(select(Event).options(joinedload(Event.trap)), trap_id, type, src_ip, since, until, q)
+    stmt = _filtered(select(Event).options(joinedload(Event.trap)), trap_id, type, src_ip, since, until, q, session_id, min_score)
     if before_id:
         stmt = stmt.where(Event.id < before_id)
     rows = db.scalars(stmt.order_by(Event.id.desc()).limit(limit + 1)).all()
@@ -64,13 +69,25 @@ def list_events(trap_id: int | None = None, type: str | None = None, src_ip: str
 
 @router.get("/sessions/{session_id}")
 def get_session_assessment(session_id: str, _: User = Depends(auth.current_user), db: Session = Depends(get_db)):
-    """Оценка HoneyMind «человек или бот» по сессии (считается при событии session_end, app/scoring.py)."""
+    """Итог сессии: длительность и счётчики по событиям + оценка HoneyMind «человек или бот» (считается при session_end)."""
+    first, last, total, src = db.execute(select(func.min(Event.ts), func.max(Event.ts), func.count(), func.min(Event.src_ip))
+                                         .where(Event.session_id == session_id)).one()
     a = db.get(SessionAssessment, session_id)
-    if a is None:
+    if not total and a is None:
         raise HTTPException(404, "Сессия ещё не оценена")
-    return {"session_id": a.session_id, "is_human": a.is_human, "human_probability": a.human_probability,
-            "human_method": a.human_method, "human_reason": a.human_reason,
-            "script_seen_before": a.script_seen_before, "updated_at": a.updated_at.isoformat() + "Z"}
+    counts = dict(db.execute(select(Event.type, func.count()).where(Event.session_id == session_id).group_by(Event.type)).all())
+    summary = {"events": total, "src_ip": src or "", "first_ts": first.isoformat() + "Z" if first else None,
+               "last_ts": last.isoformat() + "Z" if last else None,
+               "duration_seconds": round((last - first).total_seconds(), 1) if first and last else 0,
+               "commands": counts.get("command", 0), "auth_attempts": counts.get("auth_attempt", 0),
+               "honeytokens": counts.get("honeytoken", 0)}
+    out = {"session_id": session_id, "is_human": None, "human_probability": None, "human_method": None,
+           "human_reason": None, "script_seen_before": None, "updated_at": None, "summary": summary}
+    if a is not None:
+        out.update(is_human=a.is_human, human_probability=a.human_probability, human_method=a.human_method,
+                   human_reason=a.human_reason, script_seen_before=a.script_seen_before,
+                   updated_at=a.updated_at.isoformat() + "Z")
+    return out
 
 
 def _csv_cell(value) -> str:
@@ -81,9 +98,10 @@ def _csv_cell(value) -> str:
 @router.get("/events/export.csv")
 def export_events(trap_id: int | None = None, type: str | None = None, src_ip: str | None = None,
                   since: datetime | None = None, until: datetime | None = None, q: str | None = Query(None, max_length=100),
+                  session_id: str | None = Query(None, max_length=64), min_score: int | None = Query(None, ge=0, le=100),
                   _: User = Depends(auth.current_user), db: Session = Depends(get_db)):
     _validate_type(type)
-    stmt = _filtered(select(Event).options(joinedload(Event.trap)), trap_id, type, src_ip, since, until, q)
+    stmt = _filtered(select(Event).options(joinedload(Event.trap)), trap_id, type, src_ip, since, until, q, session_id, min_score)
     rows = db.scalars(stmt.order_by(Event.id.desc()).limit(10000)).all()
     out = io.StringIO()
     w = csv.writer(out)
@@ -165,6 +183,13 @@ def stats(request: Request, _: User = Depends(auth.current_user), db: Session = 
         key = ts.strftime("%H:%M")
         if key in buckets:
             buckets[key] += 1
+    hours = {(now - timedelta(hours=23 - i)).strftime("%d.%m %H:00"): {"n": 0, "auth": 0, "alert": 0} for i in range(24)}
+    for ts, typ in db.execute(select(Event.ts, Event.type).where(Event.ts >= now - timedelta(hours=24))):
+        slot = hours.get(ts.strftime("%d.%m %H:00"))
+        if slot is not None:
+            slot["n"] += 1
+            if typ in ("auth_attempt", "alert"):
+                slot["auth" if typ == "auth_attempt" else "alert"] += 1
     traps = db.scalars(select(Trap).options(joinedload(Trap.profile))).all()
     online = sum(1 for t in traps if trap_status(t, settings) == "online")
     return {"total_24h": sum(by_type.values()), "by_type": by_type, "top_sources": top(Event.src_ip, Event.type != "alert"),
@@ -172,6 +197,7 @@ def stats(request: Request, _: User = Depends(auth.current_user), db: Session = 
             "top_usernames": top(Event.username, Event.type == "auth_attempt"),
             "top_passwords": top(Event.password, Event.type == "auth_attempt"),
             "timeline": [{"t": k, "n": v} for k, v in buckets.items()],
+            "by_hour": [{"t": k, **v} for k, v in hours.items()],
             "traps": {"total": len(traps), "online": online}}
 
 

@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { api } from '../../lib/api.js'
 import { useData } from '../../context/data.js'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
@@ -12,6 +14,16 @@ export default function EventModal({ ev }) {
   const { openTrap } = useModals()
   const { t } = useLanguage()
   const navigate = useNavigate()
+  const [sess, setSess] = useState(null)
+  useEffect(() => {
+    if (!ev.session_id) return undefined
+    let alive = true
+    api('/api/sessions/' + ev.session_id).then((d) => alive && setSess(d)).catch(() => {})
+    return () => { alive = false }
+  }, [ev.session_id])
+  const human = sess && sess.is_human !== null && sess.is_human !== undefined
+    ? (sess.is_human ? t('человек') : t('бот / скрипт')) + (sess.human_probability != null ? ' (' + Math.round(sess.human_probability * 100) + '%)' : '')
+    : ''
 
   const filterBy = (patch) => {
     closeModal()
@@ -41,6 +53,11 @@ export default function EventModal({ ev }) {
         ['ASN / провайдер', ev.geo ? [ev.geo.asn, ev.geo.org].filter(Boolean).join(' · ') : ''], ['Порт ловушки', ev.dst_port], ['Протокол', ev.proto],
         ['Сессия', ev.session_id], ['Логин', ev.username], ['Пароль', ev.password], ['Команда / запрос', ev.command],
         ['Файл (SHA-256)', (ev.data && ev.data.sha256) || ''],
+        ['Оценка опасности', ev.threat_score != null ? ev.threat_score + ' / 100' + (ev.threat_score >= 60 ? ' — ' + t('опасно') : '') : ''],
+        ['Категория (HoneyMind)', ev.category || ''],
+        ['Сессия: длительность', sess ? sess.summary.duration_seconds + ' ' + t('с') + ' · ' + t('команд') + ': ' + sess.summary.commands + ' · ' + t('попыток входа') + ': ' + sess.summary.auth_attempts : ''],
+        ['Человек или бот', human],
+        ['Почему (HoneyMind)', (sess && sess.human_reason) || ''],
       ]} />
       <div className="inline">
         <button className="ghost" onClick={() => filterBy({ q: ev.src_ip })}>{t('⌕ Все события этого IP')}</button>
