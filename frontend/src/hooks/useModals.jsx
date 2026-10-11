@@ -14,7 +14,7 @@ import { TYPE_INFO } from '../lib/model.js'
 export function useModals() {
   const { openModal } = useUi()
   return useMemo(() => ({
-    openNewContainer: () => openModal(t('Создать машину в Proxmox'), <NewContainerModal />, true),
+    openNewContainer: () => openModal(t('Новый контейнер в Proxmox'), <NewContainerModal />),
     openAddTrap: (c) => openModal(t('Добавить ловушку в «{name}»', { name: c.name }), <AddTrapModal vmid={c.vmid} />),
     openContainerSettings: (c) => openModal(t('Настройки «{name}»', { name: c.name }), <ContainerSettingsModal vmid={c.vmid} />),
     openPve: (c) => openModal(t('Proxmox: {kind} {vmid} «{name}»', { kind: TYPE_INFO[c.type].kind, vmid: c.vmid, name: c.name }), <PveInfoModal vmid={c.vmid} />),
