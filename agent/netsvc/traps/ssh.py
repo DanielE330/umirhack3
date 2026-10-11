@@ -56,8 +56,23 @@ PREFERRED = {
                  "umac-128@openssh.com", "hmac-sha2-256", "hmac-sha2-512", "hmac-sha1"],
     "compression_algs": ["none", "zlib@openssh.com"],
 }
-HOST_KEY_TYPES = [("ssh-ed25519", "ed25519", {}), ("ecdsa-sha2-nistp256", "ecdsa", {}),
-                  ("ssh-rsa", "rsa", {"key_size": 3072})]
+# порядок ключей как у sshd: rsa, ecdsa, ed25519 (по нему строится список алгоритмов хост-ключа в KEXINIT)
+HOST_KEY_TYPES = [("ssh-rsa", "rsa", {"key_size": 3072}), ("ecdsa-sha2-nistp256", "ecdsa", {}),
+                  ("ssh-ed25519", "ed25519", {})]
+
+
+def _openssh_like_rsa_algs() -> None:
+    """asyncssh добавляет к RSA вендорные ssh-rsa-sha*@ssh.com — настоящий OpenSSH их не предлагает; убираем."""
+    try:
+        from asyncssh import rsa
+        cls = next(c for c in vars(rsa).values() if isinstance(c, type) and getattr(c, "algorithm", None) == b"ssh-rsa"
+                   and hasattr(c, "sig_algorithms"))
+        cls.sig_algorithms = (b"rsa-sha2-512", b"rsa-sha2-256", b"ssh-rsa")
+    except Exception:  # внутреннее устройство asyncssh изменилось — остаёмся с его набором
+        pass
+
+
+_openssh_like_rsa_algs()
 
 
 def algorithm_options() -> dict:
