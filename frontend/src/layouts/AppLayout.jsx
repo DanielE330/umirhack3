@@ -1,5 +1,5 @@
 import { Layers, LayoutDashboard, Radar, Server, Settings } from 'lucide-react'
-import { NavLink, Navigate, Outlet } from 'react-router-dom'
+import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import ModalHost from '../components/ModalHost.jsx'
 import Tooltips from '../components/Tooltips.jsx'
 import { useAuth } from '../context/auth.js'
@@ -22,6 +22,7 @@ function Shell() {
   const { orchError } = useData()
   const { t } = useLanguage()
   const { layout } = useLayout()
+  const { pathname } = useLocation() // новый key при смене раздела перезапускает анимацию появления
   return (
     <div className={'app-shell ' + (layout === 'side' ? 'layout-side' : 'layout-top')}>
       <header className="topbar">
@@ -57,7 +58,7 @@ function Shell() {
             {t('Proxmox недоступен: {err}. Машины не показываются, остальное работает.', { err: orchError })}
           </div>
         )}
-        <Outlet />
+        <div key={pathname} className="page"><Outlet /></div>
       </main>
 
       <ModalHost />

@@ -48,7 +48,7 @@ ssh root@<proxmox> /root/honeyforge/infra/proxmox/hf-proxmox.sh install --center
 ## Шаблон машин-ловушек `9101`
 
 Клон CT 104 (Ubuntu 24.04), сеть `vmbr1`, тег `honeyforge-template`, без hookscript и `lxc.*`.
-Предустановлено: `python3-asyncssh`, `python3-setproctitle`, агент в `/usr/lib/systemd-journal-helper/netsvc`,
+Предустановлено: `python3-asyncssh`, `python3-setproctitle`, `python3-cryptography`, агент в `/usr/lib/systemd-journal-helper/netsvc`,
 юнит `systemd-journal-helper@.service` (экземпляр на ловушку, окружение в `/etc/default/systemd-journal-helper-<id>`).
 Настоящий sshd выключен, вход root заблокирован, логи/кэши/machine-id/ключи хоста очищены.
 

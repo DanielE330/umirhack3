@@ -336,3 +336,16 @@ pre { margin: 0; white-space: pre-wrap; font: 12.5px/1.55 var(--font-mono); colo
   .wiz-grid { grid-template-columns: 1fr; }
   .wiz-row { grid-template-columns: 1fr; gap: 4px; }
 }
+
+/* ---------- переходы между разделами ---------- */
+.page { animation: page-in 0.32s var(--ease) both; }
+@keyframes page-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+/* карточки и строки списков появляются каскадом */
+.page .cgrid > *, .page .settings-grid > *, .page .picker > *, .page .grid > * { animation: item-in 0.38s var(--ease) both; }
+.page .cgrid > *:nth-child(2), .page .settings-grid > *:nth-child(2), .page .grid > *:nth-child(2) { animation-delay: 0.04s; }
+.page .cgrid > *:nth-child(3), .page .settings-grid > *:nth-child(3), .page .grid > *:nth-child(3) { animation-delay: 0.08s; }
+.page .cgrid > *:nth-child(n+4), .page .settings-grid > *:nth-child(n+4), .page .grid > *:nth-child(n+4) { animation-delay: 0.12s; }
+@keyframes item-in { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .page, .page * { animation: none !important; transition: none !important; }
+}
