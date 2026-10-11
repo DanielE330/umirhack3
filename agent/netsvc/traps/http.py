@@ -28,6 +28,40 @@ NOT_FOUND = """<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
 
 STATUS = {200: "OK", 302: "Found", 404: "Not Found", 400: "Bad Request", 413: "Payload Too Large"}
 
+DEFAULT_HONEYTOKENS = {
+    "/.env": {
+        "type": "url",
+        "path": "/.env",
+        "content": (
+            "APP_NAME=AdminConsole\nAPP_ENV=production\nAPP_KEY=base64:4s8V7xN3B9w8Z1m4K6t8Q2e4L7P9R1s3=\n"
+            "APP_DEBUG=false\nDB_CONNECTION=mysql\nDB_HOST=127.0.0.1\nDB_PORT=3306\nDB_DATABASE=company_prod\n"
+            "DB_USERNAME=portal_admin\nDB_PASSWORD=SuperSecretProdPass2026!\n"
+            "AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\nAWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\n"
+        ),
+    },
+    "/.git/config": {
+        "type": "url",
+        "path": "/.git/config",
+        "content": (
+            "[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = false\n\tlogallrefupdates = true\n"
+            "[remote \"origin\"]\n\turl = https://token:ghp_faketoken9812376@github.com/corp-internal/admin-api.git\n"
+            "\tfetch = +refs/heads/*:refs/remotes/origin/*\n[branch \"main\"]\n\tremote = origin\n\tmerge = refs/heads/main\n"
+        ),
+    },
+    "/robots.txt": {
+        "type": "url",
+        "path": "/robots.txt",
+        "content": "User-agent: *\nDisallow: /admin\nDisallow: /login\nDisallow: /dashboard\nDisallow: /.env\nDisallow: /backup.sql\n",
+    },
+}
+
+ATTACK_PROBES = (
+    "../", "..\\", "/etc/passwd", "/etc/shadow", "/proc/",
+    "cmd=", "exec=", "eval=", "system=", "shell=", "passthru=",
+    "union select", "' or 1=1", "union%20select",
+    "<script", "<?php", "phpinfo()", "base64_decode",
+)
+
 
 class HttpTrap:
     def __init__(self, service: dict, config: dict, emitter: Emitter):
@@ -36,7 +70,8 @@ class HttpTrap:
         self.server_header = service.get("banner") or "Apache/2.4.41 (Ubuntu)"
         decoys = config.get("decoys", {})
         self.users = {(u["username"], u["password"]) for u in decoys.get("users", [])}
-        self.tokens = {t["path"]: t for t in decoys.get("honeytokens", []) if t.get("type") == "url"}
+        user_tokens = {t["path"]: t for t in decoys.get("honeytokens", []) if t.get("type") == "url"}
+        self.tokens = {**DEFAULT_HONEYTOKENS, **user_tokens}
 
     async def start(self, host: str = "0.0.0.0") -> None:
         self.server = await asyncio.start_server(self._handle, host, self.service["port"])
@@ -107,6 +142,11 @@ class HttpTrap:
         ua = req["headers"].get("user-agent", "")[:200]
         self.emitter.emit("http_request", **base, command=f"{req['method']} {req['target'][:500]}",
                           data={"user_agent": ua, "host": req["headers"].get("host", "")[:100]})
+
+        lower_target = req["target"].lower()
+        if any(probe in lower_target for probe in ATTACK_PROBES):
+            self.emitter.emit("payload", **base, command=f"{req['method']} {req['target'][:500]}",
+                              data={"kind": "web-attack-probe", "path": path, "user_agent": ua})
 
         if path in self.tokens:  # приманка-URL: любое обращение — компрометация сигнальных данных
             tok = self.tokens[path]
