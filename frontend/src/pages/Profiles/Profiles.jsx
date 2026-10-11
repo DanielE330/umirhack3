@@ -1,6 +1,7 @@
 import Select from '../../components/Select.jsx'
 import { ArmedButton, HelpMark, LevelTag } from '../../components/common.jsx'
 import { clickable } from '../../lib/clickable.js'
+import { useAuth } from '../../context/auth.js'
 import { useData } from '../../context/data.js'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
@@ -10,6 +11,8 @@ import { EMPTY_FORM, HELP, formFromProfile, formFromTemplate, portConflicts, pro
 export default function Profiles() {
   const { pickProfiles, profiles, traps, containers, editor, setEditor, profileByName, trapsOf, refresh, fail } = useData()
   const { showToast } = useUi()
+  const { can } = useAuth()
+  const manage = can('profiles.manage')
   const { t } = useLanguage()
   const { editing, form } = editor
   const set = (key) => (e) => setEditor((s) => ({ ...s, form: { ...s.form, [key]: e.target.value } }))
@@ -125,13 +128,14 @@ export default function Profiles() {
             <input id="p-beacon" type="number" min={5} max={300} aria-label={t('Интервал маяка')} value={form.beacon} onChange={set('beacon')} />
             <input type="number" step={0.1} min={0} max={0.9} aria-label={t('Джиттер')} value={form.jitter} onChange={set('jitter')} />
           </div>
-          <div className="actions">
+          {!manage && <p className="hint">{t('Только просмотр: у вашей роли нет права менять профили.')}</p>}
+          {manage && <div className="actions">
             <button className="btn lg" data-tip={t('Сохранить шаблон. Ловушки с этим профилем получат новые настройки при ближайшем опросе')} onClick={save}>
               {editing ? t('Сохранить изменения') : t('Сохранить профиль')}
             </button>
             {editing && <button className="ghost" onClick={reset}>{t('Отмена')}</button>}
             {editing && <ArmedButton label={t('Удалить')} armLabel={t('Точно удалить?')} className="ghost danger" onConfirm={remove} />}
-          </div>
+          </div>}
         </div>
       </div>
     </section>

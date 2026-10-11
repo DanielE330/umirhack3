@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import Select from '../../components/Select.jsx'
 import { HelpMark, TypeTag } from '../../components/common.jsx'
+import { useAuth } from '../../context/auth.js'
 import { useData } from '../../context/data.js'
 import { useLanguage } from '../../context/language.js'
 import { useModals } from '../../hooks/useModals.jsx'
@@ -11,6 +12,7 @@ import { EVENT_TYPES, fmtDateTime } from '../../lib/model.js'
 export default function Events() {
   const { t } = useLanguage()
   const { openEvent } = useModals()
+  const { can } = useAuth()
   const { traps: allTraps } = useData()
   const { filters, setFilters, items, next, busy, load, base, traps } = useEventList(undefined)
   const set = (patch) => setFilters((f) => ({ ...f, ...patch }))
@@ -45,7 +47,7 @@ export default function Events() {
           <button className="ghost" onClick={() => setFilters(EMPTY)}>{t('Сбросить')}</button>
           <button className="ghost" onClick={() => load(null)}>{t('Обновить')}</button>
           <span className="spacer" />
-          <button className="ghost" data-tip={t('Скачать события по этим фильтрам (до 10 000 строк)')} onClick={exportCsv}>{t('Экспорт CSV')}</button>
+          {can('events.export') && <button className="ghost" data-tip={t('Скачать события по этим фильтрам (до 10 000 строк)')} onClick={exportCsv}>{t('Экспорт CSV')}</button>}
         </div>
         <div className="feed tall">
           <table>

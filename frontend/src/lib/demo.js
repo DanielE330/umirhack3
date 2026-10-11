@@ -72,7 +72,7 @@ export async function demoApi(path, method, body) {
   const id = Number(seg[1])
   const [res] = seg
 
-  if (res === 'auth') return { username: 'demo', role: 'admin', csrf: 'demo', next: '2fa' }
+  if (res === 'auth') return { username: 'demo', role: 'admin', role_title: 'Демо', permissions: ['*'], csrf: 'demo', next: '2fa' }
   if (res === 'profiles') {
     if (method === 'GET') return db.profiles
     if (method === 'POST') {

@@ -202,7 +202,7 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 
 ## API
 
-Защита: **сессия** — cookie после пароля и TOTP; для изменяющих методов (не GET/HEAD/OPTIONS) нужен заголовок `X-CSRF-Token`. **оператор** — роль `admin` или `operator`, **admin** — только `admin`. **Межсервисный токен** — заголовок `X-Internal-Token` = `ORCH_TOKEN`. **Bearer ловушки** — `Authorization: Bearer <токен ловушки>`, при неверном токене ответ 404.
+Защита: **сессия** — cookie после пароля и TOTP; для изменяющих методов (не GET/HEAD/OPTIONS) нужен заголовок `X-CSRF-Token`. **флаг** — у роли пользователя должен быть нужный флаг доступа (см. «Роли и права» ниже); `admin` имеет все флаги. **Межсервисный токен** — заголовок `X-Internal-Token` = `ORCH_TOKEN`. **Bearer ловушки** — `Authorization: Bearer <токен ловушки>`, при неверном токене ответ 404.
 
 ### Центр
 
@@ -217,7 +217,8 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `POST /api/internal/telegram/bind`, `check-auth`, `unbind`, `GET …/subscribers` | бот оркестратора: привязка по коду, права, рассылка алертов | межсервисный токен |
 | `GET/POST /api/ideas` | идеи новых типов ловушек (вкладка «Настройки») | сессия + CSRF |
 | `PATCH/DELETE /api/ideas/{id}` | статус идеи `new`/`accepted`/`rejected`/`done`, удаление | admin + CSRF |
-| `GET/POST /api/users`, `PATCH /api/users/{id}`, `POST /api/users/{id}/reset-2fa` | пользователи | admin + CSRF |
+| `GET/POST /api/users`, `PATCH /api/users/{id}`, `POST /api/users/{id}/reset-2fa` | пользователи; роль можно назначить только такую, права которой есть у назначающего | флаг `users.manage` + CSRF |
+| `GET /api/roles`, `POST/PATCH/DELETE /api/roles[/{id}]`, `GET /api/roles/permissions` | роли и флаги доступа: список, свои роли, справочник флагов | `users.manage` (список), `roles.manage` (правки) |
 | `GET /api/profiles`, `GET /api/profiles/{id}` | профили ловушек | сессия |
 | `POST/PUT/DELETE /api/profiles[/{id}]` | CRUD профилей | оператор + CSRF |
 | `GET /api/traps`, `GET /api/traps/{id}` | ловушки со статусом online/offline/never | сессия |
@@ -304,6 +305,25 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 - Управляющие эндпоинты оркестратора закрыты `ORCH_TOKEN`; без токена — 401 на всё.
 - Секреты (`HF_SECRET_KEY`, `HF_DB_PASSWORD`, `ORCH_TOKEN`, `PROXMOX_*`) только в `.env`, файл в `.gitignore`. Токены ловушек хранятся в БД в виде хэша. TOTP-секреты зашифрованы Fernet.
 - Ответы центра: `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, CSP для страниц, `Cache-Control: no-store` для API.
+
+## Роли и права
+
+Доступ задаётся флагами (`backend/center/app/permissions.py`). Роль — набор флагов, пользователю назначается одна роль.
+Флаги: `events.view`, `events.export`, `iocs.export`, `traps.view/manage/command/deploy`, `profiles.view/manage`,
+`machines.view/manage/power`, `files.view/download`, `audit.view`, `users.manage`, `roles.manage`, `ideas.manage`.
+
+| Роль | Назначение |
+|---|---|
+| `admin` — Администратор | все флаги |
+| `operator` — Оператор | управляет ловушками, профилями и машинами, видит события и файлы; без пользователей, ролей, аудита |
+| `analyst` — Аналитик SOC | события, IoC, файлы атакующих; ничего не настраивает |
+| `deployer` — Инженер развёртывания | машины, профили, ловушки, агенты; без файлов и экспорта |
+| `auditor` — Аудитор | события, IoC, журнал аудита; только чтение |
+| `viewer` — Наблюдатель | только просмотр панели |
+
+Системные роли обновляются из кода при каждом старте и не редактируются. Свои роли создаются на вкладке «Роли» (флаг `roles.manage`):
+выдать можно только те флаги, которые есть у вас самих (защита от повышения привилегий), роль нельзя удалить, пока она назначена пользователям.
+Панель скрывает недоступные разделы и кнопки, но права проверяет сервер при каждом запросе.
 
 ## Схема БД и демо
 

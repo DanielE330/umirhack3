@@ -225,3 +225,18 @@ class Artifact(Base):
     first_seen: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     last_seen: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
     content: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+
+
+class Role(Base):
+    """Роль = набор флагов доступа (app/permissions.py). Системные роли создаются кодом, свои — операторами с roles.manage."""
+
+    __tablename__ = "roles"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(40), unique=True, index=True)   # слаг; users.role хранит его
+    title: Mapped[str] = mapped_column(String(80))
+    description: Mapped[str] = mapped_column(Text, default="")
+    permissions: Mapped[list] = mapped_column(JSON, default=list)
+    is_system: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_by: Mapped[str] = mapped_column(String(64), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

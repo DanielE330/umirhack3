@@ -8,7 +8,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from .models import Base
+from .models import Base, Role
 
 
 def make_engine(url: str) -> Engine:
@@ -48,6 +48,20 @@ def init_db(engine: Engine) -> None:
             for name, sql_type in columns.items():
                 if name not in have:
                     conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {sql_type}"))
+    seed_roles(engine)
+
+
+def seed_roles(engine: Engine) -> None:
+    """Системные роли приводятся к описанию в коде при каждом старте (права обновляются вместе с версией)."""
+    from .permissions import BUILTIN_ROLES
+    with Session(engine) as db:
+        for name, (title, desc, perms) in BUILTIN_ROLES.items():
+            row = db.query(Role).filter(Role.name == name).one_or_none()
+            if row is None:
+                db.add(Role(name=name, title=title, description=desc, permissions=list(perms), is_system=True))
+            else:
+                row.title, row.description, row.permissions, row.is_system = title, desc, list(perms), True
+        db.commit()
 
 
 def get_db(request: Request) -> Iterator[Session]:

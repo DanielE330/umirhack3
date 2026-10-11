@@ -12,7 +12,6 @@ from ..schemas import MachineIn, MachinePatch
 from ..services import trap_status
 
 router = APIRouter(prefix="/api/machines", tags=["machines"])
-operator = auth.require_role("admin", "operator")
 ACTIONS = {"start", "shutdown", "reboot"}
 
 
@@ -31,7 +30,7 @@ def _link(machine: dict, traps: list[Trap], settings) -> str:
 
 
 @router.get("")
-def list_machines(request: Request, _: User = Depends(auth.current_user), db: Session = Depends(get_db)):
+def list_machines(request: Request, _: User = Depends(auth.require_perm("machines.view")), db: Session = Depends(get_db)):
     settings = auth.settings_of(request)
     machines = orchestrator(request).request("GET", "/")
     traps = db.scalars(select(Trap).options(joinedload(Trap.profile)).where(Trap.machine_vmid.is_not(None))).all()
@@ -51,7 +50,7 @@ def list_machines(request: Request, _: User = Depends(auth.current_user), db: Se
 
 
 @router.post("", status_code=202)
-def create_machine(body: MachineIn, request: Request, user: User = Depends(operator)):
+def create_machine(body: MachineIn, request: Request, user: User = Depends(auth.require_perm("machines.manage"))):
     payload = {"name": body.name, "type": body.type, "cores": body.cores,
                "memory_mb": body.memory_gb * 1024, "disk_gb": body.disk_gb}
     result = orchestrator(request).request("POST", "/", payload)
@@ -63,7 +62,7 @@ def create_machine(body: MachineIn, request: Request, user: User = Depends(opera
 
 
 @router.post("/{vmid}/{action}")
-def machine_action(vmid: int, action: str, request: Request, user: User = Depends(operator),
+def machine_action(vmid: int, action: str, request: Request, user: User = Depends(auth.require_perm("machines.power")),
                    db: Session = Depends(get_db)):
     if action not in ACTIONS:
         raise HTTPException(404, "Неизвестное действие")
@@ -74,7 +73,7 @@ def machine_action(vmid: int, action: str, request: Request, user: User = Depend
 
 
 @router.put("/{vmid}")
-def update_machine(vmid: int, body: MachinePatch, request: Request, user: User = Depends(operator),
+def update_machine(vmid: int, body: MachinePatch, request: Request, user: User = Depends(auth.require_perm("machines.manage")),
                    db: Session = Depends(get_db)):
     payload = {"name": body.name, "cores": body.cores, "disk_gb": body.disk_gb,
                "memory_mb": body.memory_gb * 1024 if body.memory_gb else None}
@@ -87,7 +86,7 @@ def update_machine(vmid: int, body: MachinePatch, request: Request, user: User =
 
 
 @router.delete("/{vmid}")
-def delete_machine(vmid: int, request: Request, user: User = Depends(operator), db: Session = Depends(get_db)):
+def delete_machine(vmid: int, request: Request, user: User = Depends(auth.require_perm("machines.manage")), db: Session = Depends(get_db)):
     result = orchestrator(request).request("DELETE", f"/{vmid}", timeout=400)
     traps = db.scalars(select(Trap).where(Trap.machine_vmid == vmid)).all()
     for t in traps:  # ловушки машины уходят вместе с ней

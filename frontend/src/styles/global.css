@@ -372,3 +372,9 @@ pre { margin: 0; white-space: pre-wrap; font: 12.5px/1.55 var(--font-mono); colo
 .attack-map .land { fill: color-mix(in srgb, currentColor 22%, transparent); stroke: var(--line); stroke-width: 0.4; }
 .attack-map .dot { fill: #ef4444; fill-opacity: 0.55; stroke: #fecaca; stroke-width: 1; cursor: default; }
 .attack-map .dot:hover { fill-opacity: 0.85; }
+
+.perm-group { margin: 8px 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; }
+.perm-group legend { padding: 0 6px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.perm { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; cursor: pointer; }
+.perm.off { opacity: 0.5; cursor: not-allowed; }
+.perm code { font-size: 12px; }

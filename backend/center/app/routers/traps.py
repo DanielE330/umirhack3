@@ -14,7 +14,10 @@ from ..schemas import CommandIn, DeployIn, TrapIn, TrapPatch
 from ..services import hash_agent_token, new_agent_token, trap_status
 
 router = APIRouter(prefix="/api/traps", tags=["traps"])
-operator = auth.require_role("admin", "operator")
+view = auth.require_perm("traps.view")
+manage = auth.require_perm("traps.manage")
+command_perm = auth.require_perm("traps.command")
+deploy_perm = auth.require_perm("traps.deploy")
 
 
 def trap_view(t: Trap, settings, events: int = 0) -> dict:
@@ -53,14 +56,14 @@ def _check_profile(db: Session, profile_id: int | None) -> None:
 
 
 @router.get("")
-def list_traps(request: Request, _: User = Depends(auth.current_user), db: Session = Depends(get_db)):
+def list_traps(request: Request, _: User = Depends(view), db: Session = Depends(get_db)):
     settings = auth.settings_of(request)
     counts = dict(db.execute(select(Event.trap_id, func.count()).group_by(Event.trap_id)).all())
     return [trap_view(t, settings, counts.get(t.id, 0)) for t in db.scalars(select(Trap).order_by(Trap.id))]
 
 
 @router.post("", status_code=201)
-def create_trap(body: TrapIn, request: Request, user: User = Depends(operator), db: Session = Depends(get_db)):
+def create_trap(body: TrapIn, request: Request, user: User = Depends(manage), db: Session = Depends(get_db)):
     _check_profile(db, body.profile_id)
     token = new_agent_token()
     t = Trap(name=body.name.strip(), profile_id=body.profile_id, machine_vmid=body.machine_vmid,
@@ -80,14 +83,14 @@ def create_trap(body: TrapIn, request: Request, user: User = Depends(operator), 
 
 
 @router.get("/{trap_id}")
-def get_trap(trap_id: int, request: Request, _: User = Depends(auth.current_user), db: Session = Depends(get_db)):
+def get_trap(trap_id: int, request: Request, _: User = Depends(view), db: Session = Depends(get_db)):
     t = _get(db, trap_id)
     n = db.scalar(select(func.count()).select_from(Event).where(Event.trap_id == t.id)) or 0
     return trap_view(t, auth.settings_of(request), n)
 
 
 @router.patch("/{trap_id}")
-def patch_trap(trap_id: int, body: TrapPatch, request: Request, user: User = Depends(operator),
+def patch_trap(trap_id: int, body: TrapPatch, request: Request, user: User = Depends(manage),
                db: Session = Depends(get_db)):
     t = _get(db, trap_id)
     if body.name is not None:
@@ -120,7 +123,7 @@ def patch_trap(trap_id: int, body: TrapPatch, request: Request, user: User = Dep
 
 
 @router.delete("/{trap_id}", status_code=204)
-def delete_trap(trap_id: int, request: Request, user: User = Depends(operator), db: Session = Depends(get_db)):
+def delete_trap(trap_id: int, request: Request, user: User = Depends(manage), db: Session = Depends(get_db)):
     t = _get(db, trap_id)
     _agent(request, "remove", t, t.machine_vmid)
     auth.audit(db, user.username, "trap.delete", t.name, auth.client_ip(request))
@@ -129,7 +132,7 @@ def delete_trap(trap_id: int, request: Request, user: User = Depends(operator), 
 
 
 @router.post("/{trap_id}/command")
-def send_command(trap_id: int, body: CommandIn, request: Request, user: User = Depends(operator),
+def send_command(trap_id: int, body: CommandIn, request: Request, user: User = Depends(command_perm),
                  db: Session = Depends(get_db)):
     """Команда центр → ловушка. Доставляется агентом при ближайшем опросе."""
     t = _get(db, trap_id)
@@ -157,7 +160,7 @@ def _render_artifact(kind: str, trap: Trap, token: str, public_url: str) -> str:
 
 
 @router.post("/{trap_id}/agent")
-def reinstall_agent(trap_id: int, request: Request, user: User = Depends(operator), db: Session = Depends(get_db)):
+def reinstall_agent(trap_id: int, request: Request, user: User = Depends(deploy_perm), db: Session = Depends(get_db)):
     """Переустановить агента в машине ловушки: новый токен, доставка через оркестратор. Токен никому не показывается."""
     t = _get(db, trap_id)
     if not t.machine_vmid:
@@ -174,7 +177,7 @@ def reinstall_agent(trap_id: int, request: Request, user: User = Depends(operato
 
 
 @router.post("/{trap_id}/deploy")
-def deploy_artifact(trap_id: int, body: DeployIn, request: Request, user: User = Depends(operator),
+def deploy_artifact(trap_id: int, body: DeployIn, request: Request, user: User = Depends(deploy_perm),
                     db: Session = Depends(get_db)):
     """Оркестратор: выпускает НОВЫЙ токен (старый перестаёт работать) и собирает команду/скрипт развёртывания."""
     t = _get(db, trap_id)

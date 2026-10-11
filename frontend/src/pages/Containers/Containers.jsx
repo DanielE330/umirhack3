@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Select from '../../components/Select.jsx'
+import { useAuth } from '../../context/auth.js'
 import { useData } from '../../context/data.js'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
@@ -9,7 +10,8 @@ import { ORDER, STATES } from '../../lib/model.js'
 import ContainerCard from './ContainerCard.jsx'
 
 export default function Containers() {
-  const { containers, traps, profiles, cFilter, setCFilter, trapsOf } = useData()
+  const { containers, traps, pickProfiles, cFilter, setCFilter, trapsOf } = useData()
+  const { can } = useAuth()
   const { showToast } = useUi()
   const { openNewContainer } = useModals()
   const { t } = useLanguage()
@@ -28,7 +30,7 @@ export default function Containers() {
   const working = containers.filter((c) => c.state === 'online').length
 
   const add = () => {
-    if (!profiles.length) {
+    if (!pickProfiles.length) {
       showToast(t('Сначала создайте профиль ловушки'), true)
       navigate('/profiles')
       return
@@ -39,9 +41,11 @@ export default function Containers() {
   return (
     <section>
       <div className="toolbar">
-        <button className="btn" data-tip={t('Создать в Proxmox новую машину в изолированной сети и запустить в ней ловушки')} onClick={add}>
-          {t('+ Новый контейнер')}
-        </button>
+        {can('machines.manage') && (
+          <button className="btn" data-tip={t('Создать в Proxmox новую машину в изолированной сети и запустить в ней ловушки')} onClick={add}>
+            {t('+ Новый контейнер')}
+          </button>
+        )}
         <input className="w-search" placeholder={t('Поиск по контейнерам и ловушкам…')} aria-label={t('Поиск')} value={cFilter.q}
           onChange={(e) => setCFilter((f) => ({ ...f, q: e.target.value }))} />
         <Select className="w-status" aria-label={t('Статус')} data-tip={t('Показать только машины в выбранном состоянии')} value={cFilter.status}

@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from .. import auth, security
 from ..db import get_db
-from ..models import User
+from ..models import Role, User
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -29,12 +29,12 @@ def check_password_policy(password: str, username: str, min_length: int) -> None
 class UserIn(BaseModel):
     username: str = Field(min_length=3, max_length=64)
     password: str = Field(min_length=1, max_length=256)
-    role: str = Field(default="operator", pattern="^(admin|operator)$")
+    role: str = Field(default="viewer", pattern="^[a-z0-9][a-z0-9_-]{1,39}$")
 
 
 class UserPatch(BaseModel):
     is_active: bool | None = None
-    role: str | None = Field(default=None, pattern="^(admin|operator)$")
+    role: str | None = Field(default=None, pattern="^[a-z0-9][a-z0-9_-]{1,39}$")
 
 
 def _view(u: User) -> dict:
@@ -43,12 +43,12 @@ def _view(u: User) -> dict:
 
 
 @router.get("")
-def list_users(_: User = Depends(auth.require_role("admin")), db: Session = Depends(get_db)):
+def list_users(_: User = Depends(auth.require_perm("users.manage")), db: Session = Depends(get_db)):
     return [_view(u) for u in db.scalars(select(User).order_by(User.id))]
 
 
 @router.post("", status_code=201)
-def create_user(body: UserIn, request: Request, admin: User = Depends(auth.require_role("admin")),
+def create_user(body: UserIn, request: Request, admin: User = Depends(auth.require_perm("users.manage")),
                 db: Session = Depends(get_db)):
     username = body.username.strip().lower()
     if not _USERNAME.match(username):
@@ -56,11 +56,21 @@ def create_user(body: UserIn, request: Request, admin: User = Depends(auth.requi
     check_password_policy(body.password, username, auth.settings_of(request).min_password_length)
     if db.scalar(select(User).where(User.username == username)):
         raise HTTPException(409, "Логин занят")
+    _check_grantable(db, admin, body.role)
     user = User(username=username, password_hash=security.hash_password(body.password), role=body.role)
     db.add(user)
     auth.audit(db, admin.username, "user.create", f"{username} ({body.role})", auth.client_ip(request))
     db.commit()
     return _view(user)
+
+
+def _check_grantable(db: Session, actor: User, role_name: str) -> None:
+    """Роль должна существовать, а выдающий не может дать больше прав, чем есть у него самого (нет повышения привилегий)."""
+    role = db.scalar(select(Role).where(Role.name == role_name))
+    if role is None:
+        raise HTTPException(422, "Такой роли нет")
+    if not set(role.permissions) <= auth.permissions_of(db, actor):
+        raise HTTPException(403, "Нельзя назначить роль с правами, которых нет у вас")
 
 
 def _target(db: Session, user_id: int) -> User:
@@ -72,11 +82,12 @@ def _target(db: Session, user_id: int) -> User:
 
 @router.patch("/{user_id}")
 def patch_user(user_id: int, body: UserPatch, request: Request,
-               admin: User = Depends(auth.require_role("admin")), db: Session = Depends(get_db)):
+               admin: User = Depends(auth.require_perm("users.manage")), db: Session = Depends(get_db)):
     user = _target(db, user_id)
     if user.id == admin.id:
         raise HTTPException(409, "Нельзя менять собственную роль и блокировать себя")
     if body.role is not None:
+        _check_grantable(db, admin, body.role)
         user.role = body.role
     if body.is_active is not None:
         user.is_active = body.is_active
@@ -89,7 +100,7 @@ def patch_user(user_id: int, body: UserPatch, request: Request,
 
 
 @router.post("/{user_id}/reset-2fa")
-def reset_2fa(user_id: int, request: Request, admin: User = Depends(auth.require_role("admin")),
+def reset_2fa(user_id: int, request: Request, admin: User = Depends(auth.require_perm("users.manage")),
               db: Session = Depends(get_db)):
     """Потеря телефона и резервных кодов: сброс 2FA, при следующем входе пользователь настроит её заново."""
     user = _target(db, user_id)
