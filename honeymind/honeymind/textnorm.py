@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import base64
 import binascii
+import fnmatch
 import re
+import zlib
 from dataclasses import dataclass, field
 
 MAX_LEN = 4096          # всё, что длиннее, обрезается (команда ботов редко >1 КБ)
@@ -27,6 +29,17 @@ _B64_PIPE = re.compile(
     r"(?:echo|printf)\s+(?:-[a-z]+\s+)*['\"]?([A-Za-z0-9+/=]{16,})['\"]?\s*\|\s*"
     r"(?:base64|openssl\s+base64)\s+(?:-d|--decode|-D)")
 _B64_SUBST = re.compile(r"base64\s+(?:-d|--decode)\s*<<<\s*['\"]?([A-Za-z0-9+/=]{16,})")
+
+_ANSI_C = re.compile(r"\$'([^'\\]{0,200})'")             # $'wget' (после раскрытия \x..) -> wget
+_OCTRUN = re.compile(r"(?:\\[0-3][0-7]{2}){2,}")             # \167\147\145\164 -> wget
+_ASSIGN = re.compile(r"(?:^|[;&\s])([A-Za-z_][A-Za-z0-9_]{0,15})=([A-Za-z0-9./:_-]{1,40})(?=[;&\s]|$)")
+_REV = re.compile(r"echo\s+(?:-[a-z]+\s+)?['\"]?([^'\"|;&]{3,200}?)['\"]?\s*\|\s*rev\b")
+_GLOB_TOKEN = re.compile(r"(?<![\w/])/[\w?*\[\]]{1,12}(?:/[\w?*\[\]]{1,16}){0,2}")
+_GLOB_TARGETS = ("/bin/sh", "/bin/bash", "/bin/dash", "/bin/busybox", "/bin/nc", "/bin/cat", "/bin/echo", "/bin/rm",
+                 "/usr/bin/wget", "/usr/bin/curl", "/usr/bin/nc", "/usr/bin/perl", "/usr/bin/python", "/usr/bin/python3",
+                 "/usr/bin/base64", "/usr/bin/chmod", "/bin/chmod", "/etc/passwd", "/etc/shadow", "/usr/bin/tftp")
+MAX_GZIP_OUT = 4096
+_VAR_TRICK = re.compile(r"\$\{?[A-Za-z_]\w*\}?\$\{?[A-Za-z_]|(?:^|[;&|]\s*)\$\{?[A-Za-z_]\w*\}?\s")
 
 _URL = re.compile(r"\b(?:https?|ftp|tftp)://[^\s'\"<>|;&`]+", re.I)
 _IP = re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")
@@ -62,6 +75,40 @@ def _decode_hex_escapes(s: str) -> str:
     return _HEXRUN.sub(repl, s)
 
 
+def _decode_octal_escapes(s: str) -> str:
+    """\\167\\147\\145\\164 -> wget (printf/$'...' с восьмеричными кодами); только если все байты печатные."""
+    def repl(m: re.Match) -> str:
+        chars = [chr(int(o, 8)) for o in re.findall(r"[0-7]{3}", m.group(0))]
+        return "".join(chars) if all(32 <= ord(c) < 127 for c in chars) else m.group(0)
+    return _OCTRUN.sub(repl, s)
+
+
+def _expand_vars(s: str) -> str:
+    """a=wg;b=et;$a$b http://x -> wget http://x. Только простые литералы, не больше 20 переменных, без рекурсии."""
+    env: dict[str, str] = {}
+    for m in _ASSIGN.finditer(s):
+        if len(env) >= 20:
+            break
+        env[m.group(1)] = m.group(2)
+    if not env:
+        return s
+    for name, val in env.items():
+        s = s.replace("${" + name + "}", val)
+        s = re.sub(r"\$" + re.escape(name) + r"(?![A-Za-z0-9_])", lambda _m, v=val: v, s)
+    return s
+
+
+def _resolve_globs(s: str) -> str:
+    """/???/b??h -> /bin/bash: путь-маска, совпадающая ровно с одним известным бинарём/файлом."""
+    def repl(m: re.Match) -> str:
+        tok = m.group(0)
+        if "?" not in tok and "*" not in tok and "[" not in tok:
+            return tok
+        hits = [t for t in _GLOB_TARGETS if fnmatch.fnmatchcase(t, tok)]
+        return hits[0] if len(hits) == 1 else tok
+    return _GLOB_TOKEN.sub(repl, s)
+
+
 def _try_b64(blob: str) -> str | None:
     blob = blob.strip("=")
     blob += "=" * (-len(blob) % 4)
@@ -71,6 +118,12 @@ def _try_b64(blob: str) -> str | None:
         return None
     if not raw or len(raw) > MAX_B64_DECODED:
         return None
+    if raw[:2] == b"\x1f\x8b":          # echo <b64> | base64 -d | gunzip — распаковываем с потолком (защита от zip-бомбы)
+        try:
+            d = zlib.decompressobj(16 + zlib.MAX_WBITS)
+            raw = d.decompress(raw, MAX_GZIP_OUT)
+        except zlib.error:
+            return None
     txt = raw.decode("utf-8", "ignore")
     return txt if _printable(txt) else None
 
@@ -99,12 +152,21 @@ def deobfuscate(cmd: str) -> tuple[str, tuple[str, ...], bool, bool]:
     s = cmd[:MAX_LEN].replace("\x00", " ")
     before = s
     s = _decode_hex_escapes(s)
+    s = _decode_octal_escapes(s)
+    s = _ANSI_C.sub(r"\1", s)
     s = _IFS.sub(" ", s)
     s = _QUOTE_SPLIT.sub("", s)
     s = _QUOTE_INNER.sub(r"\2", s)
     s = _BACKSLASH_IN_WORD.sub("", s)
-    decoded = tuple(_extract_b64(s))
-    obf = s != before or bool(decoded)
+    pre_vars = s
+    s = _expand_vars(s)
+    # подстановка переменных — обфускация, только если переменные склеиваются ($a$b) или стоят на месте команды
+    vars_obf = s != pre_vars and bool(_VAR_TRICK.search(pre_vars))
+    pre_glob = s
+    s = _resolve_globs(s)
+    rev = [m.group(1)[::-1] for m in _REV.finditer(s)][:3]
+    decoded = tuple(_extract_b64(s)) + tuple(rev)
+    obf = pre_vars != before or vars_obf or s != pre_glob or bool(decoded)
     if decoded:
         s = s + " ; " + " ; ".join(decoded)
     return _WS.sub(" ", s).strip(), decoded, truncated, obf

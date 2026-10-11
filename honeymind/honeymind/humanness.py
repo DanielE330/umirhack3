@@ -296,3 +296,38 @@ class ScriptTracker:
         if len(ips) < 1000:
             ips.add(me)
         return before, before_ips
+
+
+class SqliteScriptTracker(ScriptTracker):
+    """То же, что ScriptTracker, но память о сценариях переживает перезапуск: SQLite-файл (HONEYMIND_STATE_DB).
+    Подходит и для нескольких воркеров одного контейнера (SQLite сам сериализует запись)."""
+
+    def __init__(self, path: str, min_cmds: int = 4, max_members: int = 1000):
+        import sqlite3
+        import threading
+        super().__init__(min_cmds=min_cmds)
+        self.max_members = max_members
+        self._lock = threading.Lock()
+        self._db = sqlite3.connect(path, check_same_thread=False, timeout=5)
+        self._db.execute("PRAGMA journal_mode=WAL")
+        self._db.execute("CREATE TABLE IF NOT EXISTS seen (k TEXT NOT NULL, member TEXT NOT NULL, ip TEXT NOT NULL, "
+                         "PRIMARY KEY (k, member))")
+        self._db.commit()
+
+    def observe(self, events: Sequence[CanonEvent]) -> tuple[int, int]:
+        k = self.key(events)
+        if k is None:
+            return 0, 0
+        ip = next((e.src_ip for e in events if e.src_ip), None) or "?"
+        sid = next((e.session_id for e in events if e.session_id), None) or ip
+        me = f"{ip}|{sid}"
+        with self._lock:
+            cur = self._db.execute("SELECT COUNT(*), COUNT(DISTINCT ip) FROM seen WHERE k = ? AND member != ? AND ip != ?",
+                                   (k, me, ip))
+            before_ips_row = cur.fetchone()
+            before = self._db.execute("SELECT COUNT(*) FROM seen WHERE k = ? AND member != ?", (k, me)).fetchone()[0]
+            total = self._db.execute("SELECT COUNT(*) FROM seen WHERE k = ?", (k,)).fetchone()[0]
+            if total < self.max_members:
+                self._db.execute("INSERT OR IGNORE INTO seen (k, member, ip) VALUES (?, ?, ?)", (k, me, ip))
+                self._db.commit()
+        return int(before), int(before_ips_row[1])

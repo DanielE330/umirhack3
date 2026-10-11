@@ -15,9 +15,11 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
+from pydantic import BaseModel, Field
+
 from .. import auth
 from ..db import get_db
-from ..models import Event, SessionAssessment, Trap, User, utcnow
+from ..models import Event, EventLabel, SessionAssessment, Trap, User, utcnow
 from ..services import event_view, trap_status
 
 router = APIRouter(prefix="/api", tags=["events"])
@@ -69,7 +71,9 @@ def get_session_assessment(session_id: str, _: User = Depends(auth.current_user)
         raise HTTPException(404, "Сессия ещё не оценена")
     return {"session_id": a.session_id, "is_human": a.is_human, "human_probability": a.human_probability,
             "human_method": a.human_method, "human_reason": a.human_reason,
-            "script_seen_before": a.script_seen_before, "updated_at": a.updated_at.isoformat() + "Z"}
+            "script_seen_before": a.script_seen_before, "threat_score": a.threat_score,
+            "download_then_execute": a.download_then_execute, "ssh_client": a.ssh_client,
+            "updated_at": a.updated_at.isoformat() + "Z"}
 
 
 def _csv_cell(value) -> str:
@@ -157,6 +161,24 @@ def stats(request: Request, _: User = Depends(auth.current_user), db: Session = 
             "top_passwords": top(Event.password, Event.type == "auth_attempt"),
             "timeline": [{"t": k, "n": v} for k, v in buckets.items()],
             "traps": {"total": len(traps), "online": online}}
+
+
+class EventLabelIn(BaseModel):
+    label: str = Field(min_length=1, max_length=64)
+
+
+@router.post("/events/{event_id}/label")
+def label_event(event_id: int, body: EventLabelIn,
+                user: User = Depends(auth.require_role("admin", "operator")),
+                db: Session = Depends(get_db)):
+    """Обратная связь оператора: фиксация корректной метки класса действия (FR-Feedback)."""
+    ev = db.get(Event, event_id)
+    if not ev:
+        raise HTTPException(404, "Событие не найдено")
+    lbl = EventLabel(event_id=ev.id, label=body.label.strip(), operator=user.username)
+    db.add(lbl)
+    db.commit()
+    return {"status": "ok", "id": lbl.id, "event_id": ev.id, "label": lbl.label, "operator": lbl.operator}
 
 
 @router.websocket("/ws/events")

@@ -1,0 +1,210 @@
+{
+ "real_round1": {
+  "n": 150,
+  "n_novel_skeleton": 57,
+  "synth_only": {
+   "model": {
+    "acc": 0.927,
+    "danger_P": 1.0,
+    "danger_R": 1.0,
+    "review": 0.033,
+    "acc_novel": 0.807
+   },
+   "hybrid": {
+    "acc": 0.987,
+    "danger_P": 0.99,
+    "danger_R": 1.0,
+    "review": 0.0,
+    "acc_novel": 0.965
+   }
+  },
+  "synth+real x1": {
+   "model": {
+    "acc": 0.967,
+    "danger_P": 0.99,
+    "danger_R": 1.0,
+    "review": 0.007,
+    "acc_novel": 0.912
+   },
+   "hybrid": {
+    "acc": 0.987,
+    "danger_P": 0.99,
+    "danger_R": 1.0,
+    "review": 0.0,
+    "acc_novel": 0.965
+   }
+  },
+  "synth+real x3": {
+   "model": {
+    "acc": 0.967,
+    "danger_P": 0.99,
+    "danger_R": 1.0,
+    "review": 0.007,
+    "acc_novel": 0.912
+   },
+   "hybrid": {
+    "acc": 0.987,
+    "danger_P": 0.99,
+    "danger_R": 1.0,
+    "review": 0.0,
+    "acc_novel": 0.965
+   }
+  }
+ },
+ "real_round2": {
+  "n": 140,
+  "n_novel_skeleton": 126,
+  "synth_only": {
+   "model": {
+    "acc": 0.921,
+    "danger_P": 0.92,
+    "danger_R": 0.958,
+    "review": 0.107,
+    "acc_novel": 0.929
+   },
+   "hybrid": {
+    "acc": 0.957,
+    "danger_P": 1.0,
+    "danger_R": 0.979,
+    "review": 0.029,
+    "acc_novel": 0.968
+   }
+  },
+  "synth+real x1": {
+   "model": {
+    "acc": 0.957,
+    "danger_P": 1.0,
+    "danger_R": 0.938,
+    "review": 0.043,
+    "acc_novel": 0.952
+   },
+   "hybrid": {
+    "acc": 0.964,
+    "danger_P": 1.0,
+    "danger_R": 0.979,
+    "review": 0.014,
+    "acc_novel": 0.968
+   }
+  },
+  "synth+real x3": {
+   "model": {
+    "acc": 0.964,
+    "danger_P": 1.0,
+    "danger_R": 0.938,
+    "review": 0.043,
+    "acc_novel": 0.96
+   },
+   "hybrid": {
+    "acc": 0.964,
+    "danger_P": 1.0,
+    "danger_R": 0.979,
+    "review": 0.014,
+    "acc_novel": 0.968
+   }
+  }
+ },
+ "real_round3": {
+  "n": 77,
+  "n_novel_skeleton": 52,
+  "synth_only": {
+   "model": {
+    "acc": 0.974,
+    "danger_P": 0.975,
+    "danger_R": 1.0,
+    "review": 0.039,
+    "acc_novel": 0.962
+   },
+   "hybrid": {
+    "acc": 0.987,
+    "danger_P": 1.0,
+    "danger_R": 1.0,
+    "review": 0.039,
+    "acc_novel": 0.981
+   }
+  },
+  "synth+real x1": {
+   "model": {
+    "acc": 0.974,
+    "danger_P": 0.975,
+    "danger_R": 1.0,
+    "review": 0.026,
+    "acc_novel": 0.962
+   },
+   "hybrid": {
+    "acc": 0.987,
+    "danger_P": 1.0,
+    "danger_R": 1.0,
+    "review": 0.026,
+    "acc_novel": 0.981
+   }
+  },
+  "synth+real x3": {
+   "model": {
+    "acc": 0.974,
+    "danger_P": 0.975,
+    "danger_R": 1.0,
+    "review": 0.039,
+    "acc_novel": 0.962
+   },
+   "hybrid": {
+    "acc": 0.987,
+    "danger_P": 1.0,
+    "danger_R": 1.0,
+    "review": 0.026,
+    "acc_novel": 0.981
+   }
+  }
+ },
+ "real_round4": {
+  "n": 53,
+  "n_novel_skeleton": 41,
+  "synth_only": {
+   "model": {
+    "acc": 0.736,
+    "danger_P": 0.667,
+    "danger_R": 0.8,
+    "review": 0.151,
+    "acc_novel": 0.707
+   },
+   "hybrid": {
+    "acc": 0.849,
+    "danger_P": 0.944,
+    "danger_R": 0.85,
+    "review": 0.113,
+    "acc_novel": 0.829
+   }
+  },
+  "synth+real x1": {
+   "model": {
+    "acc": 0.83,
+    "danger_P": 0.8,
+    "danger_R": 0.8,
+    "review": 0.132,
+    "acc_novel": 0.78
+   },
+   "hybrid": {
+    "acc": 0.849,
+    "danger_P": 1.0,
+    "danger_R": 0.85,
+    "review": 0.113,
+    "acc_novel": 0.829
+   }
+  },
+  "synth+real x3": {
+   "model": {
+    "acc": 0.83,
+    "danger_P": 0.762,
+    "danger_R": 0.8,
+    "review": 0.132,
+    "acc_novel": 0.78
+   },
+   "hybrid": {
+    "acc": 0.849,
+    "danger_P": 1.0,
+    "danger_R": 0.85,
+    "review": 0.113,
+    "acc_novel": 0.829
+   }
+  }
+ }
+}

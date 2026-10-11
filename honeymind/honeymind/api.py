@@ -9,6 +9,7 @@
     HONEYMIND_TOKEN   если задан — требуется заголовок Authorization: Bearer <token> (кроме /health)
     HONEYMIND_DOCS    "0" отключает /docs и /openapi.json (по умолчанию включено)
     HONEYMIND_MAX_BODY  максимальный размер тела, байт (по умолчанию 65536)
+    HONEYMIND_STATE_DB  путь к SQLite-файлу памяти о сценариях (ScriptTracker); не задан → память процесса
 """
 from __future__ import annotations
 
@@ -23,7 +24,7 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from .analyzer import Analyzer
-from .humanness import HUMAN_MODEL_VERSION, HumanModel
+from .humanness import HUMAN_MODEL_VERSION, HumanModel, SqliteScriptTracker
 from .model import MODEL_VERSION, ThreatModel
 
 log = logging.getLogger("honeymind")
@@ -119,7 +120,15 @@ def load_analyzer() -> Analyzer:
             log.error("human model NOT loaded (%s): %s — is_human по эвристике", hpath, exc)
     else:
         log.warning("human model %s not found — is_human по эвристике", hpath)
-    return Analyzer(model, human)
+    tracker = None
+    state = os.getenv("HONEYMIND_STATE_DB")
+    if state:
+        try:
+            tracker = SqliteScriptTracker(state)
+            log.info("script tracker: SQLite %s (память о сценариях переживает перезапуск)", state)
+        except Exception as exc:  # noqa: BLE001 — не смогли открыть файл → работаем с памятью процесса
+            log.error("script tracker: SQLite %s недоступен (%s) — храню в памяти процесса", state, exc)
+    return Analyzer(model, human, tracker)
 
 
 def create_app(analyzer: Analyzer | None = None) -> FastAPI:

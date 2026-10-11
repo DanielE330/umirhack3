@@ -35,6 +35,11 @@ LATE_COLUMNS = {
         "telegram_link_code": "VARCHAR(32)",
         "telegram_link_expires": "TIMESTAMP",
     },
+    "session_assessments": {
+        "threat_score": "INTEGER",
+        "download_then_execute": "BOOLEAN",
+        "ssh_client": "VARCHAR(128)",
+    },
 }
 
 

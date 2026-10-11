@@ -21,6 +21,41 @@ SHORT_CMD_CAP = 40
 MAX_MODEL_ESCALATION = 25     # насколько модель может поднять оценку над сработавшим правилом
 UNKNOWN_SCORE = 30            # балл, если нечем оценить (нет модели и не сработали правила)
 OBFUSCATION_BONUS = 5
+SEGMENT_MARGIN = 5            # сегмент цепочки побеждает целую команду, только если опаснее хотя бы на столько
+MAX_SEGMENTS = 30
+_HIDDEN_PAYLOAD = re.compile(r"[A-Za-z0-9+/=]{60,}")
+_EXEC_SINK = re.compile(r"\|\s*(?:sudo\s+)?(?:sh|bash|python\d?|perl)\b|\beval\b|\b(?:sh|bash)\s+-c\b")
+
+
+def split_segments(text: str) -> list[str]:
+    """Делит цепочку на простые команды по ; && || | & и переводам строк — вне кавычек. Линейный проход, без регулярок."""
+    out: list[str] = []
+    buf: list[str] = []
+    quote = ""
+    i, n = 0, len(text)
+    while i < n and len(out) < MAX_SEGMENTS:
+        c = text[i]
+        if quote:
+            buf.append(c)
+            if c == quote:
+                quote = ""
+        elif c in "'\"":
+            quote = c
+            buf.append(c)
+        elif c in ";\n" or (c in "|&" and not (i > 0 and text[i - 1] in "<>") and not (c == "&" and i + 1 < n and text[i + 1] == ">")):
+            seg = "".join(buf).strip()
+            if seg:
+                out.append(seg)
+            buf = []
+            if i + 1 < n and text[i + 1] == c and c in "|&":
+                i += 1
+        else:
+            buf.append(c)
+        i += 1
+    seg = "".join(buf).strip()
+    if seg and len(out) < MAX_SEGMENTS:
+        out.append(seg)
+    return out
 
 # Небольшой список «дефолтных» пар из публичных ботнет-словарей (Mirai и т. п.): их перебор — фоновый шум.
 _COMMON_USERS = {"root", "admin", "user", "test", "guest", "ubuntu", "pi", "oracle", "postgres", "support", "ftp", "git",
@@ -34,6 +69,14 @@ _COMMON_PASS = {"", "root", "admin", "password", "123456", "12345", "1234", "123
 _BOT_FAMILY_RULES = {"recon_shell_menu", "recon_busybox_arch", "recon_touch_hidden", "recon_echo_marker", "recon_writable_probe",
                      "recon_hidden_file_ops", "dropper_echo_hex", "dropper_script_staging", "dl_busybox_tftp", "dl_and_exec",
                      "recon_cleanup_relative", "evasion_kill_loop"}
+
+
+# Библиотеки SSH, которыми пользуются боты. В 36 545 реальных сессиях Cowrie с командами клиент был: Go — 99,2 %,
+# libssh/libssh2/JSch/phpseclib/paramiko — остальное; OpenSSH/PuTTY — ни одной (EVALUATION.md §8).
+_BOT_SSH_CLIENT = re.compile(r"ssh-2\.0-(?:go\b|libssh|jsch|phpseclib|paramiko|asyncssh|twisted|russh|makiko|perlssh|"
+                             r"sshj|apache-sshd|mina|erlang|ruby|nodejs|ssh2js|golang|zgrab|nmap)", re.I)
+_DL_TARGET = re.compile(r"(?:https?|ftp|tftp)://[^\s;|&'\"]+/([\w.\-]{1,64})|-[oO]\s*-?\s*([\w./\-]{1,96})|"
+                        r"\b(?:tftp|ftpget)\b[^;|&]{0,120}?(?:-r|-l|get)\s+([\w.\-]{1,64})", re.I)
 
 
 # Слабые пароли «по форме», а не по списку: только цифры до 10 знаков (123, 0000, 12345678…), «admin1», «root123», клавиатурные прогулки
@@ -96,9 +139,37 @@ class Analyzer:
         if not n.text:
             return Verdict(0, "benign", kind=kind, confidence=1.0, source="rules", summary="Пустая команда, оценка 0/100.",
                            model_version=self._ver())
+        whole = self._score(n, self.model.predict(n.original) if self.model else None, kind)
+        segs = split_segments(n.text)
+        if len(segs) >= 2:
+            # Цепочка a; b && c: оцениваем и каждую простую команду — опасный шаг не должен «растворяться» в безобидных.
+            seg_norm = [normalize(sg) for sg in segs]
+            preds = self.model.predict_many([x.original for x in seg_norm]) if self.model else [None] * len(seg_norm)
+            seg_v = [self._score(x, pr, kind, context=n.lower) for x, pr in zip(seg_norm, preds) if x.text]
+            # Поднимать оценку цепочки может только сегмент со сработавшим правилом. Модель и так видит всю цепочку,
+            # а на одиночном сегменте она ошибается чаще (уборка «rm -rf /tmp/x.sh» → «destructive»).
+            seg_v = [v for v in seg_v if v.matched_rules]
+            best = max(seg_v, key=lambda v: v.threat_score, default=None)
+            if best is not None and best.threat_score >= whole.threat_score + SEGMENT_MARGIN and best.threat_score >= 40:
+                whole.threat_score, whole.category = best.threat_score, best.category
+                whole.source = f"{best.source}+segment"
+                whole.confidence = best.confidence
+                whole.needs_review = whole.needs_review or best.needs_review
+                whole.matched_rules = list(dict.fromkeys(best.matched_rules + whole.matched_rules))[:6]
+                whole.mitre = sorted(set(whole.mitre) | set(best.mitre))
+                whole.summary = best.summary.rstrip(".") + ". Опасный шаг найден внутри цепочки команд."
+        if whole.threat_score < rules.DANGER_THRESHOLD and _HIDDEN_PAYLOAD.search(n.text) and _EXEC_SINK.search(n.text) \
+                and not n.decoded:
+            # длинный нераскодированный блок + исполнение: обфускацию не разобрали — не молчим, а отдаём человеку
+            whole.needs_review = True
+        return whole
+
+    def _score(self, n, pred, kind: str, context: str | None = None) -> Verdict:
         hits = rules.match(n.lower)
+        if context is not None:
+            # исключения правил (none_of) проверяем по ВСЕЙ цепочке: «chmod 777 /mnt/d» внутри пробы записи — это проба
+            hits = [h for h in hits if not h.rule.excluded_by(context)]
         top = hits[0].rule if hits else None
-        pred = self.model.predict(n.original) if self.model else None
 
         needs_review = n.truncated
         if top and top.final:
@@ -217,6 +288,10 @@ class Analyzer:
         if human is not False and cmd_v and scripted / len(cmd_v) >= 0.5:
             # медленные боты (ждут ответа между шагами) выглядят «человечно» по темпу — выдаёт содержимое
             human, reason, method = False, "набор команд — типовой скрипт ботнета (пробы/загрузчики), темп не важен", "rules"
+        client = next((e.client for e in canon if e.client), None)
+        if human is not False and client and _BOT_SSH_CLIENT.search(client):
+            human, method = False, "ssh_client"
+            reason = "SSH-клиент — библиотека для автоматизации (так подключаются боты; люди — через OpenSSH/PuTTY)"
         seen, seen_ips = self.tracker.observe(canon)
         if human is not False and seen >= SCRIPT_SEEN_SESSIONS and seen_ips >= SCRIPT_SEEN_IPS:
             human, method = False, "script_tracker"
@@ -230,16 +305,40 @@ class Analyzer:
         score = top.threat_score if top else 0
         if len(cats) >= 3:
             score = _clamp(score + 5)  # широкая цепочка действий (разведка → загрузка → закрепление)
+        dl_exec = _download_then_execute(canon)
+        if dl_exec:
+            # скачал в одной команде, запустил в другой: по отдельности шаги могли выглядеть мягче, вместе — нет
+            score = max(score, 95)
         chain = " → ".join(title_ru(c) for c in cats) if cats else "значимых действий нет"
         return {
             "threat_score": score, "category": top.category if top else "benign", "is_human": human,
             "human_probability": None if p_human is None else round(p_human, 3), "human_method": method,
             "human_reason": reason, "script_seen_before": seen, "kill_chain": cats, "n_events": len(canon),
+            "download_then_execute": dl_exec, "ssh_client": client,
             "needs_review": any(v.needs_review for v in verdicts),
             "summary": f"Сессия: {chain}; максимальная оценка события {top.threat_score if top else 0}/100; "
                        f"{'похоже на скрипт/бота' if human is False else 'похоже на человека' if human else 'тип оператора не определён'}.",
             "events": [v.to_dict() for v in verdicts],
         }
+
+
+def _download_then_execute(events: list[CanonEvent]) -> bool:
+    """В сессии файл сначала скачан (URL/-O/tftp), а позже запущен (./f, sh f, /tmp/f) — разными командами."""
+    fetched: set[str] = set()
+    for e in events:
+        if e.kind != KIND_COMMAND or not e.command:
+            continue
+        low = e.command.lower()
+        for name in list(fetched):
+            if re.search(r"(?:\./|\b(?:sh|bash|dash|ash|perl|python\d?)\s+(?:\S*/)?|(?:^|[;&|]\s*)(?:nohup\s+|sudo\s+)?\S*/)"
+                         + re.escape(name) + r"(?:\s|;|&|$)", low) \
+                    and not _DL_TARGET.search(low):
+                return True
+        for m in _DL_TARGET.finditer(low):
+            name = (m.group(1) or m.group(2) or m.group(3) or "").rsplit("/", 1)[-1]
+            if 1 <= len(name) <= 64 and name not in ("-", ".", "..", "index.html"):
+                fetched.add(name)
+    return False
 
 
 def estimate_is_human(events: list[CanonEvent]) -> tuple[bool | None, str]:

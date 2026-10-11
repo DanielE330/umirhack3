@@ -46,3 +46,29 @@ class HoneyMind:
             return resp.json()
         except httpx.HTTPError:
             return None
+
+    def predict_batch(self, events: list[dict[str, Any]]) -> list[dict[str, Any]] | None:
+        """POST /predict/batch — до 200 событий за один запрос."""
+        if not self.url or not events:
+            return None
+        try:
+            with httpx.Client(transport=self.transport, timeout=max(self.timeout * 3, 5.0)) as client:
+                resp = client.post(f"{self.url}/predict/batch", json={"events": events}, headers=self._headers())
+            resp.raise_for_status()
+            data = resp.json()
+            return data.get("results")
+        except httpx.HTTPError:
+            return None
+
+    def get_model_version(self) -> str:
+        """GET /health -> version (по умолчанию honeymind-3)."""
+        if not self.url:
+            return "honeymind-3"
+        try:
+            with httpx.Client(transport=self.transport, timeout=self.timeout) as client:
+                resp = client.get(f"{self.url}/health")
+            if resp.status_code == 200:
+                return resp.json().get("version", "honeymind-3")
+        except Exception:
+            pass
+        return "honeymind-3"

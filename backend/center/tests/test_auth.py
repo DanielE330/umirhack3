@@ -161,7 +161,7 @@ def test_telegram_link_flow(app, client):
     secret_key = app.state.settings.secret_key
 
     # 1. Запрос одноразового кода привязки
-    r = client.post("/api/auth/me/telegram/code")
+    r = client.post("/api/auth/me/telegram/code", headers=csrf(data))
     assert r.status_code == 200
     code = r.json()["code"]
     assert code.startswith("HF-")
@@ -204,7 +204,7 @@ def test_telegram_link_flow(app, client):
     assert any(s["chat_id"] == "123456789" for s in r_subs.json()["subscribers"])
 
     # 7. Отвязка
-    r_del = client.delete("/api/auth/me/telegram")
+    r_del = client.delete("/api/auth/me/telegram", headers=csrf(data))
     assert r_del.status_code == 200
     me_after = client.get("/api/auth/me").json()
     assert me_after["telegram_linked"] is False
