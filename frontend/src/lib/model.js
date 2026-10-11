@@ -113,6 +113,14 @@ export const CATALOG = [
     emulates: 'Полноценная виртуальная машина в изолированной сети с откатом к снимку после атаки.',
     collects: 'Всю сессию: ввод и вывод, загруженные инструменты, попытки двигаться по сети.', risk: 'Высокий' },
 ]
+// Профили-заготовки по готовым типам каталога: появляются в выборе ловушек, а в центре создаются при первом использовании
+export const templateName = (e) => e.id + '-' + e.level
+export const templateProfiles = (profiles) => CATALOG
+  .filter((e) => !e.planned && !profiles.some((p) => p.name === templateName(e)))
+  .map((e) => ({
+    id: null, virtual: true, entry: e, name: templateName(e), level: e.level, desc: e.emulates, services: e.services,
+    users: e.users || [], tokens: e.tokens || [], beacon: 15, jitter: 0.3,
+  }))
 export const CAT_LEVELS = [['', 'Все'], ['low', 'Low'], ['medium', 'Medium'], ['high', 'High']]
 
 // ============ API → модель ============

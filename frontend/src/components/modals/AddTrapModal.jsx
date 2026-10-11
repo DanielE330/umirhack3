@@ -8,7 +8,7 @@ import { Field } from '../common.jsx'
 import TrapPicker from './TrapPicker.jsx'
 
 export default function AddTrapModal({ vmid }) {
-  const { containers, trapsOf, portsOf, profiles, profileByName, trapByName, uniqueName, refresh } = useData()
+  const { containers, trapsOf, portsOf, profileByName, trapByName, uniqueName, refresh, pickProfiles, ensureProfile } = useData()
   const { closeModal, showToast } = useUi()
   const { t } = useLanguage()
   const c = containers.find((x) => x.vmid === vmid)
@@ -19,7 +19,7 @@ export default function AddTrapModal({ vmid }) {
   if (!c) return <p className="hint">{t('Машина уже удалена')}</p>
 
   const existing = trapsOf(c.name)
-  const noFree = !profiles.some((p) => !portsOf(p.name).some((port) => existing.some((x) => portsOf(x.profile).includes(port))))
+  const noFree = !pickProfiles.some((p) => !portsOf(p.name).some((port) => existing.some((x) => portsOf(x.profile).includes(port))))
   const pick = (list) => {
     setSelected(list)
     if (list[0] && !touched) setName(uniqueName(baseName(list[0])))
@@ -34,7 +34,8 @@ export default function AddTrapModal({ vmid }) {
     const errs = portConflicts([...existing.map((x) => ({ name: x.name, profile: x.profile })), { name: n, profile: p }], profileByName)
     if (errs.length) return setErr(errs.join('\n'))
     try {
-      await api('/api/traps', { method: 'POST', body: { name: n, profile_id: profileByName(p).id, machine_vmid: c.vmid } })
+      const prof = await ensureProfile(p)
+      await api('/api/traps', { method: 'POST', body: { name: n, profile_id: prof.id, machine_vmid: c.vmid } })
     } catch (e) {
       return setErr(e.message)
     }

@@ -3,7 +3,7 @@ import { api } from '../lib/api.js'
 import { t } from '../i18n/translations.js'
 import { DEMO, demoEvent } from '../lib/demo.js'
 import {
-  EMPTY_FORM, TYPE_INFO, containerState, eventFromApi, machineFromApi, profileFromApi, trapFromApi, trapState,
+  EMPTY_FORM, TYPE_INFO, containerState, formFromTemplate, profileToApi, readProfileForm, templateProfiles, eventFromApi, machineFromApi, profileFromApi, trapFromApi, trapState,
 } from '../lib/model.js'
 import { DataContext } from './data.js'
 import { useUi } from './ui.js'
@@ -88,12 +88,25 @@ export default function DataProvider({ children }) {
   }, [events, traps])
 
   const lookups = useMemo(() => {
-    const profileByName = (n) => profiles.find((p) => p.name === n)
+    const pickProfiles = [...profiles, ...templateProfiles(profiles)]
+    const profileByName = (n) => pickProfiles.find((p) => p.name === n)
+    // профиль-заготовку создаём в центре в момент первого использования
+    const ensureProfile = async (n) => {
+      const p = profileByName(n)
+      if (!p || !p.virtual) return p
+      const form = readProfileForm({ ...formFromTemplate(p.entry), name: p.name })
+      if (form.error) throw new Error(form.error)
+      const created = profileFromApi(await api('/api/profiles', { method: 'POST', body: profileToApi({ ...form.profile, desc: t(p.entry.emulates) }, null) }))
+      setProfiles((list) => [...list, created])
+      return created
+    }
     const trapByName = (n) => traps.find((t) => t.name === n)
     const containerByName = (n) => containers.find((c) => c.name === n)
     const trapsOf = (cname) => (cname ? traps.filter((t) => t.container === cname) : [])
     const portsOf = (pname) => (profileByName(pname) || { services: [] }).services.map((s) => s.port)
     return {
+      pickProfiles,
+      ensureProfile,
       profileByName,
       trapByName,
       containerByName,

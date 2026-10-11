@@ -3,12 +3,11 @@ import { useData } from '../../context/data.js'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
 import { api } from '../../lib/api.js'
-import { formFromTemplate, profileToApi, readProfileForm } from '../../lib/model.js'
 import { Field } from '../common.jsx'
 
 // Быстрое добавление типа ловушки из каталога в машину: профиль по шаблону создаётся сам, если его ещё нет.
 export default function CatalogAddModal({ entry }) {
-  const { containers, trapsOf, portsOf, profileByName, trapByName, uniqueName, refresh } = useData()
+  const { containers, trapsOf, portsOf, ensureProfile, trapByName, uniqueName, refresh } = useData()
   const { closeModal, showToast } = useUi()
   const { t } = useLanguage()
   const profileName = entry.id + '-' + entry.level
@@ -30,12 +29,7 @@ export default function CatalogAddModal({ entry }) {
     setBusy(true)
     setErr('')
     try {
-      let profile = profileByName(profileName)
-      if (!profile) {
-        const form = readProfileForm({ ...formFromTemplate(entry), name: profileName })
-        if (form.error) throw new Error(form.error)
-        profile = await api('/api/profiles', { method: 'POST', body: profileToApi({ ...form.profile, desc: t(entry.emulates) }, null) })
-      }
+      const profile = await ensureProfile(profileName)
       await api('/api/traps', { method: 'POST', body: { name: n, profile_id: profile.id, machine_vmid: c.vmid } })
     } catch (e) {
       setBusy(false)

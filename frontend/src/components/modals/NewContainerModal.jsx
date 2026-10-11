@@ -9,13 +9,13 @@ import ResourceFields from './ResourceFields.jsx'
 import TrapPicker from './TrapPicker.jsx'
 
 export default function NewContainerModal() {
-  const { profiles, portsOf, containerByName, profileByName, uniqueName, uniqueContainerName, refresh } = useData()
+  const { pickProfiles, portsOf, containerByName, ensureProfile, uniqueName, uniqueContainerName, refresh } = useData()
   const { closeModal, showToast } = useUi()
   const { t } = useLanguage()
   const [type, setType] = useState('lxc')
   const [name, setName] = useState(() => uniqueContainerName('web-prod'))
   const [res, setRes] = useState({ ...PVE.defaults })
-  const [selected, setSelected] = useState(() => (profiles[0] ? [profiles[0].name] : []))
+  const [selected, setSelected] = useState(() => (pickProfiles[0] ? [pickProfiles[0].name] : []))
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -41,7 +41,8 @@ export default function NewContainerModal() {
       for (const pn of selected) {
         const tn = uniqueName(baseName(pn), taken)
         taken.add(tn)
-        await api('/api/traps', { method: 'POST', body: { name: tn, profile_id: profileByName(pn).id, machine_vmid: m.vmid } })
+        const prof = await ensureProfile(pn)
+        await api('/api/traps', { method: 'POST', body: { name: tn, profile_id: prof.id, machine_vmid: m.vmid } })
       }
       closeModal()
       showToast(t('Создаю {kind} {vmid} (адрес {ip}): клон, запуск и агенты — автоматически, около минуты', { kind: TYPE_INFO[type].kind, vmid: m.vmid, ip: m.ip }))
