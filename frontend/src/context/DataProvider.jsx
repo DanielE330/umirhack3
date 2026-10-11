@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../lib/api.js'
 import { t } from '../i18n/translations.js'
 import { DEMO, demoEvent } from '../lib/demo.js'
@@ -27,6 +27,8 @@ export default function DataProvider({ children }) {
   const [editor, setEditor] = useState({ editing: null, form: EMPTY_FORM }) // конструктор профиля
 
   const fail = useCallback((e) => showToast(e.message, true), [showToast])
+  // обрыв связи с центром (перезапуск, сеть) показываем один раз, а не каждые 5 секунд опроса
+  const outage = useRef(false)
 
   // ---------- загрузка ----------
   const refresh = useCallback(async () => {
@@ -43,10 +45,15 @@ export default function DataProvider({ children }) {
       setMachines(ms.map(machineFromApi))
       setTrapsRaw(ts)
       setOrchError(err)
+      outage.current = false
     } catch (e) {
-      fail(e)
+      if (!(e instanceof TypeError)) fail(e)
+      else if (!outage.current) {
+        outage.current = true
+        showToast(t('Нет связи с центром — повторяю попытку…'), true)
+      }
     }
-  }, [fail])
+  }, [fail, showToast])
 
   const loadStats = useCallback(async () => {
     try {

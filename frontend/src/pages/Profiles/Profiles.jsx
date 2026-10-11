@@ -5,10 +5,10 @@ import { useData } from '../../context/data.js'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
 import { api } from '../../lib/api.js'
-import { EMPTY_FORM, HELP, formFromProfile, portConflicts, profileToApi, readProfileForm } from '../../lib/model.js'
+import { EMPTY_FORM, HELP, formFromProfile, formFromTemplate, portConflicts, profileToApi, readProfileForm } from '../../lib/model.js'
 
 export default function Profiles() {
-  const { profiles, traps, containers, editor, setEditor, profileByName, trapsOf, refresh, fail } = useData()
+  const { pickProfiles, profiles, traps, containers, editor, setEditor, profileByName, trapsOf, refresh, fail } = useData()
   const { showToast } = useUi()
   const { t } = useLanguage()
   const { editing, form } = editor
@@ -78,10 +78,13 @@ export default function Profiles() {
               </tr>
             </thead>
             <tbody>
-              {profiles.length ? profiles.map((p) => (
-                <tr key={p.id ?? p.name} className={'click' + (p.name === editing ? ' sel' : '')}
-                  {...clickable(() => setEditor({ editing: p.name, form: formFromProfile(p) }))}>
-                  <td>{p.name}</td>
+              {pickProfiles.length ? pickProfiles.map((p) => (
+                <tr key={p.name} className={'click' + (p.name === editing ? ' sel' : '')}
+                  {...clickable(() => setEditor(p.virtual ? { editing: null, form: formFromTemplate(p.entry) } : { editing: p.name, form: formFromProfile(p) }))}>
+                  <td>
+                    {p.name}
+                    {p.virtual && <span className="hint" data-tip={t('Заготовка по типу из каталога: в центре создастся при первом использовании или по кнопке «Сохранить профиль»')}> · {t('заготовка')}</span>}
+                  </td>
                   <td><LevelTag level={p.level} /></td>
                   <td>{p.services.map((s) => s.port + ' (' + s.proto + ')').join(', ')}</td>
                   <td>{traps.filter((tr) => tr.profile === p.name).length}</td>
