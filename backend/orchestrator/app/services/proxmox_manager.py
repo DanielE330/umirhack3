@@ -26,6 +26,8 @@ class ProxmoxManager:
         # Подключение к Proxmox API: API-токен предпочтительнее пароля
         auth = {"token_name": token_name, "token_value": token_value} if token_name else {"password": password}
         self.proxmox = ProxmoxAPI(host, user=user, verify_ssl=verify_ssl, port=port, **auth)
+        if hasattr(self.proxmox, "_backend") and hasattr(self.proxmox._backend, "session"):
+            self.proxmox._backend.session.trust_env = False
         # Имя ноды берём из Proxmox, если не задано явно
         self.node = node or self.proxmox.nodes.get()[0]["node"]
         self.storage, self.bridge, self.nameserver = storage, bridge, nameserver

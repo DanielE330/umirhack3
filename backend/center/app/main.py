@@ -38,6 +38,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
         else:
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'")
         return response

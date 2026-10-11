@@ -39,6 +39,10 @@ services:
       HF_HONEYMIND_URL: http://honeymind:8001
       HF_HONEYMIND_TOKEN: ${HONEYMIND_TOKEN:?задайте HONEYMIND_TOKEN}
       HF_TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
+      NO_PROXY: "127.0.0.1,localhost,192.168.1.94,10.20.0.0/24,orchestrator,center,db,honeymind"
+      no_proxy: "127.0.0.1,localhost,192.168.1.94,10.20.0.0/24,orchestrator,center,db,honeymind"
+    volumes:
+      - ../frontend:/srv/frontend:ro
     depends_on:
       db:
         condition: service_healthy
@@ -85,6 +89,8 @@ services:
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
       TELEGRAM_PROXY: ${TELEGRAM_PROXY:-}
       HF_CENTER_URL: http://center:4000
+      NO_PROXY: "127.0.0.1,localhost,192.168.1.94,10.20.0.0/24,orchestrator,center,db,honeymind"
+      no_proxy: "127.0.0.1,localhost,192.168.1.94,10.20.0.0/24,orchestrator,center,db,honeymind"
       # Узкий SSH-доступ к хосту Proxmox для включения агентов (infra/proxmox/hf-agent-ctl)
       PVE_SSH_HOST: ${PVE_SSH_HOST:-}
     volumes:
