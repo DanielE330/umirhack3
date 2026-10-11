@@ -27,6 +27,10 @@ class User(Base):
     totp_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     last_totp_step: Mapped[int] = mapped_column(Integer, default=0)  # защита от повторного использования кода
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    telegram_chat_id: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, index=True)
+    telegram_username: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    telegram_link_code: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
+    telegram_link_expires: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     recovery_codes: Mapped[list["RecoveryCode"]] = relationship(cascade="all, delete-orphan")
 

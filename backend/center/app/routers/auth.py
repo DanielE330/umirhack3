@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
@@ -35,7 +36,13 @@ def _upgrade(db: Session, request: Request, response: Response, pre: AuthSession
 
 
 def _user_info(user: User, csrf: str) -> dict:
-    return {"username": user.username, "role": user.role, "csrf": csrf}
+    return {
+        "username": user.username,
+        "role": user.role,
+        "csrf": csrf,
+        "telegram_linked": bool(user.telegram_chat_id),
+        "telegram_username": user.telegram_username,
+    }
 
 
 @router.post("/login")
@@ -172,3 +179,38 @@ def logout(request: Request, response: Response, sess: AuthSession = Depends(aut
     db.commit()
     auth.clear_cookie(response, s, "session")
     return {"ok": True}
+
+
+@router.post("/me/telegram/code")
+def generate_telegram_link_code(request: Request, sess: AuthSession = Depends(auth.current_session),
+                                db: Session = Depends(get_db)):
+    """Генерирует одноразовый 6-значный код (HF-XXXXXX) для привязки Telegram-аккаунта."""
+    user = sess.user
+    code = f"HF-{secrets.token_hex(3).upper()}"
+    user.telegram_link_code = code
+    user.telegram_link_expires = utcnow() + timedelta(minutes=15)
+    db.commit()
+
+    s = auth.settings_of(request)
+    bot = s.telegram_bot_username.lstrip("@")
+    return {
+        "code": code,
+        "bot_username": bot,
+        "link": f"https://t.me/{bot}?start={code}" if bot else None,
+        "expires_in": 900,
+    }
+
+
+@router.delete("/me/telegram")
+def unlink_telegram(request: Request, sess: AuthSession = Depends(auth.current_session),
+                    db: Session = Depends(get_db)):
+    """Отвязывает Telegram-аккаунт от профиля оператора/админа."""
+    user = sess.user
+    user.telegram_chat_id = None
+    user.telegram_username = None
+    user.telegram_link_code = None
+    user.telegram_link_expires = None
+    auth.audit(db, user.username, "telegram.unlink", ip=auth.client_ip(request))
+    db.commit()
+    return {"ok": True}
+

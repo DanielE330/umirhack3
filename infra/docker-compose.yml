@@ -38,6 +38,7 @@ services:
       # через внутреннюю сеть backend, см. honeymind/README.md
       HF_HONEYMIND_URL: http://honeymind:8001
       HF_HONEYMIND_TOKEN: ${HONEYMIND_TOKEN:?задайте HONEYMIND_TOKEN}
+      HF_TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
     depends_on:
       db:
         condition: service_healthy
@@ -83,6 +84,7 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
       TELEGRAM_PROXY: ${TELEGRAM_PROXY:-}
+      HF_CENTER_URL: http://center:4000
       # Узкий SSH-доступ к хосту Proxmox для включения агентов (infra/proxmox/hf-agent-ctl)
       PVE_SSH_HOST: ${PVE_SSH_HOST:-}
     volumes:

@@ -29,6 +29,12 @@ LATE_COLUMNS = {
         "needs_review": "BOOLEAN",
         "honeymind_result": "JSON",
     },
+    "users": {
+        "telegram_chat_id": "VARCHAR(64)",
+        "telegram_username": "VARCHAR(64)",
+        "telegram_link_code": "VARCHAR(32)",
+        "telegram_link_expires": "TIMESTAMP",
+    },
 }
 
 

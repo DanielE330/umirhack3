@@ -23,8 +23,11 @@ class _FakeAsyncClient:
     async def __aexit__(self, *exc):
         return False
 
-    async def post(self, url, json=None):
-        _FakeAsyncClient.sent.append(json)
+    async def post(self, url, json=None, headers=None):
+        _FakeAsyncClient.sent.append({"url": url, "json": json, "headers": headers})
+        return _FakeResponse()
+
+    async def get(self, url, params=None, headers=None):
         return _FakeResponse()
 
 
@@ -38,13 +41,24 @@ def test_send_alert_escapes_attacker_controlled_text(monkeypatch):
     asyncio.run(ts.send_alert(evil, evil, {"command": evil}))
 
     assert len(_FakeAsyncClient.sent) == 1
-    text = _FakeAsyncClient.sent[0]["text"]
+    text = _FakeAsyncClient.sent[0]["json"]["text"]
     # Атакующий текст попадает в сообщение только в экранированном виде.
     assert "<script>" not in text
     assert "<b>pwn</b>" not in text
     assert "&lt;script&gt;" in text
     # Разметка самого шаблона (не от атакующего) остаётся настоящим HTML.
     assert "<b>НОВАЯ АТАКА В HONEYFORGE!</b>" in text
+
+
+def test_send_alert_to_multiple_subscribers(monkeypatch):
+    monkeypatch.setattr(ts, "TELEGRAM_BOT_TOKEN", "test-token")
+    monkeypatch.setattr(ts.httpx, "AsyncClient", _FakeAsyncClient)
+    _FakeAsyncClient.sent = []
+
+    asyncio.run(ts.send_alert("alert", "1.2.3.4", {"info": "test"}, chat_ids=["1001", "1002"]))
+    assert len(_FakeAsyncClient.sent) == 2
+    cids = {s["json"]["chat_id"] for s in _FakeAsyncClient.sent}
+    assert cids == {"1001", "1002"}
 
 
 def test_send_alert_noop_without_token(monkeypatch):
@@ -56,3 +70,4 @@ def test_send_alert_noop_without_token(monkeypatch):
     asyncio.run(ts.send_alert("command_executed", "203.0.113.1", {}))
 
     assert _FakeAsyncClient.sent == []
+

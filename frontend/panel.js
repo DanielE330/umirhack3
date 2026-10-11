@@ -1114,6 +1114,112 @@ makeClickable($("kpi-auth"), () => setFilter({ type: "auth_attempt", trap: "", q
 makeClickable($("kpi-alert"), () => setFilter({ type: "alert", trap: "", q: "" }));
 makeClickable($("kpi-online"), () => { showTab("containers"); S.cFilter.status = "online"; $("c-status").value = "online"; renderContainers(); });
 
+// ============ МОДАЛЬНОЕ ОКНО ============
+function showModal(title, html) {
+  $("modal-title").textContent = title;
+  $("modal-body").innerHTML = html;
+  $("modal").classList.remove("hidden");
+}
+function closeModal() {
+  $("modal").classList.add("hidden");
+}
+$("modal-close").onclick = closeModal;
+$("modal").onclick = (e) => { if (e.target === $("modal")) closeModal(); };
+
+// ============ TELEGRAM ПРИВЯЗКА ============
+let currentTgState = { linked: false, username: "" };
+
+function updateTgButton(linked, tgUser) {
+  currentTgState = { linked: !!linked, username: tgUser || "" };
+  const btn = $("tg-btn");
+  if (!btn) return;
+  if (linked) {
+    btn.textContent = "🟢 TG: @" + (tgUser || "подключен");
+    btn.title = "Telegram подключен (нажмите для управления или отвязки)";
+    btn.style.color = "var(--ok)";
+    btn.style.borderColor = "var(--ok)";
+  } else {
+    btn.textContent = "📱 Подключить TG";
+    btn.title = "Подключить Telegram для алертов и блокировок";
+    btn.style.color = "";
+    btn.style.borderColor = "";
+  }
+}
+
+$("tg-btn").onclick = async () => {
+  if (currentTgState.linked) {
+    showModal("Управление Telegram", `
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="background:var(--card-2); border:1px solid var(--line); border-radius:12px; padding:16px;">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <span style="font-size:24px;">🛡️</span>
+            <div>
+              <b style="color:var(--ok);">Telegram успешно привязан</b>
+              <div style="color:var(--muted); font-size:13px;">Аккаунт: <code>@${currentTgState.username || "не указан"}</code></div>
+            </div>
+          </div>
+          <p style="margin:0; font-size:13px; color:var(--muted); line-height:1.45;">
+            Вы получаете оперативные интерактивные алерты платформы HoneyForge и можете блокировать атакующие IP прямо из чата Telegram.
+          </p>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button class="ghost danger" id="tg-unlink-btn">Отвязать Telegram</button>
+          <button class="btn" id="tg-close-btn">Готово</button>
+        </div>
+      </div>
+    `);
+    const unbtn = $("tg-unlink-btn");
+    if (unbtn) {
+      unbtn.onclick = async () => {
+        try {
+          await api("/api/auth/me/telegram", { method: "DELETE" });
+          updateTgButton(false, null);
+          closeModal();
+          toast("Telegram успешно отвязан");
+        } catch (e) { fail(e); }
+      };
+    }
+    const cls = $("tg-close-btn");
+    if (cls) cls.onclick = closeModal;
+    return;
+  }
+
+  // Не привязан: запрашиваем свежий код
+  try {
+    const res = await api("/api/auth/me/telegram/code", { method: "POST" });
+    const code = res.code;
+    const bot = res.bot_username || "";
+    const link = res.link || (bot ? `https://t.me/${bot}?start=${code}` : "");
+
+    showModal("Подключение Telegram к HoneyForge", `
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <p style="margin:0; color:var(--muted); font-size:13.5px; line-height:1.5;">
+          Привяжите ваш Telegram-аккаунт для мгновенного получения алертов о кибератаках и блокировки IP хакеров в один клик.
+        </p>
+
+        <div style="background:var(--bg-2); border:1px dashed var(--accent); border-radius:12px; padding:16px; text-align:center;">
+          <div style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Одноразовый код привязки (действует 15 мин)</div>
+          <div style="font-family:ui-monospace, monospace; font-size:26px; font-weight:700; color:var(--accent); letter-spacing:2px; user-select:all;" id="tg-copy-code">${code}</div>
+        </div>
+
+        <ol class="steps" style="margin:0; padding-left:20px; font-size:13.5px;">
+          <li>${link ? `<a class="btn" href="${link}" target="_blank" style="display:inline-block; margin-bottom:8px; text-decoration:none;">🚀 Открыть бота в Telegram</a>` : `Откройте вашего бота в Telegram: <b>@${bot || "HoneyForgeBot"}</b>`}</li>
+          <li>Нажмите кнопку <b>Start</b> или отправьте боту команду:<br><code style="background:var(--card-2); padding:3px 8px; border-radius:6px; font-family:ui-monospace, monospace; color:var(--fg); display:inline-block; margin-top:4px;">/link ${code}</code></li>
+          <li>Бот подтвердит авторизацию и начнет присылать интерактивные алерты.</li>
+        </ol>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button class="ghost" id="tg-modal-close-btn">Закрыть</button>
+        </div>
+      </div>
+    `);
+    const mcb = $("tg-modal-close-btn");
+    if (mcb) mcb.onclick = closeModal;
+  } catch (e) {
+    fail(e);
+  }
+};
+
 // ============ СЕССИЯ ============
 $("logout").onclick = async () => {
   try { await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin", headers: { "X-CSRF-Token": csrf } }); }
@@ -1126,6 +1232,7 @@ fetch("/api/auth/me", { credentials: "same-origin" })
   .then((r) => { if (!r.ok) throw new Error("no session"); return r.json(); })
   .then(async (d) => {
     csrf = d.csrf; $("who").textContent = d.username; $("role").textContent = d.role;
+    updateTgButton(d.telegram_linked, d.telegram_username);
     await refresh(); await Promise.all([loadEvents(), loadStats()]);
     connectStream();
     setInterval(refresh, 5000);       // машины, ловушки, профили: статусы и «на связи»

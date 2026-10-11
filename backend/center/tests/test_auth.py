@@ -154,3 +154,58 @@ def test_security_headers_and_no_docs(client):
     r = client.get("/api/health")
     assert r.headers["x-content-type-options"] == "nosniff" and r.headers["cache-control"] == "no-store"
     assert client.get("/docs").status_code == 404
+
+
+def test_telegram_link_flow(app, client):
+    _, data = login_and_enroll(client, "admin")
+    secret_key = app.state.settings.secret_key
+
+    # 1. Запрос одноразового кода привязки
+    r = client.post("/api/auth/me/telegram/code")
+    assert r.status_code == 200
+    code = r.json()["code"]
+    assert code.startswith("HF-")
+
+    # 2. Неверный токен к internal эндпоинту
+    r_bad = client.post("/api/internal/telegram/bind", json={"code": code, "chat_id": "123456789"})
+    assert r_bad.status_code == 401
+
+    # 3. Привязка Telegram по коду через внутренний API
+    r_bind = client.post(
+        "/api/internal/telegram/bind",
+        json={"code": code, "chat_id": "123456789", "username": "admin_tg"},
+        headers={"X-Internal-Token": secret_key},
+    )
+    assert r_bind.status_code == 200
+    assert r_bind.json()["username"] == "admin"
+
+    # 4. Проверка статуса в /api/auth/me
+    me = client.get("/api/auth/me").json()
+    assert me["telegram_linked"] is True
+    assert me["telegram_username"] == "admin_tg"
+
+    # 5. Проверка прав через check-auth
+    r_check = client.post(
+        "/api/internal/telegram/check-auth",
+        json={"chat_id": "123456789"},
+        headers={"X-Internal-Token": secret_key},
+    )
+    assert r_check.status_code == 200
+    assert r_check.json() == {
+        "authenticated": True,
+        "username": "admin",
+        "role": "admin",
+        "telegram_username": "admin_tg",
+    }
+
+    # 6. Получение списка подписчиков
+    r_subs = client.get("/api/internal/telegram/subscribers", headers={"X-Internal-Token": secret_key})
+    assert r_subs.status_code == 200
+    assert any(s["chat_id"] == "123456789" for s in r_subs.json()["subscribers"])
+
+    # 7. Отвязка
+    r_del = client.delete("/api/auth/me/telegram")
+    assert r_del.status_code == 200
+    me_after = client.get("/api/auth/me").json()
+    assert me_after["telegram_linked"] is False
+

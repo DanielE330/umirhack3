@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     honeymind_token: str = ""
     honeymind_timeout: float = 0.4   # /predict: типичный ответ ~4 мс (см. honeymind/README.md), не ждём дольше
 
+    # Telegram bot username (для генерации ссылок t.me/<bot>?start=<code>)
+    telegram_bot_username: str = ""
+
     @property
     def static_path(self) -> Path | None:
         path = self.static_dir or _default_static_dir()
