@@ -9,6 +9,9 @@ class _FakeResponse:
     status_code = 200
     text = ""
 
+    def json(self):
+        return {"subscribers": []}
+
 
 class _FakeAsyncClient:
     """Подмена httpx.AsyncClient: не ходит в сеть, запоминает отправленный payload."""
