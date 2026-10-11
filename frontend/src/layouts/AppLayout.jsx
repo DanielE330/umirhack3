@@ -1,4 +1,4 @@
-import { Layers, LayoutDashboard, Radar, Server, Settings } from 'lucide-react'
+import { Layers, LayoutDashboard, Radar, Server, Settings, Users } from 'lucide-react'
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import ModalHost from '../components/ModalHost.jsx'
 import Tooltips from '../components/Tooltips.jsx'
@@ -14,6 +14,7 @@ const NAV = [
   { to: '/overview', label: 'Обзор', tip: 'Сводка и лента атак в реальном времени', icon: LayoutDashboard },
   { to: '/traps', label: 'Ловушки', tip: 'Каталог всех типов ловушек, которые умеет платформа', icon: Radar },
   { to: '/profiles', label: 'Профили', tip: 'Шаблоны ловушек: уровень, порты, баннеры, приманки', icon: Layers },
+  { to: '/users', label: 'Пользователи', tip: 'Операторы панели: создание, роли, блокировка, сброс 2FA', icon: Users, admin: true },
   { to: '/settings', label: 'Настройки', tip: 'Язык, расположение навигации и учётная запись', icon: Settings },
 ]
 
@@ -31,7 +32,7 @@ function Shell() {
           <b>Honey<span>Forge</span></b>
         </NavLink>
         <nav aria-label={t('Разделы')}>
-          {NAV.map((n) => {
+          {NAV.filter((n) => !n.admin || user.role === 'admin').map((n) => {
             const Icon = n.icon
             return (
               <NavLink key={n.to} to={n.to} data-tip={t(n.tip)} className={({ isActive }) => (isActive ? 'on' : '')}>
