@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Languages, LayoutPanelLeft, LayoutPanelTop, Lightbulb, MoonStar, RotateCcw, Send } from 'lucide-react'
+import { BookOpen, Languages, LayoutPanelLeft, LayoutPanelTop, Lightbulb, MoonStar, RotateCcw, Send } from 'lucide-react'
 import { useAuth } from '../../context/auth.js'
 import { useLanguage } from '../../context/language.js'
 import { useLayout } from '../../context/layout.js'
@@ -27,6 +27,8 @@ function SettingCard({ icon: Icon, title, desc, children }) {
 }
 
 export default function Settings() {
+  // свой домен документации: VITE_WIKI_URL=https://wiki.example.ru при сборке (по умолчанию — встроенная страница)
+  const WIKI_URL = import.meta.env.VITE_WIKI_URL || '/#/wiki'
   const { t, lang, setLang } = useLanguage()
   const { layout, setLayout } = useLayout()
   const { openModal, showToast } = useUi()
@@ -97,6 +99,14 @@ export default function Settings() {
           <button type="button" className="ghost" onClick={() => openModal(t('Предложить идею ловушки'), <IdeaModal />)}>
             {t('Предложить')}
           </button>
+        </SettingCard>
+
+        <SettingCard icon={BookOpen} title={t('Документация')}
+          desc={t('Полное руководство по использованию HoneyForge: настройка профилей, развёртывание ловушек, работа с событиями и IoC.')}>
+          <a className="docs-link" href={WIKI_URL} target="_blank" rel="noopener noreferrer">
+            <BookOpen size={18} strokeWidth={1.5} aria-hidden="true" />
+            {t('Просмотреть документацию')}
+          </a>
         </SettingCard>
       </div>
     </section>

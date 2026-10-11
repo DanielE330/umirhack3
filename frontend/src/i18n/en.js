@@ -441,6 +441,11 @@ const en = {
   ' «{name}» ({kind} {vmid})': ' “{name}” ({kind} {vmid})',
   'Medium: fake-SSH / fake-HTTP': 'Medium: fake-SSH / fake-HTTP',
   'Proxmox: {kind} {vmid} «{name}»': 'Proxmox: {kind} {vmid} “{name}”',
+  'Документация': 'Documentation',
+  'В HoneyForge': 'Back to HoneyForge',
+  'Полное руководство по использованию HoneyForge: настройка профилей, развёртывание ловушек, работа с событиями и IoC.':
+    'Complete guide to using HoneyForge: setting up profiles, deploying traps, working with events and IoC.',
+  'Просмотреть документацию': 'View documentation',
   'автор': 'author',
   'в разработке': 'in development',
   'запущено: {n}': 'running: {n}',
