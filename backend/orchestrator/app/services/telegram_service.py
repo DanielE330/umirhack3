@@ -477,7 +477,7 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_i
             },
         }
         try:
-            async with httpx.AsyncClient(proxy=proxy_url, timeout=10.0) as client:
+            async with httpx.AsyncClient(proxy=proxy_url, timeout=25.0) as client:
                 response = await client.post(url, json=payload)
                 if response.status_code != 200:
                     print(f"❌ Ошибка Telegram (chat_id={cid}, код {response.status_code}): {response.text}", flush=True)
@@ -487,7 +487,7 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_i
             print(f"❌ Ошибка соединения с Telegram при отправке на {cid}: {e}", flush=True)
 
 
-async def _tg_post(client: httpx.AsyncClient, base_tg: str, method: str, json_data: dict, timeout: float = 10.0) -> Optional[httpx.Response]:
+async def _tg_post(client: httpx.AsyncClient, base_tg: str, method: str, json_data: dict, timeout: float = 25.0) -> Optional[httpx.Response]:
     """Безопасная отправка POST-запроса в Telegram API с индивидуальным таймаутом."""
     try:
         resp = await client.post(f"{base_tg}/{method}", json=json_data, timeout=timeout)
@@ -920,7 +920,7 @@ async def _run_polling_session() -> bool:
     # 1. Проверяем связь с Telegram API
     bot_info = None
     try:
-        async with httpx.AsyncClient(proxy=proxy_url, timeout=12.0) as check_client:
+        async with httpx.AsyncClient(proxy=proxy_url, timeout=25.0) as check_client:
             me_resp = await check_client.get(f"{base_tg}/getMe")
             if me_resp.status_code == 200:
                 bot_info = me_resp.json().get("result", {})
@@ -932,20 +932,20 @@ async def _run_polling_session() -> bool:
             else:
                 print(f"⚠️ [Telegram Bot] Ответ getMe HTTP {me_resp.status_code}: {me_resp.text}", flush=True)
     except Exception as e:
-        print(f"⚠️ [Telegram Bot] Не удалось достучаться до API через {proxy_url or 'прямое соединение'}: {e}", flush=True)
+        print(f"⚠️ [Telegram Bot] Не удалось достучаться до API через {proxy_url or 'прямое соединение'}: {e}. Ожидание прокси и повтор через 5с...", flush=True)
         await asyncio.sleep(5)
         return True
 
     # 2. Сбрасываем возможные зависшие вебхуки для включения getUpdates
     try:
-        async with httpx.AsyncClient(proxy=proxy_url, timeout=10.0) as setup_client:
+        async with httpx.AsyncClient(proxy=proxy_url, timeout=20.0) as setup_client:
             await setup_client.post(f"{base_tg}/deleteWebhook", json={"drop_pending_updates": False})
     except Exception:
         pass
 
     # 3. Настройка HTTP-клиента с устойчивыми таймаутами для long-polling
-    #    getUpdates держит соединение 25с, поэтому read_timeout = 45с гарантирует защиту от ложных обрывов
-    poll_timeout = httpx.Timeout(connect=15.0, read=45.0, write=15.0, pool=15.0)
+    #    getUpdates держит соединение 25с, поэтому read_timeout = 55с и connect = 30с гарантируют защиту от ложных обрывов
+    poll_timeout = httpx.Timeout(connect=30.0, read=55.0, write=30.0, pool=30.0)
     limits = httpx.Limits(max_keepalive_connections=2, max_connections=5, keepalive_expiry=20.0)
 
     offset = 0
