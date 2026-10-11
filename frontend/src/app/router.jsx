@@ -6,10 +6,13 @@ import Overview from '../pages/Overview/Overview.jsx'
 import Profiles from '../pages/Profiles/Profiles.jsx'
 import Settings from '../pages/Settings/Settings.jsx'
 import Traps from '../pages/Traps/Traps.jsx'
+import Wiki from '../pages/Wiki/Wiki.jsx'
 
 // Hash-маршруты: центр отдаёт только index.html, поэтому /#/overview открывается и после обновления страницы
 export const router = createHashRouter([
   { path: '/login', element: <Login /> },
+  // документация открывается без входа: её можно будет вынести на отдельный хост
+  { path: '/wiki', element: <Wiki /> },
   {
     path: '/',
     element: <AppLayout />,

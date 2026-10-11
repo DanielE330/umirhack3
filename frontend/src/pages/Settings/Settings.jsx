@@ -1,4 +1,4 @@
-import { Languages, LayoutPanelLeft, LayoutPanelTop, Lightbulb, RotateCcw } from 'lucide-react'
+import { BookOpen, Languages, LayoutPanelLeft, LayoutPanelTop, Lightbulb, RotateCcw } from 'lucide-react'
 import { useLanguage } from '../../context/language.js'
 import { useLayout } from '../../context/layout.js'
 import { useUi } from '../../context/ui.js'
@@ -19,6 +19,8 @@ function SettingCard({ icon: Icon, title, desc, children }) {
 }
 
 export default function Settings() {
+  // адрес документации: при выносе wiki на отдельный домен достаточно заменить константу
+  const WIKI_URL = '/#/wiki'
   const { t, lang, setLang } = useLanguage()
   const { layout, setLayout } = useLayout()
   const { showToast } = useUi()
@@ -68,6 +70,14 @@ export default function Settings() {
           <button type="button" className="ghost" aria-disabled="true" onClick={soon} data-tip={t('Скоро будет доступно')}>
             {t('Предложить')}
           </button>
+        </SettingCard>
+
+        <SettingCard icon={BookOpen} title={t('Документация')}
+          desc={t('Полное руководство по использованию HoneyForge: настройка профилей, развёртывание ловушек, работа с событиями и IoC.')}>
+          <a className="docs-link" href={WIKI_URL} target="_blank" rel="noopener noreferrer">
+            <BookOpen size={18} strokeWidth={1.5} aria-hidden="true" />
+            {t('Просмотреть документацию')}
+          </a>
         </SettingCard>
       </div>
     </section>
