@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useData } from '../../context/data.js'
+import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
 import { api } from '../../lib/api.js'
 import { baseName, portConflicts } from '../../lib/model.js'
@@ -9,15 +10,16 @@ import TrapPicker from './TrapPicker.jsx'
 export default function AddTrapModal({ vmid }) {
   const { containers, trapsOf, portsOf, profiles, profileByName, trapByName, uniqueName, refresh } = useData()
   const { closeModal, showToast } = useUi()
+  const { t } = useLanguage()
   const c = containers.find((x) => x.vmid === vmid)
   const [selected, setSelected] = useState([])
   const [name, setName] = useState('')
   const [touched, setTouched] = useState(false)
   const [err, setErr] = useState('')
-  if (!c) return <p className="hint">Машина уже удалена</p>
+  if (!c) return <p className="hint">{t('Машина уже удалена')}</p>
 
   const existing = trapsOf(c.name)
-  const noFree = !profiles.some((p) => !portsOf(p.name).some((port) => existing.some((t) => portsOf(t.profile).includes(port))))
+  const noFree = !profiles.some((p) => !portsOf(p.name).some((port) => existing.some((x) => portsOf(x.profile).includes(port))))
   const pick = (list) => {
     setSelected(list)
     if (list[0] && !touched) setName(uniqueName(baseName(list[0])))
@@ -26,10 +28,10 @@ export default function AddTrapModal({ vmid }) {
   const add = async () => {
     const p = selected[0]
     const n = name.trim()
-    if (!p) return setErr('Выберите тип ловушки')
-    if (!/^[A-Za-z0-9._-]{1,60}$/.test(n)) return setErr('Имя: латиница, цифры, точка, дефис, подчёркивание')
-    if (trapByName(n)) return setErr('Ловушка с таким именем уже есть')
-    const errs = portConflicts([...existing.map((t) => ({ name: t.name, profile: t.profile })), { name: n, profile: p }], profileByName)
+    if (!p) return setErr(t('Выберите тип ловушки'))
+    if (!/^[A-Za-z0-9._-]{1,60}$/.test(n)) return setErr(t('Имя: латиница, цифры, точка, дефис, подчёркивание'))
+    if (trapByName(n)) return setErr(t('Ловушка с таким именем уже есть'))
+    const errs = portConflicts([...existing.map((x) => ({ name: x.name, profile: x.profile })), { name: n, profile: p }], profileByName)
     if (errs.length) return setErr(errs.join('\n'))
     try {
       await api('/api/traps', { method: 'POST', body: { name: n, profile_id: profileByName(p).id, machine_vmid: c.vmid } })
@@ -37,7 +39,7 @@ export default function AddTrapModal({ vmid }) {
       return setErr(e.message)
     }
     closeModal()
-    showToast('Ловушка «' + n + '» добавлена — подключите к ней агента в окне ловушки')
+    showToast(t('Ловушка «{name}» добавлена — подключите к ней агента в окне ловушки', { name: n }))
     return refresh()
   }
 
@@ -45,20 +47,20 @@ export default function AddTrapModal({ vmid }) {
     <>
       <p className="hint">
         {existing.length
-          ? 'Уже в машине: ' + existing.map((t) => t.name + ' (' + portsOf(t.profile).join(', ') + ')').join(', ')
-          : 'Машина пока пустая.'}
+          ? t('Уже в машине: {list}', { list: existing.map((x) => x.name + ' (' + portsOf(x.profile).join(', ') + ')').join(', ') })
+          : t('Машина пока пустая.')}
       </p>
       <TrapPicker existing={existing} selected={selected} multi={false} onChange={pick} />
       <Field label="Имя ловушки">
-        <input maxLength={60} value={name} placeholder="сначала выберите тип выше" aria-label="Имя ловушки"
+        <input maxLength={60} value={name} placeholder={t('сначала выберите тип выше')} aria-label={t('Имя ловушки')}
           onChange={(e) => { setTouched(true); setName(e.target.value) }} />
       </Field>
       <div className="err" role="alert">
-        {err || (noFree ? 'Все типы ловушек конфликтуют по портам с уже установленными. Создайте профиль с другими портами или новую машину.' : '')}
+        {err || (noFree ? t('Все типы ловушек конфликтуют по портам с уже установленными. Создайте профиль с другими портами или новую машину.') : '')}
       </div>
       <div className="actions">
-        <button className="btn" disabled={!selected.length} onClick={add}>Добавить ловушку</button>
-        <button className="ghost" onClick={closeModal}>Отмена</button>
+        <button className="btn" disabled={!selected.length} onClick={add}>{t('Добавить ловушку')}</button>
+        <button className="ghost" onClick={closeModal}>{t('Отмена')}</button>
       </div>
     </>
   )

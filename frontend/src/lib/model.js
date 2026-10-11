@@ -1,4 +1,5 @@
 // Модель данных и справочники HoneyForge (перенос из исходного panel.js без изменения логики)
+import { getLang, t } from '../i18n/translations.js'
 
 // ============ СОСТОЯНИЯ ============
 export const STATES = {
@@ -32,7 +33,10 @@ export const EVENT_TYPES = ['connect', 'auth_attempt', 'command', 'http_request'
 
 export const plural = (n, one, few, many) =>
   n % 10 === 1 && n % 100 !== 11 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? few : many
-export const resParts = (c) => [c.cores + ' ' + plural(c.cores, 'ядро', 'ядра', 'ядер'), c.ram + ' ГБ ОЗУ', c.disk + ' ГБ диск']
+export const resParts = (c) => {
+  const cores = getLang() === 'en' ? (c.cores === 1 ? 'core' : 'cores') : plural(c.cores, 'ядро', 'ядра', 'ядер')
+  return [c.cores + ' ' + cores, c.ram + ' ' + t('ГБ ОЗУ'), c.disk + ' ' + t('ГБ диск')]
+}
 
 // ============ ПОДСКАЗКИ ============
 export const HELP = {
@@ -179,7 +183,7 @@ export function portConflicts(entries, lookup) {
   for (const e of entries) {
     for (const s of (lookup(e.profile) || { services: [] }).services) byPort.set(s.port, [...(byPort.get(s.port) || []), e.name])
   }
-  return [...byPort].filter(([, names]) => names.length > 1).map(([p, names]) => 'Порт ' + p + ' занят дважды: ' + names.join(', '))
+  return [...byPort].filter(([, names]) => names.length > 1).map(([p, names]) => t('Порт {p} занят дважды: {names}', { p, names: names.join(', ') }))
 }
 export const baseName = (profile) => profile.replace(/-(low|medium)$/, '') + '-bait'
 export function iconFor(p) {
@@ -207,14 +211,14 @@ export function pveCommands(c) {
 
 // ============ ФОРМАТИРОВАНИЕ ============
 export function since(ts, now = Date.now()) {
-  if (!ts) return 'никогда'
+  if (!ts) return t('никогда')
   const s = Math.max(0, Math.round((now - ts) / 1000))
-  if (s < 60) return s + ' с назад'
-  if (s < 3600) return Math.round(s / 60) + ' мин назад'
-  return Math.round(s / 3600) + ' ч назад'
+  if (s < 60) return t('{n} с назад', { n: s })
+  if (s < 3600) return t('{n} мин назад', { n: Math.round(s / 60) })
+  return t('{n} ч назад', { n: Math.round(s / 3600) })
 }
-export const fmtTime = (ts) => new Date(ts).toLocaleTimeString('ru-RU')
-export const fmtDateTime = (ts) => new Date(ts).toLocaleString('ru-RU')
+export const fmtTime = (ts) => new Date(ts).toLocaleTimeString(getLang() === 'en' ? 'en-GB' : 'ru-RU')
+export const fmtDateTime = (ts) => new Date(ts).toLocaleString(getLang() === 'en' ? 'en-GB' : 'ru-RU')
 
 // Шаблон из каталога → поля конструктора профиля
 export const servicesToText = (services) =>
@@ -232,28 +236,28 @@ export const formFromProfile = (p) => ({
 // Разбор и проверка формы профиля
 export function readProfileForm(f, old) {
   const name = f.name.trim()
-  if (!/^[A-Za-z0-9._-]{1,80}$/.test(name)) return { error: 'Название: латиница, цифры, точка, дефис, подчёркивание (до 80 символов)' }
+  if (!/^[A-Za-z0-9._-]{1,80}$/.test(name)) return { error: t('Название: латиница, цифры, точка, дефис, подчёркивание (до 80 символов)') }
   const lines = (s) => s.split('\n').map((l) => l.trim()).filter(Boolean)
   const services = []
   for (const line of lines(f.services)) {
     const [port, proto = 'banner', ...rest] = line.split(':')
     const n = Number(port)
-    if (!Number.isInteger(n) || n < 1 || n > 65535) return { error: 'Неверный порт: ' + line }
-    if (!['banner', 'ssh', 'http'].includes(proto)) return { error: 'Протокол: banner, ssh или http (' + line + ')' }
-    if (f.level === 'low' && proto !== 'banner') return { error: 'Low-ловушка умеет только баннеры (banner)' }
-    if (services.some((s) => s.port === n)) return { error: 'Порт ' + n + ' указан дважды' }
+    if (!Number.isInteger(n) || n < 1 || n > 65535) return { error: t('Неверный порт: {line}', { line }) }
+    if (!['banner', 'ssh', 'http'].includes(proto)) return { error: t('Протокол: banner, ssh или http ({line})', { line }) }
+    if (f.level === 'low' && proto !== 'banner') return { error: t('Low-ловушка умеет только баннеры (banner)') }
+    if (services.some((s) => s.port === n)) return { error: t('Порт {n} указан дважды', { n }) }
     services.push({ port: n, proto, banner: rest.join(':') })
   }
-  if (!services.length) return { error: 'Добавьте хотя бы один сервис' }
+  if (!services.length) return { error: t('Добавьте хотя бы один сервис') }
   const users = lines(f.users)
-  if (users.some((u) => !/^[A-Za-z0-9._-]{1,64}$/.test(u))) return { error: 'Имена пользователей: латиница, цифры, точка, дефис, подчёркивание' }
-  if (new Set(users).size !== users.length) return { error: 'Имена пользователей повторяются' }
+  if (users.some((u) => !/^[A-Za-z0-9._-]{1,64}$/.test(u))) return { error: t('Имена пользователей: латиница, цифры, точка, дефис, подчёркивание') }
+  if (new Set(users).size !== users.length) return { error: t('Имена пользователей повторяются') }
   const tokens = lines(f.tokens)
-  if (tokens.some((t) => !t.startsWith('/') || t.includes('..'))) return { error: 'Пути honeytoken: абсолютные, без ..' }
+  if (tokens.some((x) => !x.startsWith('/') || x.includes('..'))) return { error: t('Пути honeytoken: абсолютные, без ..') }
   const beacon = Number(f.beacon)
   const jitter = Number(f.jitter)
-  if (!(beacon >= 5 && beacon <= 300)) return { error: 'Интервал маяка: 5–300 с' }
-  if (!(jitter >= 0 && jitter <= 0.9)) return { error: 'Джиттер: 0–0.9' }
+  if (!(beacon >= 5 && beacon <= 300)) return { error: t('Интервал маяка: 5–300 с') }
+  if (!(jitter >= 0 && jitter <= 0.9)) return { error: t('Джиттер: 0–0.9') }
   return { profile: { id: old ? old.id : null, name, level: f.level, services, users, tokens, beacon, jitter, desc: old ? old.desc : '' } }
 }
 
@@ -261,9 +265,9 @@ export function readProfileForm(f, old) {
 export function readResources(v, minDisk) {
   const r = { cores: Number(v.cores), ram: Number(v.ram), disk: Number(v.disk) }
   const bad = (n, [a, b]) => !Number.isInteger(n) || n < a || n > b
-  if (bad(r.cores, PVE.limits.cores)) return { error: 'Ядра: от ' + PVE.limits.cores[0] + ' до ' + PVE.limits.cores[1] }
-  if (bad(r.ram, PVE.limits.ram)) return { error: 'ОЗУ: от ' + PVE.limits.ram[0] + ' до ' + PVE.limits.ram[1] + ' ГБ' }
-  if (bad(r.disk, PVE.limits.disk)) return { error: 'Диск: от ' + PVE.limits.disk[0] + ' до ' + PVE.limits.disk[1] + ' ГБ' }
-  if (minDisk && r.disk < minDisk) return { error: 'Диск можно только увеличить (сейчас ' + minDisk + ' ГБ)' }
+  if (bad(r.cores, PVE.limits.cores)) return { error: t('Ядра: от {a} до {b}', { a: PVE.limits.cores[0], b: PVE.limits.cores[1] }) }
+  if (bad(r.ram, PVE.limits.ram)) return { error: t('ОЗУ: от {a} до {b} ГБ', { a: PVE.limits.ram[0], b: PVE.limits.ram[1] }) }
+  if (bad(r.disk, PVE.limits.disk)) return { error: t('Диск: от {a} до {b} ГБ', { a: PVE.limits.disk[0], b: PVE.limits.disk[1] }) }
+  if (minDisk && r.disk < minDisk) return { error: t('Диск можно только увеличить (сейчас {min} ГБ)', { min: minDisk }) }
   return { value: r }
 }

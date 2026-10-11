@@ -97,6 +97,10 @@ tr.sel { background: var(--accent-soft); }
 .toolbar .w-search { width: min(100%, 260px); }
 .toolbar .w-status { min-width: 180px; }
 .spacer { flex: 1; }
+/* служебные отступы и ширины: вместо статичных inline-стилей в компонентах */
+.mt-10 { margin-top: 10px; }
+.mb-12 { margin-bottom: 12px; }
+.trap-name-input { width: 220px; max-width: 100%; }
 select, input, textarea { background: var(--bg-2); border: 1px solid var(--line); color: var(--fg); border-radius: var(--radius); padding: 10px 14px; font: inherit; width: 100%; transition: border-color 0.15s, box-shadow 0.15s; }
 /* textarea: фиксированная высота, ресайз выключен, длинный текст прокручивается внутри поля */
 textarea { height: 84px; min-height: 84px; max-width: 100%; resize: none; overflow-y: auto; line-height: 1.5; }

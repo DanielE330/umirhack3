@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useData } from '../../context/data.js'
+import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
 import { useModals } from '../../hooks/useModals.jsx'
 import { fmtDateTime } from '../../lib/model.js'
@@ -9,6 +10,7 @@ export default function EventModal({ ev }) {
   const { trapByName, setEventFilter } = useData()
   const { closeModal, showToast } = useUi()
   const { openTrap } = useModals()
+  const { t } = useLanguage()
   const navigate = useNavigate()
 
   const filterBy = (patch) => {
@@ -19,15 +21,15 @@ export default function EventModal({ ev }) {
   const copyIp = async () => {
     try {
       await navigator.clipboard.writeText(ev.src_ip)
-      showToast('Скопировано')
+      showToast(t('Скопировано'))
     } catch {
-      showToast('Не удалось скопировать: выделите текст вручную', true)
+      showToast(t('Не удалось скопировать: выделите текст вручную'), true)
     }
   }
   const openTrapOf = () => {
-    const t = trapByName(ev.trap)
-    if (t) openTrap(t)
-    else showToast('Ловушка уже удалена', true)
+    const tr = trapByName(ev.trap)
+    if (tr) openTrap(tr)
+    else showToast(t('Ловушка уже удалена'), true)
   }
 
   return (
@@ -38,10 +40,10 @@ export default function EventModal({ ev }) {
         ['Сессия', ev.session_id], ['Логин', ev.username], ['Пароль', ev.password], ['Команда / запрос', ev.command],
       ]} />
       <div className="inline">
-        <button className="ghost" onClick={() => filterBy({ q: ev.src_ip })}>⌕ Все события этого IP</button>
-        <button className="ghost" onClick={() => filterBy({ trap: ev.trap })}>☰ События этой ловушки</button>
-        <button className="ghost" onClick={copyIp}>⧉ Копировать IP</button>
-        <button className="ghost" onClick={openTrapOf}>→ Открыть ловушку</button>
+        <button className="ghost" onClick={() => filterBy({ q: ev.src_ip })}>{t('⌕ Все события этого IP')}</button>
+        <button className="ghost" onClick={() => filterBy({ trap: ev.trap })}>{t('☰ События этой ловушки')}</button>
+        <button className="ghost" onClick={copyIp}>{t('⧉ Копировать IP')}</button>
+        <button className="ghost" onClick={openTrapOf}>{t('→ Открыть ловушку')}</button>
       </div>
     </>
   )

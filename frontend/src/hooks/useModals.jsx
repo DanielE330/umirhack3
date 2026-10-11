@@ -7,18 +7,19 @@ import NewContainerModal from '../components/modals/NewContainerModal.jsx'
 import PveInfoModal from '../components/modals/PveInfoModal.jsx'
 import TrapModal from '../components/modals/TrapModal.jsx'
 import { useUi } from '../context/ui.js'
+import { t } from '../i18n/translations.js'
 import { TYPE_INFO } from '../lib/model.js'
 
 // Открытие модальных окон панели. Окна принимают id и берут живые данные из контекста.
 export function useModals() {
   const { openModal } = useUi()
   return useMemo(() => ({
-    openNewContainer: () => openModal('Новый контейнер в Proxmox', <NewContainerModal />),
-    openAddTrap: (c) => openModal('Добавить ловушку в «' + c.name + '»', <AddTrapModal vmid={c.vmid} />),
-    openContainerSettings: (c) => openModal('Настройки «' + c.name + '»', <ContainerSettingsModal vmid={c.vmid} />),
-    openPve: (c) => openModal('Proxmox: ' + TYPE_INFO[c.type].kind + ' ' + c.vmid + ' «' + c.name + '»', <PveInfoModal vmid={c.vmid} />),
-    openTrap: (t) => openModal('Ловушка «' + t.name + '»', <TrapModal trapId={t.id} />),
-    openDeploy: (t, artifact) => openModal('Агент для «' + t.name + '»', <AgentDeployModal trapId={t.id} artifact={artifact} />),
-    openEvent: (ev) => openModal('Событие #' + ev.id, <EventModal ev={ev} />),
+    openNewContainer: () => openModal(t('Новый контейнер в Proxmox'), <NewContainerModal />),
+    openAddTrap: (c) => openModal(t('Добавить ловушку в «{name}»', { name: c.name }), <AddTrapModal vmid={c.vmid} />),
+    openContainerSettings: (c) => openModal(t('Настройки «{name}»', { name: c.name }), <ContainerSettingsModal vmid={c.vmid} />),
+    openPve: (c) => openModal(t('Proxmox: {kind} {vmid} «{name}»', { kind: TYPE_INFO[c.type].kind, vmid: c.vmid, name: c.name }), <PveInfoModal vmid={c.vmid} />),
+    openTrap: (tr) => openModal(t('Ловушка «{name}»', { name: tr.name }), <TrapModal trapId={tr.id} />),
+    openDeploy: (tr, artifact) => openModal(t('Агент для «{name}»', { name: tr.name }), <AgentDeployModal trapId={tr.id} artifact={artifact} />),
+    openEvent: (ev) => openModal(t('Событие #{id}', { id: ev.id }), <EventModal ev={ev} />),
   }), [openModal])
 }

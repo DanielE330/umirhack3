@@ -1,10 +1,12 @@
 import { useEffect } from 'react'
 import { X } from 'lucide-react'
+import { useLanguage } from '../context/language.js'
 import { useUi } from '../context/ui.js'
 
 // Диалог и уведомление. Стоит внутри DataProvider: содержимое окна — обычные компоненты с доступом к данным.
 export default function ModalHost() {
   const { modal, closeModal, toast } = useUi()
+  const { t } = useLanguage()
 
   useEffect(() => {
     if (!modal) return undefined
@@ -22,7 +24,7 @@ export default function ModalHost() {
           <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
             <div className="sheet-head">
               <h2 id="modal-title">{modal.title}</h2>
-              <button className="icon-btn" aria-label="Закрыть" data-tip="Закрыть (Esc)" onClick={closeModal}>
+              <button className="icon-btn" aria-label={t('Закрыть')} data-tip={t('Закрыть (Esc)')} onClick={closeModal}>
                 <X size={18} strokeWidth={1.5} aria-hidden="true" />
               </button>
             </div>

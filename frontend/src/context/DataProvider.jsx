@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../lib/api.js'
+import { t } from '../i18n/translations.js'
 import { DEMO, demoEvent } from '../lib/demo.js'
 import {
   EMPTY_FORM, TYPE_INFO, containerState, eventFromApi, machineFromApi, profileFromApi, trapFromApi, trapState,
@@ -200,30 +201,33 @@ export default function DataProvider({ children }) {
   const actions = useMemo(
     () => ({
       toggleContainer(c) {
-        const t = TYPE_INFO[c.type]
-        if (c.status === 'running') machineAction(c, 'shutdown', t.cli + ' shutdown ' + c.vmid + ' — «' + c.name + '» выключен')
-        else machineAction(c, 'start', t.cli + ' start ' + c.vmid + ' — «' + c.name + '» запущен')
+        const info = TYPE_INFO[c.type]
+        if (c.status === 'running') {
+          machineAction(c, 'shutdown', t('{cli} shutdown {vmid} — «{name}» выключен', { cli: info.cli, vmid: c.vmid, name: c.name }))
+        } else {
+          machineAction(c, 'start', t('{cli} start {vmid} — «{name}» запущен', { cli: info.cli, vmid: c.vmid, name: c.name }))
+        }
       },
       restartContainer(c) {
-        const t = TYPE_INFO[c.type]
-        if (c.state === 'creating') return showToast('Машина ещё создаётся', true)
-        if (c.state === 'stopped' || c.state === 'failed') return showToast('Машина выключена — включите её переключателем', true)
-        return machineAction(c, 'reboot', t.cli + ' reboot ' + c.vmid + ' — «' + c.name + '» перезапущен')
+        const info = TYPE_INFO[c.type]
+        if (c.state === 'creating') return showToast(t('Машина ещё создаётся'), true)
+        if (c.state === 'stopped' || c.state === 'failed') return showToast(t('Машина выключена — включите её переключателем'), true)
+        return machineAction(c, 'reboot', t('{cli} reboot {vmid} — «{name}» перезапущен', { cli: info.cli, vmid: c.vmid, name: c.name }))
       },
       async deleteContainer(c) {
-        showToast('Удаляю ' + TYPE_INFO[c.type].kind + ' ' + c.vmid + '…')
+        showToast(t('Удаляю {kind} {vmid}…', { kind: TYPE_INFO[c.type].kind, vmid: c.vmid }))
         try {
           await api('/api/machines/' + c.vmid, { method: 'DELETE' })
-          showToast('«' + c.name + '» удалён вместе с ловушками')
+          showToast(t('«{name}» удалён вместе с ловушками', { name: c.name }))
         } catch (e) {
           fail(e)
         }
         await refresh()
       },
-      async removeTrap(t) {
+      async removeTrap(tr) {
         try {
-          await api('/api/traps/' + t.id, { method: 'DELETE' })
-          showToast('Ловушка «' + t.name + '» убрана')
+          await api('/api/traps/' + tr.id, { method: 'DELETE' })
+          showToast(t('Ловушка «{name}» убрана', { name: tr.name }))
         } catch (e) {
           fail(e)
         }

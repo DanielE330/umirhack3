@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLanguage } from '../context/language.js'
 import { EVENT_HELP, HELP, STATES } from '../lib/model.js'
 
 // Знак «?» с подсказкой
@@ -7,25 +8,29 @@ export function HelpMark({ text }) {
 }
 
 export function LevelTag({ level }) {
+  const { t } = useLanguage()
   const label = level === 'low' ? 'Low' : level === 'medium' ? 'Medium' : level === 'high' ? 'High' : '—'
-  return <span className={'tag ' + level} data-tip={HELP[level] || 'Профиль не задан'}>{label}</span>
+  return <span className={'tag ' + level} data-tip={HELP[level] ? t(HELP[level]) : t('Профиль не задан')}>{label}</span>
 }
 
 export function TypeTag({ type }) {
-  return <span className={'tag t-' + type} data-tip={EVENT_HELP[type] || type}>{type}</span>
+  const { t } = useLanguage()
+  return <span className={'tag t-' + type} data-tip={EVENT_HELP[type] ? t(EVENT_HELP[type]) : type}>{type}</span>
 }
 
 export function StateBadge({ state }) {
+  const { t } = useLanguage()
   return (
-    <span className="cstate" data-tip={STATES[state].hint}>
+    <span className="cstate" data-tip={t(STATES[state].hint)}>
       <span className={'dot ' + state} />
-      <span className={'st-label ' + state}>{STATES[state].label}</span>
+      <span className={'st-label ' + state}>{t(STATES[state].label)}</span>
     </span>
   )
 }
 
 // Переключатель «Включён/Выключен»: ползунок двигается сразу, действие — после анимации
 export function Switch({ on, tip, onToggle, disabled }) {
+  const { t } = useLanguage()
   const [opt, setOpt] = useState(null) // оптимистичное значение, пока не пришёл ответ
   const timer = useRef(0)
   useEffect(() => () => clearTimeout(timer.current), [])
@@ -40,7 +45,7 @@ export function Switch({ on, tip, onToggle, disabled }) {
     <button type="button" role="switch" aria-checked={checked} data-tip={tip} disabled={disabled}
       className={'switch' + (busy ? ' busy' : '')} onClick={click}>
       <span className="track"><span className="knob" /></span>
-      <span>{checked ? 'Включён' : 'Выключен'}</span>
+      <span>{checked ? t('Включён') : t('Выключен')}</span>
     </button>
   )
 }
@@ -70,11 +75,12 @@ export function ArmedButton({ label, armLabel, onConfirm, className = 'ghost', t
 
 // Строки «ключ — значение» в карточках и окнах
 export function Kv({ rows }) {
+  const { t } = useLanguage()
   return (
     <dl className="kv">
       {rows.map(([k, v]) => (
         <div className="kv-row" key={k}>
-          <dt>{k}</dt>
+          <dt>{t(k)}</dt>
           <dd>{v === '' || v == null ? '—' : v}</dd>
         </div>
       ))}
@@ -83,9 +89,10 @@ export function Kv({ rows }) {
 }
 
 export function Field({ label, children }) {
+  const { t } = useLanguage()
   return (
     <div>
-      <label>{label}</label>
+      <label>{t(label)}</label>
       {children}
     </div>
   )

@@ -1,16 +1,18 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Select from '../../components/Select.jsx'
 import { useData } from '../../context/data.js'
+import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
 import { useModals } from '../../hooks/useModals.jsx'
 import { ORDER, STATES } from '../../lib/model.js'
-import Select from '../../components/Select.jsx'
 import ContainerCard from './ContainerCard.jsx'
 
 export default function Containers() {
   const { containers, traps, profiles, cFilter, setCFilter, trapsOf } = useData()
   const { showToast } = useUi()
   const { openNewContainer } = useModals()
+  const { t } = useLanguage()
   const navigate = useNavigate()
 
   const q = cFilter.q.trim().toLowerCase()
@@ -19,7 +21,7 @@ export default function Containers() {
       containers.filter((c) => {
         if (cFilter.status && c.state !== cFilter.status) return false
         if (!q) return true
-        return [c.name, c.host, String(c.vmid), c.type, ...trapsOf(c.name).flatMap((t) => [t.name, t.profile])].join(' ').toLowerCase().includes(q)
+        return [c.name, c.host, String(c.vmid), c.type, ...trapsOf(c.name).flatMap((tr) => [tr.name, tr.profile])].join(' ').toLowerCase().includes(q)
       }),
     [containers, cFilter.status, q, trapsOf],
   )
@@ -27,7 +29,7 @@ export default function Containers() {
 
   const add = () => {
     if (!profiles.length) {
-      showToast('Сначала создайте профиль ловушки', true)
+      showToast(t('Сначала создайте профиль ловушки'), true)
       navigate('/profiles')
       return
     }
@@ -37,24 +39,26 @@ export default function Containers() {
   return (
     <section>
       <div className="toolbar">
-        <button className="btn" data-tip="Создать в Proxmox новую машину в изолированной сети и запустить в ней ловушки" onClick={add}>+ Новый контейнер</button>
-        <input className="w-search" placeholder="Поиск по контейнерам и ловушкам…" aria-label="Поиск" value={cFilter.q}
+        <button className="btn" data-tip={t('Создать в Proxmox новую машину в изолированной сети и запустить в ней ловушки')} onClick={add}>
+          {t('+ Новый контейнер')}
+        </button>
+        <input className="w-search" placeholder={t('Поиск по контейнерам и ловушкам…')} aria-label={t('Поиск')} value={cFilter.q}
           onChange={(e) => setCFilter((f) => ({ ...f, q: e.target.value }))} />
-        <Select className="w-status" aria-label="Статус" data-tip="Показать только машины в выбранном состоянии" value={cFilter.status}
-          options={[{ value: '', label: 'Все состояния' }, ...ORDER.map((k) => ({ value: k, label: STATES[k].label }))]}
+        <Select className="w-status" aria-label={t('Статус')} data-tip={t('Показать только машины в выбранном состоянии')} value={cFilter.status}
+          options={[{ value: '', label: t('Все состояния') }, ...ORDER.map((k) => ({ value: k, label: t(STATES[k].label) }))]}
           onChange={(e) => setCFilter((f) => ({ ...f, status: e.target.value }))} />
         <span className="spacer" />
-        <span className="hint">{containers.length} машин · {traps.length} ловушек · работает: {working}</span>
+        <span className="hint">{t('{machines} машин · {traps} ловушек · работает: {working}', { machines: containers.length, traps: traps.length, working })}</span>
       </div>
       <div className="legend">
         {ORDER.map((k) => (
-          <span key={k} data-tip={STATES[k].hint}><span className={'dot ' + k} />{STATES[k].label}</span>
+          <span key={k} data-tip={t(STATES[k].hint)}><span className={'dot ' + k} />{t(STATES[k].label)}</span>
         ))}
       </div>
       <div className="cgrid">
         {list.length
           ? list.map((c) => <ContainerCard key={c.id} c={c} />)
-          : <div className="cnone">{containers.length ? 'Ничего не найдено' : 'Контейнеров пока нет — создайте первый'}</div>}
+          : <div className="cnone">{containers.length ? t('Ничего не найдено') : t('Контейнеров пока нет — создайте первый')}</div>}
       </div>
     </section>
   )
