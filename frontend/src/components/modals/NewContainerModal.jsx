@@ -9,13 +9,13 @@ import ResourceFields from './ResourceFields.jsx'
 import TrapPicker from './TrapPicker.jsx'
 
 export default function NewContainerModal() {
-  const { pickProfiles, portsOf, containerByName, ensureProfile, uniqueName, uniqueContainerName, refresh } = useData()
+  const { portsOf, containerByName, ensureProfile, uniqueName, uniqueContainerName, refresh } = useData()
   const { closeModal, showToast } = useUi()
   const { t } = useLanguage()
   const [type, setType] = useState('lxc')
   const [name, setName] = useState(() => uniqueContainerName('web-prod'))
   const [res, setRes] = useState({ ...PVE.defaults })
-  const [selected, setSelected] = useState(() => (pickProfiles[0] ? [pickProfiles[0].name] : []))
+  const [selected, setSelected] = useState([])
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
 
