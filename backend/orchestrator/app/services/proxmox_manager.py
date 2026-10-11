@@ -215,3 +215,15 @@ class ProxmoxManager:
             )
         except Exception as e:
             print(f"Ошибка при блокировке IP {ip} в фаерволе Proxmox: {e}")
+
+    def is_ip_blocked(self, ip: str) -> bool:
+        """Проверяет, заблокирован ли IP в фаерволе Proxmox."""
+        try:
+            rules = self.proxmox.cluster.firewall.rules.get()
+            return any(
+                str(r.get("source", "")).strip() == ip.strip() and str(r.get("action", "")).upper() == "DROP"
+                for r in rules
+            )
+        except Exception:
+            return False
+

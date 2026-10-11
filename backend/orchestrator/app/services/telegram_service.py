@@ -139,12 +139,28 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_i
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     proxy_url = get_proxy_url()
 
+    # Проверяем, заблокирован ли уже этот IP в Proxmox
+    is_blocked = False
+    try:
+        from app.services.proxmox_manager import ProxmoxManager
+        pm = ProxmoxManager.from_env()
+        is_blocked = pm.is_ip_blocked(attacker_ip)
+    except Exception:
+        pass
+
+    ip_status_badge = " 🛑 <i>[УЖЕ ЗАБЛОКИРОВАН В PROXMOX]</i>" if is_blocked else ""
+    block_button = (
+        {"text": "🛡️ IP уже в бане Proxmox", "callback_data": f"noop_{attacker_ip}"}
+        if is_blocked
+        else {"text": "❌ Заблокировать IP", "callback_data": f"block_{attacker_ip}"}
+    )
+
     # Форматируем детали
     details = html.escape(json.dumps(properties, indent=2, ensure_ascii=False))
     message = (
         f"🚨 <b>НОВАЯ АТАКА В HONEYFORGE!</b>\n\n"
         f"<b>Тип события:</b> {html.escape(event_name)}\n"
-        f"<b>IP хакера:</b> {html.escape(attacker_ip)}\n\n"
+        f"<b>IP хакера:</b> <code>{html.escape(attacker_ip)}</code>{ip_status_badge}\n\n"
         f"<b>Детали (Payload):</b>\n<pre>{details}</pre>"
     )
 
@@ -156,7 +172,7 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_i
             "reply_markup": {
                 "inline_keyboard": [
                     [
-                        {"text": "❌ Заблокировать IP", "callback_data": f"block_{attacker_ip}"},
+                        block_button,
                         {"text": "🗑️ Скрыть", "callback_data": "ignore"},
                     ]
                 ]
@@ -410,6 +426,20 @@ async def _handle_telegram_update(tg_client: httpx.AsyncClient, base_tg: str, up
                         "reply_markup": {"inline_keyboard": []},
                     },
                 )
+
+        # Клик по уже заблокированному IP
+        elif cb_data.startswith("noop_"):
+            ip_val = cb_data.split("_")[1]
+            await _tg_post(
+                tg_client,
+                base_tg,
+                "answerCallbackQuery",
+                {
+                    "callback_query_id": cb_id,
+                    "text": f"🛡️ IP {ip_val} уже заблокирован в фаерволе Proxmox!",
+                    "show_alert": True,
+                },
+            )
 
 
 async def _run_polling_session() -> bool:
