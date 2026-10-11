@@ -513,6 +513,8 @@ const en = {
   'Код из Telegram': 'Code from Telegram',
   'Отправить код ещё раз': 'Send the code again',
   'Пароль изменён. Войдите с новым паролем и кодом 2FA.': 'Password changed. Sign in with the new password and your 2FA code.',
+  'Показать пароль': 'Show password',
+  'Скрыть пароль': 'Hide password',
 }
 
 export default en

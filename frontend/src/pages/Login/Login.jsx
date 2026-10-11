@@ -1,8 +1,26 @@
 import { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../../context/auth.js'
 import { useLanguage } from '../../context/language.js'
 import { api } from '../../lib/api.js'
+
+// Поле пароля с кнопкой «показать/скрыть»: проверить, что набрано, до отправки
+function PasswordField({ id, ...props }) {
+  const { t } = useLanguage()
+  const [shown, setShown] = useState(false)
+  const Icon = shown ? EyeOff : Eye
+  return (
+    <div className="pw">
+      <input id={id} type={shown ? 'text' : 'password'} spellCheck="false" autoCapitalize="none" {...props} />
+      <button type="button" className="pw-toggle" aria-controls={id} aria-pressed={shown}
+        aria-label={shown ? t('Скрыть пароль') : t('Показать пароль')} title={shown ? t('Скрыть пароль') : t('Показать пароль')}
+        onClick={() => setShown((v) => !v)}>
+        <Icon size={18} strokeWidth={1.6} aria-hidden="true" />
+      </button>
+    </div>
+  )
+}
 
 // Вход: логин/пароль → (первый вход) настройка 2FA и резервные коды → код подтверждения
 export default function Login() {
@@ -92,7 +110,7 @@ export default function Login() {
               <label htmlFor="u">{t('Пользователь')}</label>
               <input id="u" autoComplete="username" autoCapitalize="none" spellCheck="false" required autoFocus value={user} onChange={(e) => setUser(e.target.value)} />
               <label htmlFor="p">{t('Пароль')}</label>
-              <input id="p" type="password" autoComplete="current-password" required value={pass} onChange={(e) => setPass(e.target.value)} />
+              <PasswordField id="p" autoComplete="current-password" required value={pass} onChange={(e) => setPass(e.target.value)} />
               <button className="btn wide" disabled={busy}>{t('Войти')}</button>
               <button type="button" className="linkbtn" onClick={() => go('forgot')}>{t('Забыли пароль?')}</button>
             </form>
@@ -113,9 +131,9 @@ export default function Login() {
               <label htmlFor="rc">{t('Код из Telegram')}</label>
               <input id="rc" className="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="000000" required autoFocus value={reset.code} onChange={setR('code')} />
               <label htmlFor="rp">{t('Новый пароль')}</label>
-              <input id="rp" type="password" autoComplete="new-password" required minLength={12} maxLength={128} value={reset.pass} onChange={setR('pass')} />
+              <PasswordField id="rp" autoComplete="new-password" required minLength={12} maxLength={128} value={reset.pass} onChange={setR('pass')} />
               <label htmlFor="rp2">{t('Повторите новый пароль')}</label>
-              <input id="rp2" type="password" autoComplete="new-password" required value={reset.repeat} onChange={setR('repeat')} />
+              <PasswordField id="rp2" autoComplete="new-password" required value={reset.repeat} onChange={setR('repeat')} />
               <button className="btn wide" disabled={busy}>{t('Сменить пароль')}</button>
               <button type="button" className="ghost wide" onClick={() => go('forgot')}>{t('Отправить код ещё раз')}</button>
             </form>
