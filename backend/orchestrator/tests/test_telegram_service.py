@@ -74,3 +74,81 @@ def test_send_alert_noop_without_token(monkeypatch):
 
     assert _FakeAsyncClient.sent == []
 
+
+def test_bind_user_by_code_success(monkeypatch):
+    class Resp:
+        status_code = 200
+        def json(self):
+            return {"ok": True, "username": "admin", "role": "admin"}
+
+    class Client:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def post(self, url, json=None, headers=None):
+            assert "telegram/bind" in url
+            assert json["code"] == "HF-123456"
+            assert json["chat_id"] == "999"
+            return Resp()
+
+    monkeypatch.setattr(ts.httpx, "AsyncClient", Client)
+    ok, info = asyncio.run(ts.bind_user_by_code("hf-123456", 999, "operator_tg"))
+    assert ok is True
+    assert "admin" in info
+
+
+def test_bind_user_by_code_failure(monkeypatch):
+    class Resp:
+        status_code = 400
+        def json(self):
+            return {"detail": "Код не найден или истёк"}
+
+    class Client:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def post(self, url, json=None, headers=None):
+            return Resp()
+
+    monkeypatch.setattr(ts.httpx, "AsyncClient", Client)
+    ok, info = asyncio.run(ts.bind_user_by_code("HF-000000", 999))
+    assert ok is False
+    assert "Код не найден" in info
+
+
+def test_check_user_auth(monkeypatch):
+    class Resp:
+        status_code = 200
+        def json(self):
+            return {"authenticated": True, "username": "soc_lead", "role": "admin"}
+
+    class Client:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def post(self, url, json=None, headers=None):
+            assert "check-auth" in url
+            return Resp()
+
+    monkeypatch.setattr(ts.httpx, "AsyncClient", Client)
+    res = asyncio.run(ts.check_user_auth(777))
+    assert res["authenticated"] is True
+    assert res["username"] == "soc_lead"
+
+
+def test_unbind_user(monkeypatch):
+    class Resp:
+        status_code = 200
+
+    class Client:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def post(self, url, json=None, headers=None):
+            assert "telegram/unbind" in url
+            return Resp()
+
+    monkeypatch.setattr(ts.httpx, "AsyncClient", Client)
+    assert asyncio.run(ts.unbind_user(777)) is True
+
+
