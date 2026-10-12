@@ -47,7 +47,8 @@ class TelegramUnbindIn(BaseModel):
 @router.post("/telegram/login", dependencies=[Depends(require_internal_token)])
 def login_telegram(body: TelegramLoginIn, db: Session = Depends(get_db)):
     """Прямая авторизация оператора через Telegram по логину и паролю."""
-    user = db.scalar(select(User).where(User.username == body.username, User.is_active == True))
+    clean_username = body.username.strip().lower()
+    user = db.scalar(select(User).where(User.username == clean_username, User.is_active == True))
     if not user or not security.verify_password(body.password, user.password_hash):
         raise HTTPException(401, "Неверный логин или пароль")
 
