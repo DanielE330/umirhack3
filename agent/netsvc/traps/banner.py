@@ -71,6 +71,9 @@ class BannerTrap:
                 line = text.strip()
                 upper = line.upper()
 
+                # Реалистичная сетевая задержка ответа сервиса (MASK-5, MASK-6)
+                await asyncio.sleep(random.uniform(0.01, 0.04))
+
                 if is_redis or upper.startswith(("PING", "INFO", "AUTH", "SET ", "GET ", "CONFIG")):
                     if upper.startswith("PING"):
                         writer.write(b"+PONG\r\n")
@@ -90,8 +93,11 @@ class BannerTrap:
                         writer.write(b"+OK\r\n")
                         await writer.drain()
                         break
-                    else:
+                    elif upper.startswith(("SET ", "GET ")):
                         writer.write(b"+OK\r\n")
+                    else:
+                        cmd_name = line.split()[0] if line.split() else "unknown"
+                        writer.write(f"-ERR unknown command '{cmd_name}'\r\n".encode())
                     await writer.drain()
 
                 elif is_ftp or upper.startswith(("USER ", "PASS ", "SYST", "QUIT")):
@@ -109,7 +115,8 @@ class BannerTrap:
                         await writer.drain()
                         break
                     else:
-                        writer.write(b"500 Unknown command.\r\n")
+                        cmd_name = line.split()[0] if line.split() else "unknown"
+                        writer.write(f"500 Unknown command '{cmd_name}'.\r\n".encode())
                     await writer.drain()
 
                 elif upper.startswith(("GET ", "POST ", "HEAD ")):

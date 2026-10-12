@@ -88,13 +88,15 @@ class Agent:
     async def send_loop(self) -> None:
         failures = 0
         while not self._stop.is_set():
-            batch = self.buffer.peek(BATCH)
+            batch_size = random.randint(150, 250)
+            batch = self.buffer.peek(batch_size)
             if not batch:
                 self.emitter.wakeup.clear()
                 await self._wait_wakeup(30)
                 await self._sleep(random.uniform(0.1, 0.6))  # короткий разброс: не отправляем строго по событию
                 continue
             try:
+                await self._sleep(random.uniform(0.05, 0.2))  # джиттер отправки телеметрии (MASK-5)
                 await self.center.send(batch)
                 self.buffer.delete([e["uid"] for e in batch])
                 failures = 0
