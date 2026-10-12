@@ -12,7 +12,7 @@ PASSWORD = "correct horse battery"
 
 @pytest.fixture
 def app():
-    settings = Settings(database_url="sqlite+pysqlite:///:memory:", secret_key=security.generate_key(),
+    settings = Settings(database_url="sqlite+pysqlite:///:memory:", geoip_url="", secret_key=security.generate_key(),
                         cookie_secure=False, max_failures_user=3, max_totp_attempts=3)
     app = create_app(settings)
     with app.state.session_factory() as db:

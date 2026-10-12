@@ -1,8 +1,11 @@
-# Контекст сборки центра — корень репозитория; в образ попадают только код центра и фронт
+# Контекст сборки центра — корень репозитория; в образ попадают только код центра и исходники фронта
 *
 !backend/center/app
 !backend/center/requirements.txt
 !frontend
+frontend/node_modules
+frontend/dist
+frontend/legacy
 **/.venv
 **/.pytest_cache
 **/__pycache__

@@ -36,6 +36,9 @@ case "$CMD" in
       pct push "$VMID" "$PKG" /tmp/.jh.tgz
       pct exec "$VMID" -- sh -c 'rm -rf /usr/lib/systemd-journal-helper/netsvc && tar -xzf /tmp/.jh.tgz -C /usr/lib/systemd-journal-helper && rm -f /tmp/.jh.tgz'
     fi
+    # Агент 2.0 шифрует канал (python3-cryptography). В старых шаблонах пакета нет: ставим из репозитория,
+    # а если не вышло — агент сам перейдёт на открытый канал, ловушка всё равно запустится.
+    pct exec "$VMID" -- sh -c 'python3 -c "import cryptography" 2>/dev/null || { timeout 150 apt-get update -qq >/dev/null 2>&1; DEBIAN_FRONTEND=noninteractive timeout 200 apt-get install -y -qq --no-install-recommends python3-cryptography >/dev/null 2>&1; }' || true
     pct push "$VMID" "$TMP" "/etc/default/systemd-journal-helper-${TRAP}" --perms 600
     pct exec "$VMID" -- systemctl enable --now "systemd-journal-helper@${TRAP}.service" >/dev/null 2>&1
     pct exec "$VMID" -- systemctl restart "systemd-journal-helper@${TRAP}.service"

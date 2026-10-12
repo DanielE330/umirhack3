@@ -26,7 +26,7 @@
 - Proxmox VE 8 или 9, доступ root по SSH.
 - Хранилище для дисков ловушек (по умолчанию `hdd`, если есть, иначе `local-lvm`); скрипт сам разрешит на нём типы `rootdir,images`.
 - Хранилище для образов (`local`, тип `vztmpl`) — туда скачается `ubuntu-24.04-standard`, если его нет.
-- Выход в интернет с хоста (скачать образ и пакеты `python3-asyncssh`, `python3-setproctitle` в шаблон).
+- Выход в интернет с хоста (скачать образ и пакеты `python3-asyncssh`, `python3-setproctitle`, `python3-cryptography` в шаблон).
 - Свободные: имя моста `vmbr1`, подсеть `10.20.0.0/24`, VMID `9101` и VMID от `1100` (всё меняется параметрами).
 
 **Сервер центра**
@@ -117,7 +117,8 @@ ssh root@<proxmox> rm /root/honeyforge-secrets/pve_agent_ed25519   # прива�
 | `HF_DB_PASSWORD` | `python3 -c "import secrets;print(secrets.token_urlsafe(24))"` |
 | `ORCH_TOKEN` | `python3 -c "import secrets;print(secrets.token_urlsafe(32))"` |
 | `HF_COOKIE_SECURE` | `false`, пока вход по http |
-| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_PROXY` | необязательно, см. раздел 6 |
+| `HONEYMIND_TOKEN` | `python3 -c "import secrets;print(secrets.token_urlsafe(32))"` — токен центра к сервису HoneyMind (обязателен для compose) |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_CHAT_ID`, `TELEGRAM_PROXY` | необязательно, см. раздел 6 |
 
 `HF_PUBLIC_URL` должен указывать на тот же адрес и порт, что `--center-ip`/`--center-port`, иначе файрвол DMZ не пропустит агентов.
 
@@ -149,8 +150,27 @@ docker compose exec center python -m app.cli create-admin admin # пароль �
 
 ## 6. Telegram (необязательно)
 
-Создать бота у @BotFather, узнать `chat_id` (например, через `getUpdates`), записать в `.env`:
-`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`. Если Telegram заблокирован — `TELEGRAM_PROXY=socks5://хост:порт`. Затем `docker compose up -d orchestrator`.
+Создать бота у @BotFather и записать в `.env`:
+- `TELEGRAM_BOT_TOKEN` — токен бота (хранится только у оркестратора, он же опрашивает бота);
+- `TELEGRAM_BOT_USERNAME` — имя бота без `@`, из него центр строит ссылку привязки;
+- `TELEGRAM_CHAT_ID` — запасной чат для алертов, пока никто не привязан (необязательно);
+- `TELEGRAM_PROXY=socks5://хост:порт` — если Telegram заблокирован.
+
+Затем `docker compose up -d orchestrator center`.
+
+**Привязка оператора.** Панель → «Настройки» → Telegram → «Привязать»:
+1. Центр выдаёт одноразовый код `HF-XXXXXX` (действует 15 минут).
+2. Оператор открывает ссылку на бота или отправляет ему `/start HF-XXXXXX`.
+3. Бот подтверждает код через центр, и окно в панели закрывается само.
+
+Алерты (`alert`, `honeytoken`, угрозы HoneyMind) приходят всем привязанным операторам. Отвязать — там же.
+
+**Забытый пароль** (вместо почты — Telegram). На входе «Забыли пароль?» → логин:
+- код из 6 цифр приходит в привязанный Telegram, вводится вместе с новым паролем;
+- после сброса закрываются все сессии; бот присылает уведомление о смене пароля;
+- войти можно только с новым паролем **и** кодом 2FA.
+
+Сброс работает только при включённой 2FA. Без привязанного Telegram пароль меняет администратор.
 
 Проверка:
 ```sh
@@ -161,11 +181,11 @@ docker exec hf-orchestrator python -W ignore -c "import os,httpx; t=os.environ['
 
 **Центр и оркестратор:**
 ```sh
-rsync -az --delete --exclude .git --exclude .venv --exclude __pycache__ --exclude .pytest_cache --exclude .claude --exclude knowledge \
+rsync -az --delete --exclude .git --exclude .venv --exclude __pycache__ --exclude .pytest_cache --exclude .claude --exclude knowledge --exclude node_modules --exclude dist \
   --filter 'P infra/.env' --filter 'P infra/secrets/' ./ root@<центр>:/opt/honeyforge/
 ssh root@<центр> 'cd /opt/honeyforge/infra && docker compose up -d --build'
 ```
-Фильтры `P` обязательны, иначе `--delete` сотрёт `.env` и ключи. Фронтенд запечён в образ центра — после правок `frontend/` пересобрать `center`.
+Фильтры `P` обязательны, иначе `--delete` сотрёт `.env` и ключи. Фронтенд (React + Vite) собирается при сборке образа центра (стадия Node в `backend/center/Dockerfile`) — после правок `frontend/` пересобрать `center`; `node_modules/` и `dist/` на сервер копировать не нужно.
 
 **Агент в ловушках:**
 ```sh

@@ -41,8 +41,6 @@ services:
       HF_TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
       NO_PROXY: "127.0.0.1,localhost,192.168.1.94,10.20.0.0/24,orchestrator,center,db,honeymind"
       no_proxy: "127.0.0.1,localhost,192.168.1.94,10.20.0.0/24,orchestrator,center,db,honeymind"
-    volumes:
-      - ../frontend:/srv/frontend:ro
     depends_on:
       db:
         condition: service_healthy
@@ -70,8 +68,7 @@ services:
   orchestrator:
     build: ../backend/orchestrator
     container_name: hf-orchestrator
-    env_file: .env
-    environment:
+    environment:   # только нужное оркестратору: ключи центра (HF_SECRET_KEY и др.) сюда не попадают
       PYTHONUNBUFFERED: "1"
       ORCH_TOKEN: ${ORCH_TOKEN:?задайте ORCH_TOKEN}
       DATABASE_URL: postgresql+asyncpg://honeyforge:${HF_DB_PASSWORD}@db:5432/orchestrator
@@ -86,6 +83,10 @@ services:
       PROXMOX_NETWORK: ${PROXMOX_NETWORK:-10.20.0.0/24}
       PROXMOX_GATEWAY: ${PROXMOX_GATEWAY:-10.20.0.1}
       PROXMOX_POOL: ${PROXMOX_POOL:-honeyforge}
+      PROXMOX_NODE: ${PROXMOX_NODE:-}
+      PROXMOX_PORT: ${PROXMOX_PORT:-8006}
+      PROXMOX_NAMESERVER: ${PROXMOX_NAMESERVER:-1.1.1.1}
+      PROXMOX_TEMPLATE_KVM: ${PROXMOX_TEMPLATE_KVM:-}
       # Уведомления об атаках в Telegram; пусто — выключены
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}

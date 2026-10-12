@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, LargeBinary, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -149,6 +149,19 @@ class Event(Base):
     trap: Mapped[Trap] = relationship()
 
 
+class TrapIdea(Base):
+    """Идея нового типа ловушки от оператора (настройки панели → «Предложить идею ловушки»)."""
+
+    __tablename__ = "trap_ideas"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    author: Mapped[str] = mapped_column(String(64))
+    title: Mapped[str] = mapped_column(String(120))
+    description: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(16), default="new")  # new | accepted | rejected | done
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+
+
 class SessionAssessment(Base):
     """Итог оценки сессии атакующего через HoneyMind /session («человек или бот»)."""
 
@@ -179,3 +192,51 @@ class EventLabel(Base):
     label: Mapped[str] = mapped_column(String(64))
     operator: Mapped[str] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class PasswordReset(Base):
+    """Одноразовый код сброса пароля, отправленный в привязанный Telegram. Хранится только HMAC кода."""
+
+    __tablename__ = "password_resets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    code_hash: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class IpInfo(Base):
+    """Кэш геолокации и ASN источника атаки (app/geo.py). Одна запись на IP, обновляется раз в неделю."""
+
+    __tablename__ = "ip_info"
+
+    ip: Mapped[str] = mapped_column(String(64), primary_key=True)
+    country_code: Mapped[str] = mapped_column(String(8), default="")
+    country: Mapped[str] = mapped_column(String(80), default="")
+    city: Mapped[str] = mapped_column(String(120), default="")
+    asn: Mapped[str] = mapped_column(String(24), default="")       # AS15169
+    org: Mapped[str] = mapped_column(String(200), default="")
+    lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    lon: Mapped[float | None] = mapped_column(Float, nullable=True)
+    fetched_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class Artifact(Base):
+    """Файл, который атакующий загрузил или скачал на ловушку: хэш + содержимое (до MAX_ARTIFACT_BYTES)."""
+
+    __tablename__ = "artifacts"
+
+    sha256: Mapped[str] = mapped_column(String(64), primary_key=True)
+    size: Mapped[int] = mapped_column(Integer, default=0)
+    name: Mapped[str] = mapped_column(String(255), default="")
+    kind: Mapped[str] = mapped_column(String(24), default="")      # upload | download | write
+    first_trap_id: Mapped[int | None] = mapped_column(ForeignKey("traps.id", ondelete="SET NULL"), nullable=True)
+    src_ip: Mapped[str] = mapped_column(String(64), default="")
+    url: Mapped[str] = mapped_column(String(500), default="")
+    seen_count: Mapped[int] = mapped_column(Integer, default=1)
+    first_seen: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    last_seen: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    content: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)

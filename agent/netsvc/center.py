@@ -10,7 +10,10 @@ import string
 import urllib.error
 import urllib.request
 
-from .crypto import decrypt_payload, derive_payload_key, encrypt_payload
+try:
+    from .crypto import decrypt_payload, derive_payload_key, encrypt_payload
+except ImportError:  # нет python3-cryptography (старый шаблон): работаем открытым каналом, а не падаем
+    decrypt_payload = derive_payload_key = encrypt_payload = None
 
 VERSION = "2.0"
 USER_AGENTS = (
@@ -29,8 +32,8 @@ class CenterClient:
         self.token = token
         self.timeout = timeout
         self.ua = random.choice(USER_AGENTS)  # один UA на запуск: постоянный «браузер», а не шумящий каждый раз
-        self.encrypt = encrypt and (os.environ.get("HF_ENCRYPT_PAYLOAD", "1") != "0")
-        self.key = derive_payload_key(token) if token else None
+        self.encrypt = encrypt and derive_payload_key is not None and (os.environ.get("HF_ENCRYPT_PAYLOAD", "1") != "0")
+        self.key = derive_payload_key(token) if (token and derive_payload_key) else None
         if insecure:  # только для демо со самоподписанным сертификатом; в проде задаётся HF_CA_FILE
             ctx = ssl.create_default_context()
             ctx.check_hostname, ctx.verify_mode = False, ssl.CERT_NONE
@@ -46,7 +49,7 @@ class CenterClient:
             data = json.dumps(body).encode()
         req = urllib.request.Request(self.base + path, data=data, method=method, headers={
             "Authorization": f"Bearer {self.token}", "User-Agent": self.ua, "Accept": "application/json",
-            "Accept-Encoding-Custom": "enc", "Accept-Language": "en-US,en;q=0.9",
+            **({"Accept-Encoding-Custom": "enc"} if self.key else {}), "Accept-Language": "en-US,en;q=0.9",
             **({"Content-Type": "application/json"} if data else {})})
         try:
             with urllib.request.urlopen(req, timeout=self.timeout, context=self.ctx) as resp:
@@ -55,7 +58,7 @@ class CenterClient:
             raise CenterError(str(exc)) from exc
 
     async def manifest(self) -> dict:
-        resp = await asyncio.to_thread(self._request, "GET", f"/assets/v1/manifest.json?v={VERSION}")
+        resp = await asyncio.to_thread(self._request, "GET", f"/assets/v1/manifest.json?v={VERSION if self.key else '1.0'}")
         if isinstance(resp, dict) and "enc" in resp and self.key:
             return decrypt_payload(resp, self.key)
         return resp

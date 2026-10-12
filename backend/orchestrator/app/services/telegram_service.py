@@ -112,6 +112,23 @@ async def unbind_user(chat_id: str | int) -> bool:
         return False
 
 
+async def send_message(chat_id: str, text: str) -> bool:
+    """Личное сообщение одному оператору (код сброса пароля и т.п.). Обычный текст: без parse_mode — без HTML-инъекций."""
+    if not TELEGRAM_BOT_TOKEN:
+        return False
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    try:
+        async with httpx.AsyncClient(proxy=get_proxy_url(), timeout=10.0) as client:
+            response = await client.post(url, json={"chat_id": chat_id, "text": text})
+    except Exception as e:
+        print(f"❌ Ошибка соединения с Telegram при отправке на {chat_id}: {e}")
+        return False
+    if response.status_code != 200:
+        print(f"❌ Ошибка Telegram (chat_id={chat_id}, код {response.status_code}): {response.text}")
+        return False
+    return True
+
+
 SOC_MAIN_KEYBOARD = {
     "keyboard": [
         [{"text": "📊 Статистика SOC"}, {"text": "🛡️ Чёрный список IP"}],

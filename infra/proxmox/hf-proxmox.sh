@@ -346,8 +346,8 @@ install_template() {
 
   local apt=(env DEBIAN_FRONTEND=noninteractive apt-get -q -o Dpkg::Use-Pty=0)
   pct exec "$TEMPLATE_ID" -- "${apt[@]}" update >/dev/null
-  pct exec "$TEMPLATE_ID" -- "${apt[@]}" install -y --no-install-recommends python3 python3-asyncssh python3-setproctitle >/dev/null
-  ok "python3-asyncssh, python3-setproctitle"
+  pct exec "$TEMPLATE_ID" -- "${apt[@]}" install -y --no-install-recommends python3 python3-asyncssh python3-setproctitle python3-cryptography >/dev/null
+  ok "python3-asyncssh, python3-setproctitle, python3-cryptography"
 
   # Агент: код + юнит-экземпляр на каждую ловушку (окружение кладёт hf-agent-ctl)
   local unit; unit=$(mktemp)

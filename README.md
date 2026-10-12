@@ -37,9 +37,9 @@ backend/
   center/         центр управления: FastAPI-приложение (app/), тесты, Dockerfile, отдельный compose центра
   orchestrator/   сервис управления машинами в Proxmox: FastAPI (app/), Dockerfile, dev-compose, скрипты БД
 agent/            агент ловушки: пакет netsvc (low/medium-сервисы, буфер, канал в центр) и тесты
-frontend/         веб-интерфейс (статические HTML/JS/CSS), его отдаёт центр по / и /static/*
+frontend/         веб-интерфейс (React + Vite, исходники в src/, сборка в dist/), центр отдаёт сборку по / и /static/*; legacy/ — прежняя панель
 infra/            весь стек: docker-compose.yml, Caddyfile, .env.example, initdb/ (SQL первого запуска)
-docs/             инструкция по установке (INSTALL.md), условие кейса (pdf), планы, ресёрч, задачи (tasks/)
+docs/             инструкция по установке (INSTALL.md), схема БД (DB.md), сценарий демо (DEMO.md), условие кейса (pdf), планы, ресёрч, задачи (tasks/)
 ```
 
 ## Сервисы
@@ -48,7 +48,7 @@ docs/             инструкция по установке (INSTALL.md), у�
 |---|---|---|---|
 | proxy | единый вход, маршрутизация на center/orchestrator | 4000 (наружу) | Caddy 2 |
 | center (`backend/center`) | вход с 2FA, профили, ловушки, события, алерты, IoC, канал агентов, прокси к оркестратору | 4000 (внутри сети) | Python 3.12, FastAPI, SQLAlchemy, psycopg, pyotp, cryptography |
-| frontend (`frontend/`) | веб-интерфейс оператора (вход, панель) | отдаётся центром | HTML, JS, CSS без сборки |
+| frontend (`frontend/`) | веб-интерфейс оператора (вход, панель, настройки, ru/en) | отдаётся центром | React 19, Vite, React Router; собирается в образе центра |
 | orchestrator (`backend/orchestrator`) | создание/управление LXC/KVM-ловушками в Proxmox, статистика, приём телеметрии `/api/v1/analytics/track` | 4000 (внутри сети) | Python 3.11, FastAPI, SQLAlchemy async, asyncpg, proxmoxer, docker SDK |
 | db | PostgreSQL центра и оркестратора | 5432 (внутри сети) | PostgreSQL 17 |
 | agent (`agent/`) | сервисы-приманки на хосте, отправка событий | порты из профиля | Python 3, asyncio, asyncssh, setproctitle |
@@ -88,7 +88,7 @@ export $(.venv/bin/python -m app.cli gen-key)
 .venv/bin/uvicorn app.main:create_app --factory --port 4100
 ```
 
-Веб-интерфейс берётся из `frontend/` в корне репозитория (переопределяется `HF_STATIC_DIR`). Без оркестратора раздел машин отвечает 503.
+Веб-интерфейс — сборка `frontend/dist` (переопределяется `HF_STATIC_DIR`), перед запуском центра её нужно собрать: `cd frontend && npm ci && npm run build`. Для разработки фронта — `npm run dev` (Vite проксирует `/api` на центр, адрес — `VITE_API_TARGET`, по умолчанию `http://localhost:4000`) или `npm run dev:demo` без центра. Без оркестратора раздел машин отвечает 503.
 Отдельный compose центра с PostgreSQL: `backend/center/docker-compose.yml` (`.env` рядом, см. `backend/center/.env.example`).
 
 ### Хост Proxmox
@@ -150,9 +150,13 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `HF_MAX_BODY_BYTES` | `1000000` | максимальный размер тела `/assets/v1/log` |
 | `HF_TRUSTED_PROXIES` | `127.0.0.1,::1` | адреса, от которых доверяется `X-Forwarded-For` (в infra — `172.31.40.10`, Caddy) |
 | `HF_DOCS_ENABLED` | `false` | включает `/docs` и `/openapi.json` центра |
-| `HF_STATIC_DIR` | пусто → ищется `frontend/` вверх от кода (в образе `/srv/frontend`) | папка веб-интерфейса |
+| `HF_STATIC_DIR` | пусто → ищется `frontend/dist` вверх от кода (в образе `/srv/frontend`); исходный `index.html` Vite не отдаётся | папка собранного веб-интерфейса |
+| `HF_GEOIP_URL` | `http://ip-api.com/batch` | сервис геолокации и ASN источников атак (пусто — выключено; частные адреса не определяются) |
+| `HF_MAX_ARTIFACT_BYTES` | `65536` | сколько байт пойманного файла хранить (SHA-256 считается по всему файлу) |
 | `HF_ORCHESTRATOR_URL` | пусто | адрес оркестратора (в infra `http://orchestrator:4000`) |
 | `HF_ORCHESTRATOR_TOKEN` | пусто | межсервисный токен (в infra = `ORCH_TOKEN`) |
+| `HF_TELEGRAM_BOT_USERNAME` | пусто | имя бота для ссылки привязки `t.me/<бот>?start=<код>` (в infra — `TELEGRAM_BOT_USERNAME`) |
+| `HF_RESET_CODE_MINUTES`, `HF_RESET_MAX_PER_HOUR`, `HF_RESET_MAX_ATTEMPTS` | `10`, `3`, `5` | сброс пароля через Telegram: срок кода, кодов в час, попыток на код |
 
 Только в compose (`infra/docker-compose.yml`): `HF_DB_PASSWORD` — пароль пользователя `honeyforge` в PostgreSQL.
 
@@ -207,6 +211,12 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `POST /api/auth/login` | пароль → `next: 2fa_setup / 2fa_verify` | нет (блокировки по логину и IP) |
 | `POST /api/auth/2fa/setup`, `/2fa/enable`, `/2fa/verify` | настройка и ввод TOTP, резервные коды | промежуточная сессия |
 | `GET /api/auth/me`, `POST /api/auth/logout` | текущий пользователь (+ CSRF-токен), выход | сессия + CSRF |
+| `POST /api/auth/password` | смена своего пароля (`current_password`, `new_password`), остальные сессии закрываются | сессия + CSRF |
+| `POST /api/auth/me/telegram/code`, `DELETE /api/auth/me/telegram` | одноразовый код `HF-XXXXXX` и ссылка `t.me/<бот>?start=<код>` для привязки Telegram; отвязка | сессия + CSRF |
+| `POST /api/auth/reset/request`, `POST /api/auth/reset/confirm` | забытый пароль: код из 6 цифр приходит в привязанный Telegram (10 мин, 5 попыток, 3 кода в час; только при включённой 2FA), после сброса все сессии закрываются, вход — снова с 2FA | нет (блокировки по логину и IP; ответ одинаковый для любых логинов) |
+| `POST /api/internal/telegram/bind`, `check-auth`, `unbind`, `GET …/subscribers` | бот оркестратора: привязка по коду, права, рассылка алертов | межсервисный токен |
+| `GET/POST /api/ideas` | идеи новых типов ловушек (вкладка «Настройки») | сессия + CSRF |
+| `PATCH/DELETE /api/ideas/{id}` | статус идеи `new`/`accepted`/`rejected`/`done`, удаление | admin + CSRF |
 | `GET/POST /api/users`, `PATCH /api/users/{id}`, `POST /api/users/{id}/reset-2fa` | пользователи | admin + CSRF |
 | `GET /api/profiles`, `GET /api/profiles/{id}` | профили ловушек | сессия |
 | `POST/PUT/DELETE /api/profiles[/{id}]` | CRUD профилей | оператор + CSRF |
@@ -219,7 +229,9 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `POST /api/machines`, `POST /api/machines/{vmid}/{action}`, `PUT/DELETE /api/machines/{vmid}` | создание, start/shutdown/reboot/stop, ресурсы, удаление (через оркестратор) | оператор + CSRF |
 | `GET /api/events` | события с фильтрами trap_id, type, src_ip, since, until, q | сессия |
 | `GET /api/events/export.csv` | выгрузка событий в CSV | сессия |
-| `GET /api/stats` | сводка для панели | сессия |
+| `GET /api/stats` | сводка для панели (включая топ стран и ASN) | сессия |
+| `GET /api/artifacts`, `GET /api/artifacts/{sha256}/download` | файлы, пойманные на ловушках (SFTP-загрузки, записи в консоли): список с хэшами, скачивание содержимого | сессия / оператор |
+| `GET /api/audit` | журнал аудита действий операторов, фильтры actor, action, since | admin |
 | `GET /api/iocs.csv`, `GET /api/iocs.stix.json` | IoC в CSV и STIX | сессия |
 | `WS /api/ws/events` | поток новых событий | cookie полной сессии, Origin = Host |
 | `GET /api/health` | проверка живости | нет |
@@ -233,6 +245,7 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | `GET/POST /api/v1/machines/`, `POST /api/v1/machines/{vmid}/{action}`, `PUT/DELETE /api/v1/machines/{vmid}` | машины Proxmox с тегом `honeyforge` | межсервисный токен |
 | `POST /api/v1/machines/{vmid}/agents`, `DELETE /api/v1/machines/{vmid}/agents/{trap_id}` | включить/выключить агента ловушки в машине (пока машина создаётся — в очередь) | межсервисный токен |
 | `POST /api/v1/notify/` | отправить алерт центра в Telegram | межсервисный токен |
+| `POST /api/v1/notify/direct` | личное сообщение одному `chat_id` обычным текстом (код сброса пароля) | межсервисный токен |
 | `GET /api/v1/events/` | лента событий из своей БД | нет |
 | `GET/POST /api/v1/traps/`, `POST /api/v1/traps/proxmox`, `DELETE /api/v1/traps/{container_id}`, `POST /api/v1/traps/{container_id}/stop` | docker-ловушки (нужен Docker-сокет, в infra не смонтирован) и создание в Proxmox | межсервисный токен |
 | `GET /api/v1/stats/` | статистика по своей БД | нет |
@@ -277,7 +290,7 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | MASK-3 разделение интерфейсов | сделано: DMZ `vmbr1` с файрволом — из ловушки доступен только канал агента к центру | `infra/proxmox/hf-dmz-fw.sh`, `proxmox_manager.py` |
 | MASK-4 скрытность агента | сделано | `agent/netsvc/__main__.py` |
 | MASK-5 джиттер и рандомизация | сделано | `agent/netsvc/core.py`, `center.py` |
-| MASK-6 анти-фингерпринтинг | частично: реалистичные баннеры SSH/HTTP, 404 как у Apache, правдоподобные ФС/`uname`/`ps` | `traps/ssh.py`, `traps/http.py` |
+| MASK-6 анти-фингерпринтинг | сделано: баннер OpenSSH по версии ОС, три ключа хоста и порядок алгоритмов как у OpenSSH, MOTD Ubuntu; HTTP — Date/Keep-Alive/Vary, страницы ошибок Apache (403/404/405/501), HEAD; консоль — bash-эмуляция с цепочками, пайпами, переменными, общей изменяемой ФС и согласованными `ps`/`ss`/`uname`/`/proc` | `traps/ssh.py`, `traps/shell.py`, `traps/http.py` |
 | MASK-7 mTLS, pinning, ротация | частично: свой CA (`HF_CA_FILE`), перевыпуск токена при deploy; mTLS нет | `center.py`, `routers/traps.py` |
 
 ## Безопасность и сеть
@@ -292,13 +305,19 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 - Секреты (`HF_SECRET_KEY`, `HF_DB_PASSWORD`, `ORCH_TOKEN`, `PROXMOX_*`) только в `.env`, файл в `.gitignore`. Токены ловушек хранятся в БД в виде хэша. TOTP-секреты зашифрованы Fernet.
 - Ответы центра: `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, CSP для страниц, `Cache-Control: no-store` для API.
 
+## Схема БД и демо
+
+ER-диаграмма и поток данных — `docs/DB.md`, пошаговый сценарий «атака → событие в центре» — `docs/DEMO.md`.
+
 ## Известные ограничения
 
 - TLS на стенде выключен (`auto_https off`, `HF_COOKIE_SECURE=false`).
 - Оркестратор подключается к Proxmox без проверки сертификата (`verify_ssl=False`).
-- `/api/v1/stats/` и `/api/v1/analytics/track` оркестратора открыты без авторизации и проброшены наружу через proxy; телеметрию агенты шлют в центр, не сюда.
+- `/api/v1/analytics/track` оркестратора открыт без авторизации (приём телеметрии), `/api/v1/stats/` и `/api/v1/events/` закрыты межсервисным токеном; из подсети DMZ (10.20.0.0/24) proxy отдаёт только `/assets/v1/*`, всё остальное — 404.
 - High-interaction и запись сессий не реализованы; mTLS не реализован.
-- Нет Dockerfile агента, хотя ручной артефакт `docker` ссылается на образ `honeyforge-agent:latest` (на машинах Proxmox агент ставится без Docker).
+- Образ агента для артефакта `docker` собирается вручную: `docker build -t honeyforge-agent:latest agent/` (на машинах Proxmox агент ставится без Docker). В контейнере `/etc/os-release` не Ubuntu, поэтому консоль ловушки выдаёт типовой сервер Ubuntu 20.04.
+
+- Поддельная консоль SSH — эмуляция bash, а не настоящая оболочка: нет heredoc, циклов, функций; `python3`/`perl` ничего не выполняют; SFTP/scp-загрузки не принимаются.
 - Автоматическое включение агентов работает только для LXC-машин из шаблона с предустановленным агентом (`9101`).
 - Docker-ловушки оркестратора (`/api/v1/traps/`) требуют Docker-сокет; он смонтирован только в `backend/orchestrator/docker-compose.yml`, в infra — нет.
 - Автотестов оркестратора нет.

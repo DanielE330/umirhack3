@@ -29,6 +29,7 @@ LATE_COLUMNS = {
         "needs_review": "BOOLEAN",
         "honeymind_result": "JSON",
     },
+    "ip_info": {"lat": "FLOAT", "lon": "FLOAT"},
     "users": {
         "telegram_chat_id": "VARCHAR(64)",
         "telegram_username": "VARCHAR(64)",

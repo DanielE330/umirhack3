@@ -1362,9 +1362,9 @@ fetch("/api/auth/me", { credentials: "same-origin" })
   .then((r) => { if (!r.ok) throw new Error("no session"); return r.json(); })
   .then(async (d) => {
     csrf = d.csrf; $("who").textContent = d.username; $("role").textContent = d.role;
-    updateTgButton(d.telegram_linked, d.telegram_username);
     me = { username: d.username, role: d.role };
     $("nav-users").classList.toggle("hidden", d.role !== "admin");
+    updateTgButton(d.telegram_linked, d.telegram_username);
     await refresh(); await Promise.all([loadEvents(), loadStats()]);
     connectStream();
     setInterval(refresh, 5000);       // машины, ловушки, профили: статусы и «на связи»

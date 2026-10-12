@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import asyncio
 import random
+import time
 import uuid
+from email.utils import formatdate
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from ..emitter import Emitter
@@ -22,11 +24,30 @@ input{width:100%;padding:8px;margin:6px 0 12px;box-sizing:border-box}button{padd
 <label>Username<input name="username"></label><label>Password<input type="password" name="password"></label>
 <button>Sign in</button></form></body></html>"""
 
-NOT_FOUND = """<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
-<html><head><title>404 Not Found</title></head><body><h1>Not Found</h1>
-<p>The requested URL was not found on this server.</p><hr><address>{server} Server</address></body></html>"""
-
-STATUS = {200: "OK", 302: "Found", 404: "Not Found", 400: "Bad Request", 413: "Payload Too Large"}
+# Тексты ошибок один в один как у Apache 2.4 на Ubuntu (включая «Server at <хост> Port <порт>»)
+ERROR_PAGE = """<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>{code} {reason}</title>
+</head><body>
+<h1>{title}</h1>
+<p>{text}</p>
+<hr>
+<address>{server} Server at {host} Port {port}</address>
+</body></html>
+"""
+ERRORS = {
+    400: ("Bad Request", "Bad Request", "Your browser sent a request that this server could not understand.<br />"),
+    403: ("Forbidden", "Forbidden", "You don't have permission to access this resource."),
+    404: ("Not Found", "Not Found", "The requested URL was not found on this server."),
+    405: ("Method Not Allowed", "Method Not Allowed", "The requested method {method} is not allowed for this URL."),
+    408: ("Request Timeout", "Request Timeout", "Server timeout waiting for the HTTP request from the client."),
+    413: ("Request Entity Too Large", "Request Entity Too Large", "The requested resource<br />{path}<br />\ndoes not allow request data with {method} requests, or the amount of data provided in\nthe request exceeds the capacity limit."),
+    501: ("Not Implemented", "Not Implemented", "{method} not supported for current URL.<br />"),
+}
+STATUS = {200: "OK", 302: "Found", **{c: v[0] for c, v in ERRORS.items()}}
+KNOWN_METHODS = {"GET", "HEAD", "POST", "OPTIONS", "PUT", "DELETE", "TRACE", "CONNECT", "PATCH"}
+# Пути, которые на настоящем Apache/Ubuntu отвечают 403, а не 404
+FORBIDDEN = ("/server-status", "/server-info", "/.htaccess", "/.htpasswd", "/icons/.htaccess")
 
 DEFAULT_HONEYTOKENS = {
     "/.env": {
@@ -61,6 +82,7 @@ ATTACK_PROBES = (
     "union select", "' or 1=1", "union%20select",
     "<script", "<?php", "phpinfo()", "base64_decode",
 )
+
 
 
 class HttpTrap:
@@ -134,7 +156,7 @@ class HttpTrap:
         await asyncio.sleep(random.uniform(0.01, 0.08))
         if req.get("bad"):
             self.emitter.emit("http_request", **base, command=req["raw"], data={"malformed": True})
-            await self._send(writer, 413 if req.get("too_big") else 400, "Bad Request", close=True)
+            await self._error(writer, 413 if req.get("too_big") else 400, req, close=True)
             return False
 
         split = urlsplit(req["target"])
@@ -148,10 +170,15 @@ class HttpTrap:
             self.emitter.emit("payload", **base, command=f"{req['method']} {req['target'][:500]}",
                               data={"kind": "web-attack-probe", "path": path, "user_agent": ua})
 
+        method = req["method"].upper()
+        if method not in KNOWN_METHODS:
+            await self._error(writer, 501, req)
+            return True
         if path in self.tokens:  # приманка-URL: любое обращение — компрометация сигнальных данных
             tok = self.tokens[path]
-            self.emitter.emit("honeytoken", **base, command=path, data={"kind": "url"})
-            await self._send(writer, 200, tok.get("content", ""), ctype="text/plain")
+            if path != "/robots.txt":  # robots.txt читают и безобидные краулеры — это не компрометация
+                self.emitter.emit("honeytoken", **base, command=path, data={"kind": "url"})
+            await self._send(writer, 200, tok.get("content", ""), ctype="text/plain", req=req)
             return True
 
         if path == "/login" and req["method"] == "POST":
@@ -167,19 +194,38 @@ class HttpTrap:
                 await self._send(writer, 200, LOGIN_PAGE.replace("{error}", '<p class="e">Invalid username or password.</p>'))
             return True
 
-        if path in ("/", "/login", "/admin", "/index.html"):
-            await self._send(writer, 200, LOGIN_PAGE.replace("{error}", ""))
+        if method == "OPTIONS":
+            await self._send(writer, 200, "", extra=["Allow: OPTIONS,HEAD,GET,POST"], req=req)
+        elif path in ("/", "/login", "/admin", "/index.html"):
+            if method in ("GET", "HEAD"):
+                await self._send(writer, 200, LOGIN_PAGE.replace("{error}", ""), req=req)
+            else:
+                await self._error(writer, 405, req)
         elif path == "/dashboard":
-            await self._send(writer, 200, "<html><body><h3>Dashboard</h3><p>Loading…</p></body></html>")
+            await self._send(writer, 200, "<html><body><h3>Dashboard</h3><p>Loading…</p></body></html>", req=req)
+        elif path.rstrip("/") in FORBIDDEN or path.startswith("/.ht"):
+            await self._error(writer, 403, req)
         else:
-            await self._send(writer, 404, NOT_FOUND.replace("{server}", self.server_header.split(" ")[0]))
+            await self._error(writer, 404, req)
         return True
 
+    async def _error(self, writer: asyncio.StreamWriter, status: int, req: dict, close: bool = False) -> None:
+        reason, title, text = ERRORS[status]
+        host = (req.get("headers", {}).get("host") or self.service.get("host") or "localhost").split(":")[0][:100]
+        # Страницу ошибки строит Apache по заголовку Host — так же делаем и мы
+        body = ERROR_PAGE.format(code=status, reason=reason, title=title, host=host, port=self.service["port"],
+                                 server=self.server_header,
+                                 text=text.format(method=req.get("method", ""), path=urlsplit(req.get("target", "/")).path[:200]))
+        await self._send(writer, status, body, close=close, req=req)
+
     async def _send(self, writer: asyncio.StreamWriter, status: int, body: str, ctype: str = "text/html; charset=UTF-8",
-                    extra: list[str] | None = None, close: bool = False) -> None:
+                    extra: list[str] | None = None, close: bool = False, req: dict | None = None) -> None:
         payload = body.encode()
-        head = [f"HTTP/1.1 {status} {STATUS.get(status, 'OK')}", f"Server: {self.server_header}",
-                f"Content-Type: {ctype}", f"Content-Length: {len(payload)}",
-                "Connection: close" if close else "Connection: keep-alive", *(extra or [])]
-        writer.write(("\r\n".join(head) + "\r\n\r\n").encode() + payload)
+        head_only = bool(req) and req.get("method", "").upper() == "HEAD"
+        head = [f"HTTP/1.1 {status} {STATUS.get(status, 'OK')}", f"Date: {formatdate(usegmt=True)}",
+                f"Server: {self.server_header}", *(extra or []),
+                *(["Vary: Accept-Encoding"] if status == 200 and ctype.startswith("text/html") else []),
+                f"Content-Length: {len(payload)}", "Connection: close" if close else "Keep-Alive: timeout=5, max=100",
+                *([] if close else ["Connection: Keep-Alive"]), f"Content-Type: {ctype}"]
+        writer.write(("\r\n".join(head) + "\r\n\r\n").encode() + (b"" if head_only else payload))
         await writer.drain()

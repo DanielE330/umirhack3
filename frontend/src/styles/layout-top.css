@@ -1,0 +1,7 @@
+/* Расположение «Сверху»: горизонтальный тулбар над контентом (вид по умолчанию) */
+.layout-top .topbar { animation: top-in 0.25s ease-in-out; }
+
+@keyframes top-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}

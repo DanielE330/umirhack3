@@ -158,7 +158,7 @@ def test_security_headers_and_no_docs(client):
 
 def test_telegram_link_flow(app, client):
     _, data = login_and_enroll(client, "admin")
-    secret_key = app.state.settings.secret_key
+    app.state.settings.orchestrator_token = token = "orch-internal-token"
 
     # 1. Запрос одноразового кода привязки
     r = client.post("/api/auth/me/telegram/code", headers=csrf(data))
@@ -169,12 +169,16 @@ def test_telegram_link_flow(app, client):
     # 2. Неверный токен к internal эндпоинту
     r_bad = client.post("/api/internal/telegram/bind", json={"code": code, "chat_id": "123456789"})
     assert r_bad.status_code == 401
+    # ключ шифрования центра — не межсервисный токен
+    r_key = client.post("/api/internal/telegram/bind", json={"code": code, "chat_id": "123456789"},
+                        headers={"X-Internal-Token": app.state.settings.secret_key})
+    assert r_key.status_code == 401
 
     # 3. Привязка Telegram по коду через внутренний API
     r_bind = client.post(
         "/api/internal/telegram/bind",
         json={"code": code, "chat_id": "123456789", "username": "admin_tg"},
-        headers={"X-Internal-Token": secret_key},
+        headers={"X-Internal-Token": token},
     )
     assert r_bind.status_code == 200
     assert r_bind.json()["username"] == "admin"
@@ -188,7 +192,7 @@ def test_telegram_link_flow(app, client):
     r_check = client.post(
         "/api/internal/telegram/check-auth",
         json={"chat_id": "123456789"},
-        headers={"X-Internal-Token": secret_key},
+        headers={"X-Internal-Token": token},
     )
     assert r_check.status_code == 200
     assert r_check.json() == {
@@ -199,7 +203,7 @@ def test_telegram_link_flow(app, client):
     }
 
     # 6. Получение списка подписчиков
-    r_subs = client.get("/api/internal/telegram/subscribers", headers={"X-Internal-Token": secret_key})
+    r_subs = client.get("/api/internal/telegram/subscribers", headers={"X-Internal-Token": token})
     assert r_subs.status_code == 200
     assert any(s["chat_id"] == "123456789" for s in r_subs.json()["subscribers"])
 

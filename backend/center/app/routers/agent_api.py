@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import auth
-from .. import scoring
+from .. import geo, scoring
 from ..channel_crypto import decrypt_payload, derive_payload_key, encrypt_payload
 from ..db import get_db
 from ..models import Trap, utcnow
@@ -95,6 +95,8 @@ async def collect(request: Request, background: BackgroundTasks, trap: Trap = De
             return ingest_events(db, settings, tr, batch.events)
 
     views, dup = await run_in_threadpool(work)
+    if settings.geoip_url and views:
+        background.add_task(geo.enrich, factory, settings.geoip_url, {v["src_ip"] for v in views if v["src_ip"]})
     hub = request.app.state.hub
     honeymind, orchestrator = request.app.state.honeymind, request.app.state.orchestrator
     for view in views:

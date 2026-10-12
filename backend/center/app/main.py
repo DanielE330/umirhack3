@@ -10,7 +10,7 @@ from .db import init_db, make_engine
 from .honeymind import HoneyMind
 from .hub import Hub
 from .orchestrator import Orchestrator
-from .routers import agent_api, events, machines, profiles, traps, internal
+from .routers import agent_api, artifacts, audit, events, ideas, sources, internal, machines, profiles, reset, traps
 from .routers import auth as auth_router
 from .routers import users as users_router
 from .scoring import start_background_rescorer
@@ -53,11 +53,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return JSONResponse({"detail": "Внутренняя ошибка"}, status_code=500)  # без деталей наружу
 
     app.include_router(auth_router.router)
+    app.include_router(reset.router)
     app.include_router(users_router.router)
     app.include_router(profiles.router)
     app.include_router(traps.router)
     app.include_router(machines.router)
     app.include_router(events.router)
+    app.include_router(ideas.router)
+    app.include_router(artifacts.router)
+    app.include_router(audit.router)
+    app.include_router(sources.router)
     app.include_router(agent_api.router)
     app.include_router(internal.router)
 
@@ -71,6 +76,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
         @app.get("/", include_in_schema=False)
         def index():
+            return FileResponse(static / "index.html")
+
+        @app.get("/wiki", include_in_schema=False)
+        def wiki():  # документация: тот же index.html, фронт открывает свой маршрут /#/wiki
             return FileResponse(static / "index.html")
 
         @app.get("/favicon.ico", include_in_schema=False)

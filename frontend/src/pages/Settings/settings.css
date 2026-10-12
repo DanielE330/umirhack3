@@ -1,0 +1,49 @@
+/* Страница «Настройки»: карточки на токенах из variables.css */
+.settings { width: 100%; } /* на всю ширину, как остальные разделы */
+.page-title { margin-bottom: 16px; }
+.page-title h2 { margin: 0; font-size: 22px; letter-spacing: 0.2px; }
+.page-title .hint { margin: 4px 0 0; }
+
+.settings-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.setting-card { display: flex; flex-direction: column; gap: 10px; margin-bottom: 0; transition: border-color 0.2s ease-in-out; }
+.setting-card:hover { border-color: var(--line-2); }
+.setting-head { display: flex; align-items: center; gap: 10px; }
+.setting-head h3 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: 0.2px; text-transform: none; color: var(--fg); }
+.setting-icon {
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius);
+  background: var(--accent-soft); color: var(--accent); flex: none;
+}
+.setting-desc { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.setting-control { margin-top: auto; padding-top: 4px; }
+.setting-control .seg { display: flex; flex-wrap: wrap; }
+.setting-control .seg button { display: inline-flex; align-items: center; gap: 6px; text-align: center; }
+.setting-control .seg button b { display: inline-flex; align-items: center; gap: 6px; }
+.setting-control button[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; }
+
+/* Окно привязки Telegram: код крупно, его удобно продиктовать или скопировать */
+.tg-code { margin: 10px 0 14px; text-align: center; font-size: 26px; letter-spacing: 3px; }
+.tg-code-row { display: flex; align-items: stretch; gap: 10px; margin: 10px 0 14px; }
+.tg-code-row .tg-code { flex: 1; margin: 0; }
+.tg-copy { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; }
+.tg-copy.done { color: var(--ok); border-color: var(--ok); }
+
+/* ссылка «Просмотреть документацию»: вид основной кнопки (токены темы) */
+.docs-link {
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px;
+  background: linear-gradient(135deg, var(--btn-from), var(--btn-to)); color: var(--on-accent);
+  border-radius: var(--radius); font-weight: 650; text-decoration: none;
+  transition: transform 0.12s var(--ease), filter 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.docs-link:hover { filter: brightness(1.06); box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 18%, transparent); }
+.docs-link:active { transform: translateY(1px); }
+.docs-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tg-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border, currentColor);
+  border-radius: 999px;
+  font-weight: 600;
+}

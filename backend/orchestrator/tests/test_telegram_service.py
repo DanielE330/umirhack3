@@ -211,4 +211,40 @@ def test_unauthorized_user_start_shows_unauth_keyboard(monkeypatch):
     assert "Добро пожаловать в HoneyForge SOC Bot" in msg["text"]
 
 
+def test_send_message_is_plain_text_to_one_chat(monkeypatch):
+    monkeypatch.setattr(ts, "TELEGRAM_BOT_TOKEN", "test-token")
+    monkeypatch.setattr(ts.httpx, "AsyncClient", _FakeAsyncClient)
+    _FakeAsyncClient.sent = []
+    assert asyncio.run(ts.send_message("777", "<b>код 123456</b>")) is True
+    (sent,) = _FakeAsyncClient.sent
+    assert sent["json"] == {"chat_id": "777", "text": "<b>код 123456</b>"}  # без parse_mode: разметка не исполняется
 
+
+def test_send_message_without_bot_token(monkeypatch):
+    monkeypatch.setattr(ts, "TELEGRAM_BOT_TOKEN", "")
+    assert asyncio.run(ts.send_message("777", "x")) is False
+
+
+def test_direct_endpoint_requires_internal_token(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from app.api.v1 import notify
+
+    monkeypatch.setenv("ORCH_TOKEN", "orch")
+    sent = []
+
+    async def fake_send(chat_id, text):
+        sent.append((chat_id, text))
+        return True
+
+    monkeypatch.setattr(notify, "send_message", fake_send)
+    from fastapi import FastAPI
+    app = FastAPI()
+    app.include_router(notify.router, prefix="/api/v1/notify")
+    c = TestClient(app)
+    body = {"chat_id": "777", "text": "код"}
+    assert c.post("/api/v1/notify/direct", json=body).status_code == 401
+    assert c.post("/api/v1/notify/direct", json=body, headers={"X-Internal-Token": "orch"}).json() == {"status": "sent"}
+    assert c.post("/api/v1/notify/direct", json={"chat_id": "abc", "text": "x"},
+                  headers={"X-Internal-Token": "orch"}).status_code == 422
+    assert sent == [("777", "код")]

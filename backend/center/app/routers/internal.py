@@ -1,6 +1,7 @@
 """Внутренние API-эндпоинты (межсервисные, защищены X-Internal-Token)."""
 from __future__ import annotations
 
+import hmac
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
@@ -17,9 +18,9 @@ router = APIRouter(prefix="/api/internal", tags=["internal"], include_in_schema=
 
 
 def require_internal_token(request: Request, x_internal_token: str | None = Header(None)) -> None:
+    """Только межсервисный токен (ORCH_TOKEN). HF_SECRET_KEY сюда не годится: это ключ шифрования TOTP."""
     s: Settings = auth.settings_of(request)
-    valid_tokens = {t for t in [s.orchestrator_token, s.secret_key] if t}
-    if not x_internal_token or x_internal_token not in valid_tokens:
+    if not s.orchestrator_token or not hmac.compare_digest(x_internal_token or "", s.orchestrator_token):
         raise HTTPException(401, "Неверный внутренний токен")
 
 

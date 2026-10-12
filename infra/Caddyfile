@@ -3,6 +3,16 @@
 	auto_https off
 }
 :4000 {
+	# Из DMZ доступен только канал агента: панель, Swagger и API оркестратора для атакующего,
+	# попавшего в ловушку, выглядят как обычный 404. Ловушки выходят в LAN через NAT хоста Proxmox,
+	# поэтому центр видит их как адрес хоста (192.168.1.94), а не 10.20.0.x; перечислены оба варианта.
+	@dmz_other {
+		remote_ip 10.20.0.0/24 192.168.1.94
+		not path /assets/v1/*
+	}
+	handle @dmz_other {
+		respond "Not Found" 404
+	}
 	# Оркестратор: его API и документация; управление машинами закрыто межсервисным токеном
 	@orchestrator path /api/v1/* /docs /docs/* /openapi.json /redoc
 	handle @orchestrator {

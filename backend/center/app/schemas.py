@@ -133,7 +133,8 @@ class AgentEvent(BaseModel):
     @classmethod
     def small_data(cls, v: dict) -> dict:
         import json
-        if len(json.dumps(v, default=str)) > 8000:
+        rest = {k: x for k, x in v.items() if k != "content_b64"}  # содержимое файла-артефакта идёт отдельным лимитом
+        if len(json.dumps(rest, default=str)) > 8000 or len(str(v.get("content_b64", ""))) > 120_000:
             raise ValueError("data слишком большой")
         return v
 
