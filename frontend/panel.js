@@ -356,7 +356,8 @@ function field(labelText, input) { const wrap = el("div"); wrap.append(el("label
 function numInput(value, [min, max], label) { const i = el("input"); i.type = "number"; i.min = min; i.max = max; i.step = 1; i.value = value; i.setAttribute("aria-label", label); return i; }
 function showTab(tab) {
   for (const b of $("nav").children) b.classList.toggle("on", b.dataset.tab === tab);
-  for (const s of ["containers", "dash", "traps", "profiles"]) $("tab-" + s).classList.toggle("hidden", s !== tab);
+  for (const s of ["containers", "dash", "traps", "profiles", "users"]) $("tab-" + s).classList.toggle("hidden", s !== tab);
+  if (tab === "users") loadUsers();
 }
 function renderAll() { renderContainers(); renderCatalog(); renderProfiles(); renderFilters(); renderKpis(); }
 
@@ -1159,6 +1160,65 @@ armed($("p-delete"), "Точно удалить?", async () => {
   clearEditor(); setEditing(null); await refresh(); toast("Профиль удалён");
 });
 
+// ============ ПОЛЬЗОВАТЕЛИ (admin) ============
+let me = { username: "", role: "" };
+async function loadUsers() {
+  try { renderUsers(await api("/api/users")); } catch (e) { fail(e); }
+}
+async function patchUser(u, body, okMsg) {
+  try { await api("/api/users/" + u.id, { method: "PATCH", body }); toast(okMsg); } catch (e) { fail(e); }
+  loadUsers();
+}
+function renderUsers(list) {
+  const box = $("users");
+  if (!list.length) { box.replaceChildren(emptyRow(5, "Пользователей нет")); return; }
+  box.replaceChildren(...list.map((u) => {
+    const tr = el("tr"), self = u.username === me.username, acts = el("td");
+    const role = el("span", u.role, "tag"); role.title = u.role === "admin" ? "Управляет и пользователями" : "Машины, ловушки и профили";
+    const st = el("span", u.is_active ? "активен" : "заблокирован", u.is_active ? "ok" : "bad");
+    if (!self) {
+      const bRole = el("button", u.role === "admin" ? "→ operator" : "→ admin", "ghost small");
+      bRole.title = "Сменить роль. Сеансы пользователя будут завершены";
+      bRole.onclick = () => patchUser(u, { role: u.role === "admin" ? "operator" : "admin" }, "Роль «" + u.username + "» изменена");
+      const bAct = el("button", u.is_active ? "Заблокировать" : "Разблокировать", "ghost small" + (u.is_active ? " danger" : ""));
+      bAct.title = u.is_active ? "Запретить вход и завершить сеансы. Нужно нажать дважды" : "Снова разрешить вход";
+      const toggle = () => patchUser(u, { is_active: !u.is_active }, u.is_active ? "«" + u.username + "» заблокирован" : "«" + u.username + "» разблокирован");
+      if (u.is_active) armed(bAct, "Точно?", toggle); else bAct.onclick = toggle;
+      acts.append(bRole, " ", bAct);
+    } else acts.append(el("span", "это вы", "hint"));
+    if (u.totp_enabled) {
+      const b2 = el("button", "Сбросить 2FA", "ghost small");
+      b2.title = "Если пользователь потерял телефон и резервные коды: при следующем входе он настроит 2FA заново. Нужно нажать дважды";
+      armed(b2, "Сбросить?", async () => {
+        try { await api("/api/users/" + u.id + "/reset-2fa", { method: "POST" }); toast("2FA «" + u.username + "» сброшена"); } catch (e) { fail(e); }
+        loadUsers();
+      });
+      acts.append(" ", b2);
+    }
+    const cells = [el("td", u.username), el("td"), el("td", u.totp_enabled ? "включена" : "не настроена"), el("td"), acts];
+    cells[1].append(role); cells[3].append(st);
+    tr.append(...cells);
+    return tr;
+  }));
+}
+function genPassword() {
+  const abc = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789-_.!";
+  const r = crypto.getRandomValues(new Uint32Array(18));
+  return Array.from(r, (x) => abc[x % abc.length]).join("");
+}
+$("u-gen").onclick = () => { $("u-pass").value = genPassword(); };
+$("u-create").onclick = async () => {
+  const username = $("u-name").value.trim().toLowerCase(), password = $("u-pass").value, role = $("u-role").value;
+  if (!/^[a-z0-9][a-z0-9._-]{2,63}$/.test(username)) { toast("Логин: 3–64 символа, a-z, 0-9, точка, дефис, подчёркивание", true); return; }
+  if (password.length < 12) { toast("Пароль не короче 12 символов", true); return; }
+  try {
+    await api("/api/users", { method: "POST", body: { username, password, role } });
+    toast("Пользователь «" + username + "» создан. Передайте ему пароль: 2FA он настроит при первом входе");
+    $("u-name").value = ""; $("u-pass").value = "";
+  } catch (e) { fail(e); }
+  loadUsers();
+};
+
 // ============ ПАНЕЛЬ ============
 $("nav").onclick = (e) => { const tab = e.target.dataset && e.target.dataset.tab; if (tab) showTab(tab); };
 $("f-type").onchange = (e) => setFilter({ type: e.target.value });
@@ -1303,6 +1363,8 @@ fetch("/api/auth/me", { credentials: "same-origin" })
   .then(async (d) => {
     csrf = d.csrf; $("who").textContent = d.username; $("role").textContent = d.role;
     updateTgButton(d.telegram_linked, d.telegram_username);
+    me = { username: d.username, role: d.role };
+    $("nav-users").classList.toggle("hidden", d.role !== "admin");
     await refresh(); await Promise.all([loadEvents(), loadStats()]);
     connectStream();
     setInterval(refresh, 5000);       // машины, ловушки, профили: статусы и «на связи»

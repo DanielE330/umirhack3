@@ -2,6 +2,32 @@
 
 Всё, что сделано на хосте Proxmox (нода `daniel`, 192.168.1.94) для оркестратора ловушек. Файлы этой папки — копии того, что установлено на хосте.
 
+## Автоматическая установка и удаление: `hf-proxmox.sh`
+
+Скрипт повторяет всё, что описано ниже (кроме правок чужой автоматизации хоста), на любом Proxmox VE 8/9. Запускается на хосте от root, рядом нужен код агента:
+
+```sh
+# с рабочей машины, из корня репозитория
+rsync -aR --exclude __pycache__ infra/proxmox agent/netsvc root@<proxmox>:/root/honeyforge/
+ssh root@<proxmox> /root/honeyforge/infra/proxmox/hf-proxmox.sh install --center-ip <IP центра>
+```
+
+| Команда | Что делает |
+|---|---|
+| `install` | мост DMZ + файрвол + NAT, типы `rootdir,images` у хранилища, пул/роли/пользователь/API-токен/ACL, `hf-agent-ctl` и код агента, шаблон ловушек (собирается из `ubuntu-24.04-standard`, ~3–5 мин), узкий SSH-ключ оркестратора. Повторный запуск безопасен: готовое пропускается |
+| `uninstall` | удаляет машины с тегом `honeyforge`, шаблон (`honeyforge-template`), пользователя, токен, роли, пул, ключ, `hf-agent-ctl`, мост и файрвол DMZ; типы хранилища возвращает, если там не осталось дисков. Спрашивает подтверждение (`--yes` — без вопроса) |
+| `status` | что из этого есть на хосте |
+| `update-agent` | только обновить `/usr/local/share/hf-agent/netsvc.tgz` (новый код подхватит следующая установка агента) |
+
+Параметры (`--help`): `--center-ip`, `--center-port`, `--orch-from`, `--orch-pubkey`, `--pve-ip`, `--node`, `--storage`, `--bridge`, `--wan`, `--network`, `--gateway`, `--template-id`, `--pool`, `--ostemplate`, `--template-disk`, `--rebuild-template`, `--rotate-token`. Они сохраняются в `/etc/honeyforge/proxmox.conf`, повторные запуски и `uninstall` берут их оттуда. Параметры файрвола — в `/etc/default/hf-dmz`.
+
+Итог установки — `/root/honeyforge-secrets/` (только root):
+
+- `proxmox.env` — строки `PROXMOX_*`, `PVE_SSH_HOST`, `HF_PUBLIC_URL` для `infra/.env` центра (значение токена — только при первом выпуске или `--rotate-token`);
+- `pve_agent_ed25519` (если ключ сгенерирован) и `known_hosts` — в `infra/secrets/` на сервере центра, после копирования приватный ключ на хосте удалить.
+
+Мост, который уже есть и не содержит `hf-dmz-fw.sh`, скрипт не трогает (ошибка, нужен другой `--bridge`). При `uninstall` мост остаётся, если к нему подключены гости без тега `honeyforge`.
+
 ## Сеть: DMZ `vmbr1`
 
 - Мост `vmbr1`, `10.20.0.1/24`, без физического порта (добавлен в `/etc/network/interfaces`, бэкап `interfaces.bak-hf-*`).

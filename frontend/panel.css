@@ -233,3 +233,5 @@ pre { margin: 0; white-space: pre-wrap; font: 12.5px/1.55 ui-monospace, monospac
 .risk.r-low { color: #9fd3b4; } .risk.r-medium { color: #e9c37a; } .risk.r-high { color: var(--coral); }
 .used.on { color: var(--ok); border-color: #35544a; }
 
+#users .ok { color: var(--ok); } #users .bad { color: var(--coral); }
+#users td:last-child { text-align: right; white-space: nowrap; }
