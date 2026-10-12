@@ -175,8 +175,23 @@ class SessionAssessment(Base):
     human_method: Mapped[str | None] = mapped_column(String(32), nullable=True)
     human_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     script_seen_before: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    threat_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    download_then_execute: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    ssh_client: Mapped[str | None] = mapped_column(String(128), nullable=True)
     result: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # полный ответ /session
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+
+
+class EventLabel(Base):
+    """Метки оператора для обратной связи по оценке HoneyMind (FR-Feedback)."""
+
+    __tablename__ = "event_labels"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), index=True)
+    label: Mapped[str] = mapped_column(String(64))
+    operator: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
 class PasswordReset(Base):

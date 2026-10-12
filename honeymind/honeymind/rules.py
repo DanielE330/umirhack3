@@ -59,6 +59,9 @@ class Rule:
         object.__setattr__(self, "_all", tuple(re.compile(p) for p in self.all_of))
         object.__setattr__(self, "_none", tuple(re.compile(p) for p in self.none_of))
 
+    def excluded_by(self, lower: str) -> bool:
+        return any(r.search(lower) for r in self._none)  # type: ignore[attr-defined]
+
     def matches(self, lower: str) -> bool:
         return all(r.search(lower) for r in self._all) and not any(r.search(lower) for r in self._none)  # type: ignore[attr-defined]
 
@@ -70,6 +73,9 @@ class Hit:
     @property
     def score(self) -> int:
         return self.rule.score
+
+
+_PRE = r"(?:^|[;&|(]\s*|\bsudo\s+|\bnohup\s+)"
 
 
 def _cmd(alts: str) -> str:
@@ -91,7 +97,7 @@ RULES: tuple[Rule, ...] = (
     Rule("recon_sysinfo", "reconnaissance", 22, "сбор сведений о системе", ("T1082",),
          (_cmd(r"uname|whoami|id|hostname|uptime|lscpu|nproc|free|df|w|who|last|lastlog|ps|top|htop|ifconfig|ip|"
                r"netstat|ss|env|printenv|lsb_release|arch|dmesg|lsmod|mount|lsblk|groups|finger|users|history|ping|"
-               r"nslookup|dig|host"),)),
+               r"nslookup|dig|host|nvidia-smi|lspci|dmidecode|lsusb|getconf"),)),
     Rule("recon_files", "reconnaissance", 30, "чтение системных файлов с описанием хоста", ("T1082", "T1087.001"),
          (r"\b(?:cat|head|tail|less|more|grep|awk|cut)\b",
           r"/proc/(?:cpuinfo|meminfo|version|mounts|self/\w+)|/etc/(?:os-release|issue|hostname|lsb-release|"
@@ -102,7 +108,7 @@ RULES: tuple[Rule, ...] = (
     Rule("recon_writable_probe", "reconnaissance", 30, "проверка возможности записи в каталоги", ("T1083",),
          (r"^echo\b", r">\s*\S+/\.[a-z0-9_]{2,}")),
     Rule("recon_touch_hidden", "reconnaissance", 25, "создание пустого файла редиректом (проверка записи)", ("T1083",),
-         (r"^>\s*\S+",)),
+         (r"^>\s*\S+",), (r"elf|@",)),
     Rule("recon_shell_menu", "reconnaissance", 15, "перебор меню/оболочек устройства", ("T1059.004",),
          (r"^(?:enable|system|shell|linuxshell|sh)$",)),
     Rule("recon_echo_marker", "reconnaissance", 15, "проверка выполнения команд через echo", ("T1059.004",),
@@ -112,11 +118,34 @@ RULES: tuple[Rule, ...] = (
          (r"^[a-z0-9+=][a-z0-9+/=]{15,}$",), final=True),
     Rule("recon_cleanup_relative", "reconnaissance", 25, "удаление файлов в текущем каталоге (уборка следов проб)", ("T1070.004",),
          (r"^rm\s+(?:-[a-z]+\s+)?\.?[\w*-][\w.*-]*(?:\s+\.?[\w*-][\w.*-]*){0,5}\s*;?$",)),
-    Rule("benign_comment", "benign", 2, "строка-комментарий", (), (r"^#",), final=True),
+    Rule("benign_comment", "benign", 2, "строка-комментарий", (), (r"^#[^;&|]*$",), final=True),
     Rule("recon_hidden_file_ops", "reconnaissance", 25, "операции со скрытым файлом (проверка записи)", ("T1083",),
          (r"^(?:cat|rm|ls|stat)\b", r"/\.[a-z0-9_]{2,}\s*$")),
     Rule("recon_external_ip", "reconnaissance", 35, "определение внешнего IP", ("T1016",),
          (r"\b(?:curl|wget)\b", _IP_LOOKUP)),
+
+    Rule("recon_tool_probe", "reconnaissance", 20, "проверка наличия утилит загрузки (без аргументов)", ("T1082",),
+         (r"^(?:(?:/bin/)?busybox\s+)?(?:wget|curl|tftp|ftpget)\s*(?:;|$)",)),
+    Rule("recon_touch_probe", "reconnaissance", 25, "создание пустого файла (проверка записи)", ("T1083",),
+         (r"^touch\s+\.?[\w-]{1,16}\s*;?$",)),
+    Rule("recon_busybox_copy_prep", "reconnaissance", 30, "подготовка исполняемой копии busybox для дроппера (без сети)", ("T1083",),
+         (r"\bbusybox\s+cp\s+/bin/busybox\s+\.?\w+",), (_DL_TOOLS + r"\s+\S",)),
+    Rule("recon_echo_pipe_probe", "reconnaissance", 30, "проба через echo | sh (busybox-маркер)", ("T1059.004",),
+         (r"^echo\s+['\"]?(?:/bin/)?busybox\s+[a-z]{3,12}['\"]?\s*\|\s*sh\s*;?$",)),
+    Rule("benign_protocol_line", "benign", 3, "строка заголовка HTTP/SMTP, не команда", (),
+         (r"^(?:host|user-agent|accept(?:-[a-z]+)?|connection|cookie|content-(?:type|length)|referer|origin|"
+          r"upgrade|cache-control|pragma|authorization|ehlo|helo|mail from|rcpt to)\s*:?\s",), final=True),
+    Rule("benign_shell_fragment", "benign", 3, "обрывок скрипта (служебное слово/литерал), не действие", (),
+         (r"^(?:fi|done|then|else|esac|do|\}|\{|end\w*;?|start;?|nan|null|none)$|^[\w-]+\s*\(\)\s*\{$|"
+          r"^[a-z_]\w*=['\"][^'\"$`]*['\"];?$",), final=True),
+    Rule("benign_binary_garbage", "benign", 4, "обрывок бинарного вывода (ELF), не команда", (),
+         (r"^\S{0,40}$", r"elf", r"[@'?]"), final=True),
+    Rule("recon_empty_write", "reconnaissance", 25, "создание пустого файла (проверка записи)", ("T1083",),
+         (r"^(?:head\s+-c\s+0|dd\s+bs=\d+\s+count=0|:|true)\s*>\s*\S+\s*;?$",)),
+    Rule("dropper_stdin", "malware_downloader", 85, "приём бинарника через stdin в файл (дроппер без сети)", ("T1105",),
+         (r"^(?:dd\s+bs=\d+\s+count=[1-9]\d*|head\s+-c\s+[1-9]\d*)\s*>\s*\S+",)),
+    Rule("exec_eval", "malware_execution", 65, "выполнение собранной строки через eval", ("T1059.004", "T1027"),
+         (r"(?:^|[;&|(]\s*)eval\s",)),
 
     # ───────── заметание следов ─────────
     Rule("evasion_history", "defense_evasion", 62, "отключение или очистка истории команд", ("T1070.003",),
@@ -128,10 +157,13 @@ RULES: tuple[Rule, ...] = (
     Rule("evasion_disable_security", "defense_evasion", 72, "отключение средств защиты", ("T1562.001", "T1562.004"),
          (r"\biptables\s+-f\b|\bufw\s+disable\b|\bsetenforce\s+0\b|"
           r"\b(?:service|systemctl)\s+(?:stop|disable)\s+(?:iptables|firewalld|ufw|auditd|apparmor|rsyslog|syslog)\b|"
+          r"(?:^|[;&|]\s*)(?:echo\s*)?>\s*/etc/hosts\.(?:deny|allow)\b|"
           r"\b(?:pkill|killall|kill\s+-9)\s+\S*(?:auditd|rsyslog|syslog|aliyun|cloudmonitor|bcm-agent|"
           r"falco|osqueryd|crowdstrike|wazuh)",)),
     Rule("evasion_kill_loop", "defense_evasion", 65, "массовое завершение процессов (вытеснение конкурентов)", ("T1562",),
          (r"/proc/\[0-9\]\*", r"\bkill\s+-9")),
+    Rule("evasion_kill_process", "defense_evasion", 55, "завершение процессов (конкуренты, удалённый доступ владельца)", ("T1562", "T1489"),
+         (r"\b(?:pkill|killall)\s+(?:-\d+\s+|-[a-z]+\s+)*[\w.-]+",), (r"\b(?:pkill|killall)\s+(?:-\d+\s+)?(?:sleep|cat)\s*(?:;|$)",)),
     Rule("evasion_chattr", "defense_evasion", 60, "смена неизменяемых атрибутов файла", ("T1222.002",),
          (r"\bchattr\s+[+-]\w*[ia]\b",)),
 
@@ -150,7 +182,7 @@ RULES: tuple[Rule, ...] = (
          (r"\bsystemctl\s+(?:enable|daemon-reload)\b|/etc/systemd/system|\bupdate-rc\.d\b|\bchkconfig\b",)),
     Rule("persist_accounts", "persistence", 82, "создание или изменение учётных записей", ("T1136.001",),
          (r"\b(?:useradd|adduser|usermod|chpasswd)\b",)),
-    Rule("persist_passwd_cmd", "persistence", 76, "смена пароля", ("T1098",), (_cmd(r"passwd"),)),
+    Rule("persist_passwd_cmd", "persistence", 76, "смена пароля", ("T1098",), (_cmd(r"passwd|hive-passwd"),)),
     Rule("persist_preload", "persistence", 85, "правка ld.so.preload (руткит)", ("T1574.006",), (r"ld\.so\.preload",)),
 
     # ───────── загрузка и запуск вредоноса ─────────
@@ -159,23 +191,25 @@ RULES: tuple[Rule, ...] = (
     Rule("dl_and_exec", "malware_downloader", 95, "загрузка и запуск файла", ("T1105", "T1059.004"),
          (_DL_TOOLS, _URLISH, _EXEC_MARK), (_IP_LOOKUP,)),
     Rule("dl_busybox_tftp", "malware_downloader", 85, "загрузка через busybox/tftp", ("T1105",),
-         (r"\bbusybox\s+(?:wget|tftp|ftpget)\b|\btftp\s+-[gr]\b|\bftpget\b",)),
+         (r"\bbusybox\s+(?:wget|tftp|ftpget)\s+[^;&|\s]|\btftp\s+-[gr]\b|\bftpget\s+[^;&|\s]",)),
     Rule("dropper_echo_hex", "malware_downloader", 88, "запись бинарного файла через echo (дроппер без сети)", ("T1105", "T1027"),
          (r"^echo\b", r"(?:\\x[0-9a-f]{2}){8,}", r">>?\s*\S+")),
     Rule("dropper_script_staging", "malware_downloader", 70, "построчная сборка скрипта-дроппера", ("T1105", "T1059.004"),
          (r"^echo\b", r">>?\s*\.[a-z0-9_]{1,6}\s*$")),
     Rule("exec_chmod", "malware_execution", 78, "выдача прав на исполнение", ("T1222.002",),
-         (r"\bchmod\s+(?:-\w+\s+)?(?:\+x|a\+x|u\+x|[0-7]?[0-7][0-7][0-7])\b",), (r"^>\s*\S",)),
+         (r"\bchmod\s+(?:-\w+\s+)?(?:\+x|a\+x|u\+x|[0-7]?[0-7][0-7][0-7])\b",),
+         (r"^>\s*\S", r"^(?!.*\b(?:wget|curl|tftp|ftpget)\s+\S).*\bbusybox\s+cp\s+/bin/busybox\b")),
     Rule("exec_from_tmp", "malware_execution", 82, "запуск файла из временного каталога", ("T1059.004",),
          (r"(?:^|[;&|(]\s*|\bnohup\s+|\bsudo\s+)(?:/tmp|/var/tmp|/dev/shm|/var/run|/run)/\S+",), (r"^>\s*\S",)),
     Rule("exec_local_binary", "malware_execution", 70, "запуск локального файла", ("T1059.004",),
-         (r"(?:^|[;&|]\s*)\./[\w.\-]+",), (r"^>\s*\S",)),
+         (_PRE + r"\./[\w.\-]+",), (r"^>\s*\S",)),
     Rule("exec_shell_script", "malware_execution", 65, "запуск shell-скрипта", ("T1059.004",),
          (r"(?:^|[;&|]\s*)(?:sh|bash|dash|ash)\s+[\w/.\-]+\.sh\b",)),
     Rule("exec_hidden_script", "malware_execution", 65, "запуск скрытого скрипта", ("T1059.004",),
          (r"(?:^|[;&|]\s*)(?:sh|bash|dash|ash)\s+\.[a-z0-9_]{1,6}\b",)),
     Rule("exec_pipe_to_shell", "malware_execution", 72, "передача данных в интерпретатор", ("T1059.004",),
-         (r"\|\s*(?:sudo\s+)?(?:sh|bash|dash|zsh|python\d?|perl)\b",)),
+         (r"\|\s*(?:sudo\s+)?(?:sh|bash|dash|zsh|python\d?|perl)\b",),
+         (r"^echo\s+['\"]?(?:/bin/)?busybox\s+[a-z]{3,12}['\"]?\s*\|\s*sh\s*;?$",)),
     Rule("exec_detached", "malware_execution", 65, "фоновый запуск в обход сессии", ("T1059.004",),
          (r"\bnohup\b|\bsetsid\b|\bdisown\b",)),
     Rule("exec_inline_interpreter", "malware_execution", 50, "выполнение кода через интерпретатор", ("T1059.006",),
@@ -192,6 +226,9 @@ RULES: tuple[Rule, ...] = (
     Rule("cryptominer", "cryptominer", 88, "признаки криптомайнера", ("T1496",),
          (r"xmrig|minerd|cpuminer|stratum\+(?:tcp|ssl)|\bmonero\b|nanopool|supportxmr|minexmr|"
           r"--donate-level|cryptonight|xmr-stak|\bkdevtmpfsi\b|\bkinsing\b|ethminer|nicehash",)),
+
+    Rule("cryptominer_install", "cryptominer", 96, "загрузка и установка криптомайнера", ("T1496", "T1105"),
+         (_DL_TOOLS, r"xmrig|minerd|cpuminer|moneroocean|c3pool|xmr-stak|nicehash|kinsing|\bmonero\b")),
 
     # ───────── кража данных ─────────
     Rule("cred_shadow", "credential_access", 78, "чтение /etc/shadow", ("T1003.008",), (r"/etc/shadow",)),
@@ -237,5 +274,6 @@ def match(lower: str) -> list[Hit]:
     if not lower:
         return []
     hits = [Hit(r) for r in RULES if r.matches(lower)]
-    hits.sort(key=lambda h: (-h.score, h.rule.id))
+    # «Решающие» правила (final) — узкие детекторы «это не команда/безобидно»: если сработали, они главные.
+    hits.sort(key=lambda h: (not h.rule.final, -h.score, h.rule.id))
     return hits

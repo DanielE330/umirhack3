@@ -88,7 +88,7 @@ async def login_user_by_password(username: str, password: str, chat_id: str | in
         async with httpx.AsyncClient(trust_env=False, timeout=5.0) as client:
             resp = await client.post(
                 url,
-                json={"username": username.strip(), "password": password.strip(), "chat_id": str(chat_id), "tg_username": tg_username},
+                json={"username": username.strip().lower(), "password": password.strip(), "chat_id": str(chat_id), "tg_username": tg_username},
                 headers=headers,
             )
             if resp.status_code == 200:
@@ -134,6 +134,14 @@ SOC_MAIN_KEYBOARD = {
         [{"text": "📊 Статистика SOC"}, {"text": "🛡️ Чёрный список IP"}],
         [{"text": "🖥️ Ловушки Proxmox"}, {"text": "🚨 Последние атаки"}],
         [{"text": "⚡ Быстрый тест"}, {"text": "⚙️ Мой статус"}]
+    ],
+    "resize_keyboard": True,
+    "is_persistent": True
+}
+
+SOC_UNAUTH_KEYBOARD = {
+    "keyboard": [
+        [{"text": "⚙️ Мой статус"}, {"text": "❓ Помощь"}]
     ],
     "resize_keyboard": True,
     "is_persistent": True
@@ -529,7 +537,7 @@ async def _handle_telegram_update(tg_client: httpx.AsyncClient, base_tg: str, up
 
         print(f"📩 Telegram сообщение от chat_id={chat_id} (@{tg_username}): {text!r}", flush=True)
 
-        # Команда быстрой авторизации по логину и паролю: /login admin <пароль>
+        # 1.1 Команда быстрой авторизации по логину и паролю: /login <логин> <пароль>
         if text.startswith("/login"):
             parts = text.split(maxsplit=2)
             # Пытаемся сразу удалить сообщение с открытым паролем из чата для безопасности
@@ -549,18 +557,148 @@ async def _handle_telegram_update(tg_client: httpx.AsyncClient, base_tg: str, up
                         f"Теперь вам моментально будут приходить алерты об атаках!\n\n"
                         f"Используйте кнопки меню внизу экрана для управления SOC."
                     )
+                    kb = SOC_MAIN_KEYBOARD
                 else:
                     reply_text = f"❌ <b>Ошибка входа:</b> {html.escape(info)}"
+                    kb = SOC_UNAUTH_KEYBOARD
             else:
                 reply_text = (
                     "ℹ️ <b>Формат команды:</b> <code>/login &lt;логин&gt; &lt;пароль&gt;</code>\n\n"
-                    "Пример: <code>/login admin mypassword</code>\n\n"
-                    "<i>Сообщение с паролем удаляется ботом сразу же после обработки.</i>"
+                    "Пример: <code>/login rostik mypassword</code>\n\n"
+                    "<i>Сообщение с паролем удаляется ботом сразу же после обработки для безопасности.</i>"
                 )
-            await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": reply_text, "parse_mode": "HTML", "reply_markup": SOC_MAIN_KEYBOARD})
+                kb = SOC_UNAUTH_KEYBOARD
+            await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": reply_text, "parse_mode": "HTML", "reply_markup": kb})
+            return
 
+        # 1.2 Команда привязки по одноразовому коду или старт: /start, /link, /bind
+        elif text.startswith("/start") or text.startswith("/link") or text.startswith("/bind"):
+            parts = text.split(maxsplit=1)
+            if len(parts) > 1 and parts[1].strip():
+                code = parts[1].strip()
+                success, info = await bind_user_by_code(code, chat_id, tg_username)
+                if success:
+                    reply_text = (
+                        f"🎉 <b>Telegram успешно привязан к платформе HoneyForge!</b>\n\n"
+                        f"{info}\n\n"
+                        f"🛡️ Теперь вам будут приходить оперативные алерты об атаках, "
+                        f"и вы можете блокировать IP хакеров прямо отсюда.\n\n"
+                        f"Используйте кнопки меню внизу экрана для мониторинга SOC."
+                    )
+                    kb = SOC_MAIN_KEYBOARD
+                else:
+                    reply_text = (
+                        f"❌ <b>Ошибка привязки:</b> {html.escape(info)}\n\n"
+                        f"Сгенерируйте свежий код в веб-панели HoneyForge "
+                        f"(в правом верхнем углу: <i>«Подключить Telegram»</i>)."
+                    )
+                    kb = SOC_UNAUTH_KEYBOARD
+            else:
+                auth_status = await check_user_auth(chat_id)
+                if auth_status.get("authenticated"):
+                    reply_text = (
+                        f"👋 <b>Добро пожаловать в HoneyForge SOC!</b>\n\n"
+                        f"Вы авторизованы как <b>{auth_status.get('username')}</b> "
+                        f"(роль: <code>{auth_status.get('role')}</code>).\n"
+                        f"🆔 Ваш Chat ID: <code>{chat_id}</code>\n\n"
+                        f"Бот подключен и готов к работе. Выберите действие в меню ниже:"
+                    )
+                    kb = SOC_MAIN_KEYBOARD
+                else:
+                    reply_text = (
+                        f"👋 <b>Добро пожаловать в HoneyForge SOC Bot!</b>\n\n"
+                        f"🔒 <i>Бот предназначен для операторов и администраторов платформы HoneyForge.</i>\n\n"
+                        f"🆔 <b>Ваш Telegram Chat ID:</b> <code>{chat_id}</code>\n\n"
+                        f"<b>Как привязать свой аккаунт:</b>\n"
+                        f"1. <b>Быстрый вход:</b> отправьте <code>/login &lt;логин&gt; &lt;пароль&gt;</code> (подходит логин любого зарегистрированного оператора/админа)\n"
+                        f"2. <b>Через веб-панель:</b> войдите в HoneyForge и нажмите кнопку «📱 Подключить TG»\n"
+                        f"3. <b>По коду:</b> отправьте боту <code>/link &lt;код_из_панели&gt;</code> (например, <code>/link HF-A1B2C3</code>)"
+                    )
+                    kb = SOC_UNAUTH_KEYBOARD
+
+            await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": reply_text, "parse_mode": "HTML", "reply_markup": kb})
+            return
+
+        # 1.3 Проверка статуса: /status или «⚙️ Мой статус»
+        elif text in ("⚙️ Мой статус", "/status"):
+            auth_status = await check_user_auth(chat_id)
+            if auth_status.get("authenticated"):
+                reply_text = (
+                    f"🛡️ <b>HoneyForge SOC — Статус</b>\n\n"
+                    f"🟢 <b>Статус:</b> Авторизован\n"
+                    f"👤 <b>Пользователь:</b> {auth_status.get('username')}\n"
+                    f"🔑 <b>Роль:</b> <code>{auth_status.get('role')}</code>\n"
+                    f"🆔 <b>Chat ID:</b> <code>{chat_id}</code>\n\n"
+                    f"✅ Вам разрешено получение алертов и управление фаерволом Proxmox."
+                )
+                kb = SOC_MAIN_KEYBOARD
+            else:
+                reply_text = (
+                    f"🔒 <b>Вы не авторизованы.</b>\n\n"
+                    f"🆔 <b>Ваш Telegram Chat ID:</b> <code>{chat_id}</code>\n\n"
+                    f"<b>Как подключить получение алертов:</b>\n"
+                    f"1. <b>Быстрый вход:</b> отправьте боту <code>/login &lt;логин&gt; &lt;пароль&gt;</code> (любой пользователь платформы)\n"
+                    f"2. <b>Через веб-панель:</b> сгенерируйте код в панели и отправьте <code>/link &lt;код&gt;</code>"
+                )
+                kb = SOC_UNAUTH_KEYBOARD
+            await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": reply_text, "parse_mode": "HTML", "reply_markup": kb})
+            return
+
+        # 1.4 Отвязка аккаунта: /unlink
+        elif text == "/unlink":
+            await unbind_user(chat_id)
+            await _tg_post(
+                tg_client,
+                base_tg,
+                "sendMessage",
+                {
+                    "chat_id": chat_id,
+                    "text": "🔌 <b>Telegram успешно отвязан от вашего аккаунта HoneyForge.</b>",
+                    "parse_mode": "HTML",
+                    "reply_markup": SOC_UNAUTH_KEYBOARD,
+                },
+            )
+            return
+
+        # 1.5 Помощь: /help, ❓ Помощь
+        elif text in ("/help", "/info", "/menu", "❓ Помощь"):
+            auth_status = await check_user_auth(chat_id)
+            is_auth = bool(auth_status.get("authenticated"))
+            reply_text = (
+                f"📖 <b>Панель управления HoneyForge SOC:</b>\n\n"
+                f"• <b>📊 Статистика SOC</b> — сводка атак, угроз и паролей за 24ч\n"
+                f"• <b>🛡️ Чёрный список IP</b> — просмотр и снятие банов в Proxmox\n"
+                f"• <b>🖥️ Ловушки Proxmox</b> — статус виртуальных машин и LXC в DMZ\n"
+                f"• <b>🚨 Последние атаки</b> — свежие инциденты и быстрая блокировка\n"
+                f"• <b>⚡ Быстрый тест</b> — тестовый алерт с кнопками\n\n"
+                f"🔧 <b>Команды оператора:</b>\n"
+                f"• <code>/block &lt;IP&gt;</code> — заблокировать IP в Proxmox кластере\n"
+                f"• <code>/unblock &lt;IP&gt;</code> — разблокировать IP в Proxmox\n"
+                f"• <code>/check &lt;IP&gt;</code> — досье на IP (угроза, команды, пароли)\n"
+                f"• <code>/login &lt;логин&gt; &lt;пароль&gt;</code> — быстрая авторизация оператора/админа\n\n"
+                f"🆔 Ваш Chat ID: <code>{chat_id}</code>"
+            )
+            await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": reply_text, "parse_mode": "HTML", "reply_markup": SOC_MAIN_KEYBOARD if is_auth else SOC_UNAUTH_KEYBOARD})
+            return
+
+        # -------------------------------------------------------------
+        # ПРОВЕРКА АВТОРИЗАЦИИ ДЛЯ ВСЕХ ОСТАЛЬНЫХ ДЕЙСТВИЙ И КНОПОК SOC
+        # -------------------------------------------------------------
+        auth_status = await check_user_auth(chat_id)
+        if not auth_status.get("authenticated"):
+            reply_text = (
+                "⛔ <b>Доступ запрещён!</b>\n\n"
+                "Для просмотра данных SOC и выполнения действий требуется авторизация оператора платформы HoneyForge.\n\n"
+                "<b>Как войти:</b>\n"
+                "1. <b>Быстрый вход:</b> отправьте <code>/login &lt;ваш_логин&gt; &lt;пароль&gt;</code>\n"
+                "2. <b>Через веб-панель:</b> войдите в HoneyForge и отправьте боту <code>/link &lt;код&gt;</code>"
+            )
+            await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": reply_text, "parse_mode": "HTML", "reply_markup": SOC_UNAUTH_KEYBOARD})
+            return
+
+        # ============ АВТОРИЗОВАННЫЕ ДЕЙСТВИЯ И МЕНЮ ============
         # Кнопка / команда: Статистика SOC
-        elif text in ("📊 Статистика SOC", "/stats", "/stat"):
+        if text in ("📊 Статистика SOC", "/stats", "/stat"):
             txt, inline_kb = await _render_stats_view()
             await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": txt, "parse_mode": "HTML", "reply_markup": inline_kb})
 
@@ -591,90 +729,12 @@ async def _handle_telegram_update(tg_client: httpx.AsyncClient, base_tg: str, up
             reply_text = "🚀 <b>Тестовый алерт отправлен выше!</b> Проверьте сообщение и кнопки реагирования."
             await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": reply_text, "parse_mode": "HTML", "reply_markup": SOC_MAIN_KEYBOARD})
 
-        # Команда привязки по одноразовому коду: /start HF-XXXXXX, /link HF-XXXXXX или /bind HF-XXXXXX
-        elif text.startswith("/start") or text.startswith("/link") or text.startswith("/bind"):
-            parts = text.split(maxsplit=1)
-            if len(parts) > 1 and parts[1].strip():
-                code = parts[1].strip()
-                success, info = await bind_user_by_code(code, chat_id, tg_username)
-                if success:
-                    reply_text = (
-                        f"🎉 <b>Telegram успешно привязан к платформе HoneyForge!</b>\n\n"
-                        f"{info}\n\n"
-                        f"🛡️ Теперь вам будут приходить оперативные алерты об атаках, "
-                        f"и вы можете блокировать IP хакеров прямо отсюда.\n\n"
-                        f"Используйте кнопки меню внизу экрана для мониторинга SOC."
-                    )
-                else:
-                    reply_text = (
-                        f"❌ <b>Ошибка привязки:</b> {html.escape(info)}\n\n"
-                        f"Сгенерируйте свежий код в веб-панели HoneyForge "
-                        f"(в правом верхнем углу: <i>«Подключить Telegram»</i>)."
-                    )
-            else:
-                auth_status = await check_user_auth(chat_id)
-                if auth_status.get("authenticated"):
-                    reply_text = (
-                        f"👋 <b>Добро пожаловать в HoneyForge SOC!</b>\n\n"
-                        f"Вы авторизованы как <b>{auth_status.get('username')}</b> "
-                        f"(роль: <code>{auth_status.get('role')}</code>).\n"
-                        f"🆔 Ваш Chat ID: <code>{chat_id}</code>\n\n"
-                        f"Бот подключен и готов к работе. Выберите действие в меню ниже:"
-                    )
-                else:
-                    reply_text = (
-                        f"👋 <b>Добро пожаловать в HoneyForge SOC Bot!</b>\n\n"
-                        f"🔒 <i>Бот предназначен для операторов и администраторов платформы HoneyForge.</i>\n\n"
-                        f"🆔 <b>Ваш Telegram Chat ID:</b> <code>{chat_id}</code>\n\n"
-                        f"<b>Как привязать свой аккаунт:</b>\n"
-                        f"1. <b>Быстрый вход:</b> отправьте <code>/login admin &lt;пароль&gt;</code>\n"
-                        f"2. <b>Через веб-панель:</b> сгенерируйте код в меню и отправьте <code>/link &lt;код&gt;</code>\n"
-                        f"3. <b>В .env:</b> укажите <code>TELEGRAM_CHAT_ID={chat_id}</code> на сервере."
-                    )
-
-            await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": reply_text, "parse_mode": "HTML", "reply_markup": SOC_MAIN_KEYBOARD})
-
-        elif text in ("⚙️ Мой статус", "/status"):
-            auth_status = await check_user_auth(chat_id)
-            if auth_status.get("authenticated"):
-                reply_text = (
-                    f"🛡️ <b>HoneyForge SOC — Статус</b>\n\n"
-                    f"🟢 <b>Статус:</b> Авторизован\n"
-                    f"👤 <b>Пользователь:</b> {auth_status.get('username')}\n"
-                    f"🔑 <b>Роль:</b> <code>{auth_status.get('role')}</code>\n"
-                    f"🆔 <b>Chat ID:</b> <code>{chat_id}</code>\n\n"
-                    f"✅ Вам разрешено получение алертов и управление фаерволом Proxmox."
-                )
-            else:
-                reply_text = (
-                    f"🔒 <b>Вы не авторизованы.</b>\n\n"
-                    f"🆔 <b>Ваш Telegram Chat ID:</b> <code>{chat_id}</code>\n\n"
-                    f"<b>Как подключить получение алертов:</b>\n"
-                    f"1. <b>Быстрый вход:</b> отправьте боту <code>/login admin &lt;пароль&gt;</code>\n"
-                    f"2. <b>Через веб-панель:</b> войдите в панель и используйте <code>/link &lt;код&gt;</code>\n"
-                    f"3. <b>В .env:</b> пропишите <code>TELEGRAM_CHAT_ID={chat_id}</code> на сервере."
-                )
-            await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": reply_text, "parse_mode": "HTML", "reply_markup": SOC_MAIN_KEYBOARD})
-
-        elif text == "/unlink":
-            await unbind_user(chat_id)
-            await _tg_post(
-                tg_client,
-                base_tg,
-                "sendMessage",
-                {
-                    "chat_id": chat_id,
-                    "text": "🔌 <b>Telegram успешно отвязан от вашего аккаунта HoneyForge.</b>",
-                    "parse_mode": "HTML",
-                    "reply_markup": SOC_MAIN_KEYBOARD,
-                },
-            )
 
         # Ручная блокировка IP: /block 1.2.3.4 или /ban 1.2.3.4
         elif text.startswith("/block") or text.startswith("/ban"):
             auth_status = await check_user_auth(chat_id)
             if not auth_status.get("authenticated"):
-                reply_text = "⛔ Доступ запрещён! Сначала авторизуйтесь через <code>/login admin &lt;пароль&gt;</code>."
+                reply_text = "⛔ Доступ запрещён! Сначала авторизуйтесь через <code>/login &lt;логин&gt; &lt;пароль&gt;</code> или привяжите Telegram в веб-панели."
             else:
                 parts = text.split(maxsplit=1)
                 if len(parts) > 1 and parts[1].strip():
@@ -704,7 +764,7 @@ async def _handle_telegram_update(tg_client: httpx.AsyncClient, base_tg: str, up
         elif text.startswith("/unblock") or text.startswith("/unban"):
             auth_status = await check_user_auth(chat_id)
             if not auth_status.get("authenticated"):
-                reply_text = "⛔ Доступ запрещён! Сначала авторизуйтесь через <code>/login admin &lt;пароль&gt;</code>."
+                reply_text = "⛔ Доступ запрещён! Сначала авторизуйтесь через <code>/login &lt;логин&gt; &lt;пароль&gt;</code> или привяжите Telegram в веб-панели."
             else:
                 parts = text.split(maxsplit=1)
                 if len(parts) > 1 and parts[1].strip():
@@ -747,7 +807,7 @@ async def _handle_telegram_update(tg_client: httpx.AsyncClient, base_tg: str, up
                 f"• <code>/block &lt;IP&gt;</code> — заблокировать IP в Proxmox кластере\n"
                 f"• <code>/unblock &lt;IP&gt;</code> — разблокировать IP в Proxmox\n"
                 f"• <code>/check &lt;IP&gt;</code> — досье на IP (угроза, команды, пароли)\n"
-                f"• <code>/login admin &lt;пароль&gt;</code> — быстрая авторизация в боте\n\n"
+                f"• <code>/login &lt;логин&gt; &lt;пароль&gt;</code> — быстрая авторизация оператора/админа\n\n"
                 f"🆔 Ваш Chat ID: <code>{chat_id}</code>"
             )
             await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": reply_text, "parse_mode": "HTML", "reply_markup": SOC_MAIN_KEYBOARD})

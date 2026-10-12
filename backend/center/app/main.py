@@ -13,6 +13,7 @@ from .orchestrator import Orchestrator
 from .routers import agent_api, artifacts, audit, events, ideas, roles, sources, internal, machines, profiles, reset, traps
 from .routers import auth as auth_router
 from .routers import users as users_router
+from .scoring import start_background_rescorer
 from .security import Vault
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -28,6 +29,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.orchestrator = Orchestrator(settings)
     app.state.honeymind = HoneyMind(settings)
     app.state.session_factory = sessionmaker(engine, expire_on_commit=False)
+    app.state.rescore_worker = start_background_rescorer(
+        app.state.session_factory, app.state.honeymind, app.state.orchestrator, interval_seconds=60.0
+    )
 
     @app.middleware("http")
     async def security_headers(request: Request, call_next):

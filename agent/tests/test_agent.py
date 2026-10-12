@@ -1,6 +1,7 @@
 import asyncio
 import json
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import asyncssh
@@ -245,8 +246,10 @@ def test_agent_buffers_while_center_down_and_flushes_after(tmp_path):
         buf = EventBuffer(str(tmp_path / "q.db"))
         agent = Agent(CenterClient(center.url, "hf_ok", timeout=2), buf, str(tmp_path), bind_host="127.0.0.1")
         runner = asyncio.create_task(agent.run())
+        t_start = time.time()
         for i in range(3):
             agent.emitter.emit("connect", src_ip=f"10.0.0.{i}")
+        t_end = time.time()
         await asyncio.sleep(1.5)
         assert buf.count() == 3 and not center.received  # центр недоступен: события в буфере, не потеряны
         center.up = True
@@ -257,6 +260,9 @@ def test_agent_buffers_while_center_down_and_flushes_after(tmp_path):
         agent.shutdown()
         await runner
         assert {e["src_ip"] for e in center.received} == {"10.0.0.0", "10.0.0.1", "10.0.0.2"}
+        # Проверяем FR-A4: ts остаётся временем самого события, а не временем досылки (до задержки в 1.5 с)
+        for e in center.received:
+            assert t_start <= e["ts"] <= t_end
         assert buf.count() == 0
     try:
         run(go())
@@ -298,8 +304,6 @@ def test_client_falls_back_to_plain_channel_without_cryptography(monkeypatch):
     monkeypatch.setattr(center, "derive_payload_key", None)
     c = center.CenterClient("http://x", "hf_token")
     assert c.key is None and c.encrypt is False
-
-
 def test_low_trap_interactive_redis_and_ftp():
     async def go():
         buf = EventBuffer(":memory:")
@@ -403,6 +407,9 @@ def test_http_trap_builtin_honeytokens_and_probes():
         assert any(e["type"] == "honeytoken" and e["command"] == "/.env" for e in evs)
         assert any(e["type"] == "honeytoken" and e["command"] == "/.git/config" for e in evs)
         assert any(e["type"] == "payload" and e.get("data", {}).get("kind") == "web-attack-probe" for e in evs)
+
+    run(go())
+
 
 # --- поддельная оболочка ---
 def make_shell(user="root", tty=False):

@@ -1,6 +1,7 @@
 tests
 reports
-data
+data/*
+!data/train
 scripts
 models/*
 !models/human.json

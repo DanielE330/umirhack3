@@ -107,5 +107,5 @@ async def collect(request: Request, background: BackgroundTasks, trap: Trap = De
         # внутри work(); не блокирует ответ агенту, падение HoneyMind не роняет приём событий.
         scoring.submit_score_event(request.app.state.session_factory, honeymind, orchestrator, view)
         if view["type"] == "session_end":
-            scoring.submit_session_assessment(request.app.state.session_factory, honeymind, view["session_id"])
+            scoring.submit_session_assessment(request.app.state.session_factory, honeymind, view["session_id"], orchestrator)
     return {"ok": len(batch.events) - dup, "dup": dup}

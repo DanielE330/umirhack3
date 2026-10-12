@@ -15,9 +15,11 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
+from pydantic import BaseModel, Field
+
 from .. import auth, geo
 from ..db import get_db
-from ..models import Event, IpInfo, SessionAssessment, Trap, User, utcnow
+from ..models import Event, EventLabel, IpInfo, SessionAssessment, Trap, User, utcnow
 from ..services import event_view, trap_status
 
 router = APIRouter(prefix="/api", tags=["events"])
@@ -82,10 +84,13 @@ def get_session_assessment(session_id: str, _: User = Depends(auth.require_perm(
                "commands": counts.get("command", 0), "auth_attempts": counts.get("auth_attempt", 0),
                "honeytokens": counts.get("honeytoken", 0)}
     out = {"session_id": session_id, "is_human": None, "human_probability": None, "human_method": None,
-           "human_reason": None, "script_seen_before": None, "updated_at": None, "summary": summary}
+           "human_reason": None, "script_seen_before": None, "threat_score": None,
+           "download_then_execute": None, "ssh_client": None, "updated_at": None, "summary": summary}
     if a is not None:
         out.update(is_human=a.is_human, human_probability=a.human_probability, human_method=a.human_method,
                    human_reason=a.human_reason, script_seen_before=a.script_seen_before,
+                   threat_score=a.threat_score, download_then_execute=a.download_then_execute,
+                   ssh_client=a.ssh_client,
                    updated_at=a.updated_at.isoformat() + "Z")
     return out
 
@@ -199,6 +204,24 @@ def stats(request: Request, _: User = Depends(auth.require_perm("events.view")),
             "timeline": [{"t": k, "n": v} for k, v in buckets.items()],
             "by_hour": [{"t": k, **v} for k, v in hours.items()],
             "traps": {"total": len(traps), "online": online}}
+
+
+class EventLabelIn(BaseModel):
+    label: str = Field(min_length=1, max_length=64)
+
+
+@router.post("/events/{event_id}/label")
+def label_event(event_id: int, body: EventLabelIn,
+                user: User = Depends(auth.require_role("admin", "operator")),
+                db: Session = Depends(get_db)):
+    """Обратная связь оператора: фиксация корректной метки класса действия (FR-Feedback)."""
+    ev = db.get(Event, event_id)
+    if not ev:
+        raise HTTPException(404, "Событие не найдено")
+    lbl = EventLabel(event_id=ev.id, label=body.label.strip(), operator=user.username)
+    db.add(lbl)
+    db.commit()
+    return {"status": "ok", "id": lbl.id, "event_id": ev.id, "label": lbl.label, "operator": lbl.operator}
 
 
 @router.websocket("/ws/events")

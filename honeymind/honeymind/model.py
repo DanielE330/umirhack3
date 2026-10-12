@@ -25,7 +25,7 @@ from sklearn.pipeline import FeatureUnion, Pipeline
 from .rules import CATEGORIES
 from .textnorm import normalize
 
-MODEL_VERSION = "honeymind-1"
+MODEL_VERSION = "honeymind-3"   # 3: сегменты цепочек, новые правила и деобфускация, обучение на 624 реальных командах
 
 
 def build_pipeline(kind: str = "logreg", seed: int = 42) -> Pipeline:

@@ -84,6 +84,7 @@ ATTACK_PROBES = (
 )
 
 
+
 class HttpTrap:
     def __init__(self, service: dict, config: dict, emitter: Emitter):
         self.service, self.config, self.emitter = service, config, emitter
@@ -173,7 +174,6 @@ class HttpTrap:
         if method not in KNOWN_METHODS:
             await self._error(writer, 501, req)
             return True
-
         if path in self.tokens:  # приманка-URL: любое обращение — компрометация сигнальных данных
             tok = self.tokens[path]
             if path != "/robots.txt":  # robots.txt читают и безобидные краулеры — это не компрометация

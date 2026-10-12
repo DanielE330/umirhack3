@@ -6,4 +6,5 @@ __pycache__/
 HoneyForgeGit/
 vpn-rostik.sh
 infra/secrets/
+*.zip
 knowledge/

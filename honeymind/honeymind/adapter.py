@@ -47,6 +47,7 @@ class CanonEvent:
     session_id: str | None = None
     src_ip: str | None = None
     raw_type: str | None = None
+    client: str | None = None     # строка версии SSH-клиента (SSH-2.0-Go, SSH-2.0-OpenSSH_9.6 …), если ловушка её прислала
 
 
 def _s(v: Any) -> str | None:
@@ -105,6 +106,9 @@ def canonicalize(obj: Any) -> CanonEvent:
     command = _first(detail, "command", "input", "cmd")
     username, password = _first(detail, "username", "user", "login"), _first(detail, "password", "pass", "passwd")
     url = _first(detail, "url", "outfile")
+    client = _first(detail, "client_version", "ssh_client_version", "ssh_client", "client")
+    if client is None and raw_type == "cowrie.client.version":
+        client = detail.get("version")
     fhash = _first(detail, "file_hash", "shasum", "sha256", "hash")
 
     if kind is None:  # тип не указан → определяем по содержимому (плоский payload)
@@ -132,5 +136,5 @@ def canonicalize(obj: Any) -> CanonEvent:
         file_hash=_s(fhash), success=success if isinstance(success, bool) else None,
         ts=_parse_ts(_first(obj, "timestamp", "ts", "received_at", "time")),
         session_id=_s(_first(obj, "session_id", "session")), src_ip=_s(_first(obj, "attacker_ip", "src_ip")),
-        raw_type=raw_type,
+        raw_type=raw_type, client=_s(client)[:200] if client is not None else None,
     )

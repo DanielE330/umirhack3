@@ -4,6 +4,11 @@
     python train.py                 # LogReg, сохраняет models/honeymind.joblib (+ .sha256)
     python train.py --kind rf       # RandomForest
     python train.py --compare       # групповая кросс-валидация LogReg vs RF (без сохранения)
+    python train.py --no-real       # только синтетика (без реальных размеченных команд)
+
+Данные: data/train/synthetic_corpus.jsonl (генерируется honeymind/corpus.py) и data/train/real_labeled.jsonl
+(вручную размеченные реальные команды). Пересобрать файлы: python scripts/build_training_data.py.
+Чтобы добавить свои размеченные команды — допишите строки {"command": ..., "label": ...} в real_labeled.jsonl и пересоберите образ.
 
 CV идёт ГРУППАМИ по шаблонам: тестовые команды порождены шаблонами, которых модель в обучении не видела.
 Это строже случайного разбиения (где почти-дубликаты утекают в тест), но всё равно на синтетике —
@@ -22,8 +27,21 @@ from sklearn.model_selection import GroupKFold
 
 from honeymind.corpus import build
 from honeymind.model import ThreatModel
+from honeymind.rules import CATEGORIES
 
 ROOT = Path(__file__).resolve().parent
+REAL_PATH = ROOT / "data" / "train" / "real_labeled.jsonl"
+REAL_WEIGHT = 3   # реальные команды — целевое распределение; в leave-one-round-out ×3 не хуже ×1 (reports/loro_real_data.json)
+
+
+def load_real(path: Path = REAL_PATH) -> list[dict]:
+    if not path.exists():
+        return []
+    rows = [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    for r in rows:
+        if r["label"] not in CATEGORIES:
+            raise SystemExit(f"{path.name}: неизвестная метка {r['label']!r} у команды {r['command'][:60]!r}")
+    return rows
 
 
 def cv_compare(samples, folds: int = 5) -> dict:
@@ -52,6 +70,8 @@ def main() -> int:
     ap.add_argument("--kind", choices=["logreg", "rf"], default="logreg")
     ap.add_argument("--compare", action="store_true")
     ap.add_argument("--per-template", type=int, default=4)
+    ap.add_argument("--no-real", action="store_true", help="не использовать data/train/real_labeled.jsonl")
+    ap.add_argument("--real-weight", type=int, default=REAL_WEIGHT, help="во сколько раз повторить реальные команды")
     ap.add_argument("--out", default=str(ROOT / "models" / "honeymind.joblib"))
     args = ap.parse_args()
 
@@ -63,8 +83,16 @@ def main() -> int:
         (ROOT / "reports").mkdir(exist_ok=True)
         (ROOT / "reports" / "train_cv.json").write_text(json.dumps(res, indent=2))
         return 0
-    model = ThreatModel.train([s.text for s in samples], [s.label for s in samples], kind=args.kind,
-                              meta={"corpus_size": len(samples), "classes": labels})
+    texts = [s.text for s in samples]
+    ys = [s.label for s in samples]
+    real = [] if args.no_real else load_real()
+    for r in real:
+        texts += [r["command"]] * args.real_weight
+        ys += [r["label"]] * args.real_weight
+    print(f"real labeled: {len(real)} commands x{args.real_weight}" if real else "real labeled: not used")
+    model = ThreatModel.train(texts, ys, kind=args.kind,
+                              meta={"corpus_size": len(samples), "classes": sorted(set(ys)),
+                                    "real_labeled": len(real), "real_weight": args.real_weight if real else 0})
     digest = model.save(args.out)
     print(f"saved {args.out}\nsha256 {digest}")
     return 0

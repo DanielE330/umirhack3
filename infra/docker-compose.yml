@@ -109,6 +109,9 @@ services:
     environment:
       HONEYMIND_TOKEN: ${HONEYMIND_TOKEN:?задайте HONEYMIND_TOKEN}
       HONEYMIND_DOCS: "0"
+      HONEYMIND_STATE_DB: /data/state.db
+    volumes:
+      - honeymind-state:/data
     networks:
       backend: {}          # только внутренняя сеть — порт наружу и в default не публикуем
     restart: unless-stopped
@@ -123,3 +126,4 @@ networks:
 
 volumes:
   pgdata:
+  honeymind-state:

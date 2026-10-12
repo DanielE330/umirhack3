@@ -75,6 +75,141 @@ def test_send_alert_noop_without_token(monkeypatch):
     assert _FakeAsyncClient.sent == []
 
 
+def test_bind_user_by_code_success(monkeypatch):
+    class Resp:
+        status_code = 200
+        def json(self):
+            return {"ok": True, "username": "admin", "role": "admin"}
+
+    class Client:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def post(self, url, json=None, headers=None):
+            assert "telegram/bind" in url
+            assert json["code"] == "HF-123456"
+            assert json["chat_id"] == "999"
+            return Resp()
+
+    monkeypatch.setattr(ts.httpx, "AsyncClient", Client)
+    ok, info = asyncio.run(ts.bind_user_by_code("hf-123456", 999, "operator_tg"))
+    assert ok is True
+    assert "admin" in info
+
+
+def test_bind_user_by_code_failure(monkeypatch):
+    class Resp:
+        status_code = 400
+        def json(self):
+            return {"detail": "Код не найден или истёк"}
+
+    class Client:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def post(self, url, json=None, headers=None):
+            return Resp()
+
+    monkeypatch.setattr(ts.httpx, "AsyncClient", Client)
+    ok, info = asyncio.run(ts.bind_user_by_code("HF-000000", 999))
+    assert ok is False
+    assert "Код не найден" in info
+
+
+def test_check_user_auth(monkeypatch):
+    class Resp:
+        status_code = 200
+        def json(self):
+            return {"authenticated": True, "username": "soc_lead", "role": "admin"}
+
+    class Client:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def post(self, url, json=None, headers=None):
+            assert "check-auth" in url
+            return Resp()
+
+    monkeypatch.setattr(ts.httpx, "AsyncClient", Client)
+    res = asyncio.run(ts.check_user_auth(777))
+    assert res["authenticated"] is True
+    assert res["username"] == "soc_lead"
+
+
+def test_unbind_user(monkeypatch):
+    class Resp:
+        status_code = 200
+
+    class Client:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def post(self, url, json=None, headers=None):
+            assert "telegram/unbind" in url
+            return Resp()
+
+    monkeypatch.setattr(ts.httpx, "AsyncClient", Client)
+    assert asyncio.run(ts.unbind_user(777)) is True
+
+
+def test_unauthorized_user_blocked_from_protected_commands(monkeypatch):
+    sent_messages = []
+
+    async def fake_check_auth(cid):
+        return {"authenticated": False}
+
+    async def fake_tg_post(client, base, method, payload):
+        sent_messages.append({"method": method, "payload": payload})
+
+    monkeypatch.setattr(ts, "check_user_auth", fake_check_auth)
+    monkeypatch.setattr(ts, "_tg_post", fake_tg_post)
+
+    # Неавторизованный пользователь пробует нажать кнопку «📊 Статистика SOC»
+    update = {
+        "message": {
+            "message_id": 1,
+            "chat": {"id": 12345},
+            "text": "📊 Статистика SOC",
+            "from": {"id": 12345, "username": "unauth_user"},
+        }
+    }
+
+    asyncio.run(ts._handle_telegram_update(None, "https://api.telegram.org", update))
+
+    assert len(sent_messages) == 1
+    msg = sent_messages[0]["payload"]
+    assert "Доступ запрещён" in msg["text"]
+    assert msg["reply_markup"] == ts.SOC_UNAUTH_KEYBOARD
+
+
+def test_unauthorized_user_start_shows_unauth_keyboard(monkeypatch):
+    sent_messages = []
+
+    async def fake_check_auth(cid):
+        return {"authenticated": False}
+
+    async def fake_tg_post(client, base, method, payload):
+        sent_messages.append({"method": method, "payload": payload})
+
+    monkeypatch.setattr(ts, "check_user_auth", fake_check_auth)
+    monkeypatch.setattr(ts, "_tg_post", fake_tg_post)
+
+    update = {
+        "message": {
+            "message_id": 2,
+            "chat": {"id": 12345},
+            "text": "/start",
+            "from": {"id": 12345, "username": "guest"},
+        }
+    }
+
+    asyncio.run(ts._handle_telegram_update(None, "https://api.telegram.org", update))
+
+    assert len(sent_messages) == 1
+    msg = sent_messages[0]["payload"]
+    assert msg["reply_markup"] == ts.SOC_UNAUTH_KEYBOARD
+    assert "Добро пожаловать в HoneyForge SOC Bot" in msg["text"]
+
 
 def test_send_message_is_plain_text_to_one_chat(monkeypatch):
     monkeypatch.setattr(ts, "TELEGRAM_BOT_TOKEN", "test-token")
