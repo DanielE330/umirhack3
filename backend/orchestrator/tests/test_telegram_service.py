@@ -152,3 +152,63 @@ def test_unbind_user(monkeypatch):
     assert asyncio.run(ts.unbind_user(777)) is True
 
 
+def test_unauthorized_user_blocked_from_protected_commands(monkeypatch):
+    sent_messages = []
+
+    async def fake_check_auth(cid):
+        return {"authenticated": False}
+
+    async def fake_tg_post(client, base, method, payload):
+        sent_messages.append({"method": method, "payload": payload})
+
+    monkeypatch.setattr(ts, "check_user_auth", fake_check_auth)
+    monkeypatch.setattr(ts, "_tg_post", fake_tg_post)
+
+    # Неавторизованный пользователь пробует нажать кнопку «📊 Статистика SOC»
+    update = {
+        "message": {
+            "message_id": 1,
+            "chat": {"id": 12345},
+            "text": "📊 Статистика SOC",
+            "from": {"id": 12345, "username": "unauth_user"},
+        }
+    }
+
+    asyncio.run(ts._handle_telegram_update(None, "https://api.telegram.org", update))
+
+    assert len(sent_messages) == 1
+    msg = sent_messages[0]["payload"]
+    assert "Доступ запрещён" in msg["text"]
+    assert msg["reply_markup"] == ts.SOC_UNAUTH_KEYBOARD
+
+
+def test_unauthorized_user_start_shows_unauth_keyboard(monkeypatch):
+    sent_messages = []
+
+    async def fake_check_auth(cid):
+        return {"authenticated": False}
+
+    async def fake_tg_post(client, base, method, payload):
+        sent_messages.append({"method": method, "payload": payload})
+
+    monkeypatch.setattr(ts, "check_user_auth", fake_check_auth)
+    monkeypatch.setattr(ts, "_tg_post", fake_tg_post)
+
+    update = {
+        "message": {
+            "message_id": 2,
+            "chat": {"id": 12345},
+            "text": "/start",
+            "from": {"id": 12345, "username": "guest"},
+        }
+    }
+
+    asyncio.run(ts._handle_telegram_update(None, "https://api.telegram.org", update))
+
+    assert len(sent_messages) == 1
+    msg = sent_messages[0]["payload"]
+    assert msg["reply_markup"] == ts.SOC_UNAUTH_KEYBOARD
+    assert "Добро пожаловать в HoneyForge SOC Bot" in msg["text"]
+
+
+
