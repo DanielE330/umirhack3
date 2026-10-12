@@ -10,6 +10,7 @@ from .center import CenterClient, CenterError
 from .emitter import Emitter
 from .traps.banner import BannerTrap
 from .traps.http import HttpTrap
+from .traps.mysql import MysqlTrap
 from .traps.ssh import SshTrap
 
 log = logging.getLogger("netsvc")
@@ -41,6 +42,8 @@ class Agent:
             return SshTrap(service, config, self.emitter, self.state_dir)
         if proto == "http":
             return HttpTrap(service, config, self.emitter)
+        if proto in ("mysql", "db"):
+            return MysqlTrap(service, config, self.emitter, self.state_dir)
         return BannerTrap(service, config, self.emitter)
 
     async def stop_traps(self) -> None:

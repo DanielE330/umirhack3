@@ -105,13 +105,16 @@ export const CATALOG = [
     users: ['admin'], tokens: [],
     emulates: 'Страница входа «Admin Console», ответы и страницы ошибок как у Apache, приманки /.env и /.git/config.',
     collects: 'Логины и пароли из формы, все HTTP-запросы, поиск /.env, /wp-login.php, /phpmyadmin, попытки SQL-инъекций и веб-шеллов.', risk: 'Умеренный' },
-  { id: 'fake-db', icon: 'DB', name: 'Поддельная база данных', level: 'medium', planned: true,
-    services: [{ port: 5432, proto: 'db', banner: '' }],
-    emulates: 'Протокол PostgreSQL/MySQL с ответами на запросы и таблицами-приманками.',
-    collects: 'Учётные данные и SQL-запросы атакующего.', risk: 'Умеренный' },
-  { id: 'high-vm', icon: 'VM', name: 'Настоящая ОС в песочнице', level: 'high', planned: true, services: [],
-    emulates: 'Полноценная виртуальная машина в изолированной сети с откатом к снимку после атаки.',
-    collects: 'Всю сессию: ввод и вывод, загруженные инструменты, попытки двигаться по сети.', risk: 'Высокий' },
+  { id: 'fake-db', icon: 'DB', name: 'Изолированная БД (MySQL)', level: 'medium',
+    services: [{ port: 3306, proto: 'mysql', banner: '8.0.36-0ubuntu0.22.04.1' }],
+    users: ['root', 'admin', 'backup'], tokens: ['/var/lib/mysql/backup.sql'],
+    emulates: 'Полноценный бинарный протокол MySQL (v10 handshake). Поддерживает клиентов mysql, DBeaver, сканеры и ботов. Авторизация, запросы SHOW/SELECT/DROP, изолированные таблицы-приманки (honeytokens) и детектор вымогателей (Ransomware).',
+    collects: 'Логины, пароли, SQL-запросы, попытки инъекций, биткоин-кошельки и записки вымогателей.', risk: 'Умеренный' },
+  { id: 'high-vm', icon: 'VM', name: 'Настоящая ОС в песочнице', level: 'high',
+    services: [{ port: 22, proto: 'ssh', banner: '' }],
+    users: ['root', 'admin'], tokens: ['/root/.aws/credentials', '/etc/shadow'],
+    emulates: 'Полноценная закрытая ОС в изолированной сети (DMZ 10.20.0.0/24) с перехватом всех реальных команд, процессов и файлов, с поддержкой снимка и отката.',
+    collects: 'Всю сессию: ввод и вывод, загруженные инструменты, процессы, попытки движения по сети.', risk: 'Высокий' },
 ]
 // Профили-заготовки по готовым типам каталога: появляются в выборе ловушек, а в центре создаются при первом использовании
 export const templateName = (e) => e.id + '-' + e.level

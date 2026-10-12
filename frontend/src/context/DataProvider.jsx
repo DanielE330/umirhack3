@@ -236,6 +236,16 @@ export default function DataProvider({ children }) {
         if (c.state === 'stopped' || c.state === 'failed') return showToast(t('Машина выключена — включите её переключателем'), true)
         return machineAction(c, 'reboot', t('{cli} reboot {vmid} — «{name}» перезапущен', { cli: info.cli, vmid: c.vmid, name: c.name }))
       },
+      async rollbackContainer(c) {
+        showToast(t('Откатываю «{name}» к чистому снимку Proxmox…', { name: c.name }))
+        try {
+          await api('/api/machines/' + c.vmid + '/rollback', { method: 'POST' })
+          showToast(t('«{name}» успешно откатан к чистому состоянию', { name: c.name }))
+        } catch (e) {
+          fail(e)
+        }
+        await refresh()
+      },
       async deleteContainer(c) {
         showToast(t('Удаляю {kind} {vmid}…', { kind: TYPE_INFO[c.type].kind, vmid: c.vmid }))
         try {

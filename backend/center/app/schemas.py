@@ -11,7 +11,7 @@ _PROCESS_NAME = re.compile(r"^[A-Za-z0-9_./ -]{1,40}$")
 
 class Service(BaseModel):
     port: int = Field(ge=1, le=65535)
-    proto: Literal["banner", "ssh", "http"] = "banner"
+    proto: Literal["banner", "ssh", "http", "mysql", "db"] = "banner"
     banner: str = Field(default="", max_length=255)
 
 
@@ -62,7 +62,7 @@ class Masking(BaseModel):
 class ProfileIn(BaseModel):
     name: str = Field(min_length=1, max_length=80)
     description: str = Field(default="", max_length=1000)
-    level: Literal["low", "medium"]
+    level: Literal["low", "medium", "high"]
     services: list[Service] = Field(min_length=1, max_length=10)
     decoys: Decoys = Field(default_factory=Decoys)
     logging: Logging = Field(default_factory=Logging)
@@ -118,7 +118,7 @@ class DeployIn(BaseModel):
 class AgentEvent(BaseModel):
     uid: str = Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
     ts: float
-    type: Literal["connect", "auth_attempt", "command", "http_request", "payload", "honeytoken", "session_end"]
+    type: Literal["connect", "auth_attempt", "command", "http_request", "payload", "honeytoken", "session_end", "alert"]
     src_ip: str = Field(default="", max_length=64)
     src_port: int = Field(default=0, ge=0, le=65535)
     dst_port: int = Field(default=0, ge=0, le=65535)

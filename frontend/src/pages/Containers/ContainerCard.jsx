@@ -1,4 +1,4 @@
-import { Check, Info, RotateCw, Settings, Trash2, X } from 'lucide-react'
+import { Check, History, Info, RotateCw, Settings, Trash2, X } from 'lucide-react'
 import { useData } from '../../context/data.js'
 import { useLanguage } from '../../context/language.js'
 import { useNow } from '../../hooks/useNow.js'
@@ -8,7 +8,7 @@ import { clickable } from '../../lib/clickable.js'
 import { HELP, STATES, TYPE_INFO, resParts, since } from '../../lib/model.js'
 
 export default function ContainerCard({ c }) {
-  const { trapsOf, portsOf, levelOf, toggleContainer, restartContainer, deleteContainer, removeTrap } = useData()
+  const { trapsOf, portsOf, levelOf, toggleContainer, restartContainer, rollbackContainer, deleteContainer, removeTrap } = useData()
   const { openTrap, openAddTrap, openContainerSettings, openPve } = useModals()
   const { t } = useLanguage()
   const now = useNow()
@@ -97,6 +97,11 @@ export default function ContainerCard({ c }) {
             data-tip={t('Перезапустить машину ({cli} reboot {vmid}). Агент снова выйдет на связь через несколько секунд.', { cli: info.cli, vmid: c.vmid })}
             onClick={() => restartContainer(c)}>
             <RotateCw size={16} strokeWidth={1.5} aria-hidden="true" />
+          </button>
+          <button className="icon-btn" aria-label={t('Откат к снимку Proxmox')}
+            data-tip={t('Откатить машину {vmid} к чистому снимку Proxmox (High-Interaction baseline)', { vmid: c.vmid })}
+            onClick={() => rollbackContainer(c)}>
+            <History size={16} strokeWidth={1.5} aria-hidden="true" />
           </button>
           <ArmedButton label={<Trash2 size={16} strokeWidth={1.5} aria-hidden="true" />} armLabel={<Check size={16} strokeWidth={1.5} aria-hidden="true" />}
             aria-label={t('Удалить машину')} className="icon-btn danger" tip={t('Удалить машину вместе со всеми ловушками (нажмите дважды)')} onConfirm={() => deleteContainer(c)} />

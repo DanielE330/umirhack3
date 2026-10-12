@@ -170,6 +170,7 @@ class SshTrap:
         self.boot_time = time.time() - random.randint(86400 * 3, 86400 * 60)
         self.ip = local_ip()
         self.ports = [(s["port"], s.get("type", "tcp")) for s in config.get("services", [])]
+        self.is_high = config.get("level") == "high"
         self.server: asyncssh.SSHAcceptor | None = None
         self._sessions: dict[int, str] = {}
 
@@ -228,11 +229,95 @@ class SshTrap:
             user = process.get_extra_info("username") or "root"
             tty = process.get_terminal_type() is not None
             width = (process.get_terminal_size() or (80,))[0] or 80
-            shell = Shell(trap.fs, user, trap.hostname, OS_RELEASE, UNAME, trap.boot_time, trap.ip, trap.ports, peer[0],
-                          lambda kind, **kw: trap.emitter.emit(kind, **base, username=user, **kw), tty=tty, width=width)
 
             def out(text: str) -> None:
                 process.stdout.write(text.replace("\n", "\r\n") if tty else text)
+
+            if trap.is_high:
+                sandbox_dir = Path(trap.key_dir) / "sandbox" / sid
+                sandbox_dir.mkdir(parents=True, exist_ok=True)
+
+                tokens_map = {}
+                for ht in trap.config.get("decoys", {}).get("honeytokens", []):
+                    rel = ht.get("path", "").lstrip("/").replace("..", "")
+                    if rel:
+                        tp = sandbox_dir / rel
+                        tp.parent.mkdir(parents=True, exist_ok=True)
+                        tp.write_text(ht.get("content") or "# honeytoken\n")
+                        tokens_map[str(tp.resolve())] = ht.get("path")
+
+                def scan_sandbox_payloads():
+                    for f in sandbox_dir.rglob("*"):
+                        if f.is_file() and str(f.resolve()) not in tokens_map:
+                            try:
+                                b = f.read_bytes()
+                                if b:
+                                    h = hashlib.sha256(b).hexdigest()
+                                    rf = str(f.relative_to(sandbox_dir))
+                                    trap.emitter.emit("payload", **base, username=user, command=f"file:{rf}",
+                                                      data={"sha256": h, "filename": rf, "size": len(b), "sandbox": True})
+                            except Exception:
+                                pass
+
+                env = {**os.environ, "TERM": process.get_terminal_type() or "xterm-256color",
+                       "USER": user, "HOME": str(sandbox_dir), "HOSTNAME": trap.hostname}
+
+                try:
+                    if process.command:
+                        cmd = process.command.strip()
+                        trap.emitter.emit("command", **base, username=user, command=cmd)
+                        for _, orig in tokens_map.items():
+                            if orig in cmd or Path(orig).name in cmd:
+                                trap.emitter.emit("honeytoken", **base, username=user, command=cmd,
+                                                  data={"honeytoken": orig, "path": orig})
+                        proc = await asyncio.create_subprocess_shell(
+                            cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
+                            cwd=str(sandbox_dir), env=env
+                        )
+                        stdout, _ = await proc.communicate()
+                        out(stdout.decode("utf-8", "replace"))
+                        scan_sandbox_payloads()
+                        process.exit(proc.returncode or 0)
+                        return
+
+                    prompt = f"{user}@{trap.hostname}:~$ "
+                    out("Welcome to Ubuntu 24.04 LTS (GNU/Linux 6.8.0-45-generic x86_64)\r\n\r\n")
+                    out(prompt)
+                    while True:
+                        line = await process.stdin.readline()
+                        if not line:
+                            break
+                        cmd = line.strip()
+                        if not cmd:
+                            out(prompt)
+                            continue
+                        if cmd in ("exit", "logout", "quit"):
+                            break
+                        trap.emitter.emit("command", **base, username=user, command=cmd)
+                        for _, orig in tokens_map.items():
+                            if orig in cmd or Path(orig).name in cmd:
+                                trap.emitter.emit("honeytoken", **base, username=user, command=cmd,
+                                                  data={"honeytoken": orig, "path": orig})
+                        try:
+                            proc = await asyncio.create_subprocess_shell(
+                                cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
+                                cwd=str(sandbox_dir), env=env
+                            )
+                            stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=30.0)
+                            out(stdout.decode("utf-8", "replace"))
+                        except asyncio.TimeoutError:
+                            out("Command timed out.\r\n")
+                        except Exception as e:
+                            out(f"Error: {e}\r\n")
+                        scan_sandbox_payloads()
+                        out(prompt)
+                    process.exit(0)
+                except (asyncssh.Error, ConnectionError, OSError):
+                    process.exit(1)
+                return
+
+            shell = Shell(trap.fs, user, trap.hostname, OS_RELEASE, UNAME, trap.boot_time, trap.ip, trap.ports, peer[0],
+                          lambda kind, **kw: trap.emitter.emit(kind, **base, username=user, **kw), tty=tty, width=width)
 
             async def run(line: str) -> bool:
                 trap.emitter.emit("command", **base, username=user, command=line.strip())

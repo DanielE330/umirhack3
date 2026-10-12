@@ -135,3 +135,38 @@ def test_honeytoken_event_is_sent_to_telegram(admin, orch):
     admin.post("/assets/v1/log", json={"events": [ev]}, headers={"Authorization": "Bearer " + body["token"]})
     sent = [c for c in orch if c[1] == "/api/v1/notify/"]
     assert sent and sent[0][3]["event_name"] == "honeytoken" and sent[0][3]["attacker_ip"] == "203.0.113.5"
+
+
+def test_high_interaction_and_mysql_profile_creation(admin):
+    prof_data = {
+        "name": "high-sandbox-db",
+        "description": "High-Interaction Sandbox OS and MySQL Trap",
+        "level": "high",
+        "services": [
+            {"port": 22, "proto": "ssh", "banner": "SSH-2.0-OpenSSH_8.9p1"},
+            {"port": 3306, "proto": "mysql", "banner": "8.0.36-0ubuntu0.22.04.1"},
+        ],
+        "decoys": {
+            "hostname": "prod-isolated-host",
+            "users": [{"username": "root", "password": "Winter2024!"}],
+            "honeytokens": [{"type": "file", "path": "/root/.aws/credentials", "content": "aws_secret=xyz"}],
+            "accept_any_password": True,
+        },
+    }
+    r = admin.post("/api/profiles", json=prof_data, headers=admin.h)
+    assert r.status_code == 201
+    p = r.json()
+    assert p["level"] == "high"
+    assert len(p["services"]) == 2
+    assert p["services"][1]["proto"] == "mysql"
+
+
+def test_machine_snapshot_and_rollback(admin, orch):
+    snap_resp = admin.post("/api/machines/1100/snapshot", headers=admin.h)
+    assert snap_resp.status_code == 200
+    assert "/api/v1/machines/1100/snapshot" in _paths(orch, "POST")
+
+    roll_resp = admin.post("/api/machines/1100/rollback", headers=admin.h)
+    assert roll_resp.status_code == 200
+    assert "/api/v1/machines/1100/rollback" in _paths(orch, "POST")
+
