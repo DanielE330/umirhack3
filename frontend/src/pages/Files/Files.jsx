@@ -40,6 +40,12 @@ export default function Files() {
 
   return (
     <section>
+      <div className="toolbar">
+        <a className="btn" href="/api/iocs-hashes.csv" data-tip={t('Экспорт всех хэшей файлов в формате CSV')}>{t('Скачать хэши (CSV)')}</a>
+        <a className="btn" href="/api/iocs.stix.json" data-tip={t('Индикаторы в формате STIX 2.1')}>{t('Скачать STIX 2.1')}</a>
+        <span className="spacer" />
+        <span className="hint">{t('Файлов: {n}', { n: items ? items.length : 0 })}</span>
+      </div>
       <p className="lead">
         {t('Файлы, которые атакующие загрузили (SFTP/scp) или записали в консоли. Хэш считается по всему файлу, содержимое хранится до 64 КБ. Файл опасен: скачивайте только для анализа в изолированной среде.')}
       </p>

@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 
 from .. import auth, geo
 from ..db import get_db
-from ..models import Event, EventLabel, IpInfo, SessionAssessment, Trap, User, utcnow
+from ..models import Artifact, Event, EventLabel, IpInfo, SessionAssessment, Trap, User, utcnow
 from ..services import event_view, trap_status
 
 router = APIRouter(prefix="/api", tags=["events"])
@@ -145,7 +145,7 @@ def iocs_csv(_: User = Depends(auth.require_perm("iocs.export")), db: Session = 
 
 @router.get("/iocs.stix.json")
 def iocs_stix(_: User = Depends(auth.require_perm("iocs.export")), db: Session = Depends(get_db)):
-    """STIX 2.1: по индикатору на каждый наблюдаемый IP источника атак."""
+    """STIX 2.1: по индикатору на каждый наблюдаемый IP источника атак и хэши пойманных файлов."""
     objects = []
     for ip, n, first, last in _ioc_rows(db):
         try:
@@ -160,8 +160,37 @@ def iocs_stix(_: User = Depends(auth.require_perm("iocs.export")), db: Session =
                         "name": f"Источник атаки на ловушки {ip}", "description": f"Событий: {n}",
                         "pattern": f"[{kind}:value = '{ip}']", "pattern_type": "stix", "valid_from": stamp,
                         "indicator_types": ["malicious-activity"]})
+
+    # Хэши вредоносных файлов (SHA-256)
+    for art in db.scalars(select(Artifact).order_by(Artifact.last_seen.desc())).all():
+        stamp = art.first_seen.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        objects.append({
+            "type": "indicator", "spec_version": "2.1",
+            "id": f"indicator--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:file:' + art.sha256)}",
+            "created": stamp, "modified": art.last_seen.strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+            "name": f"Вредоносный файл: {art.name or art.sha256[:16]}",
+            "description": f"Размер: {art.size} байт, тип: {art.kind}, источник: {art.src_ip}",
+            "pattern": f"[file:hashes.'SHA-256' = '{art.sha256}']",
+            "pattern_type": "stix", "valid_from": stamp,
+            "indicator_types": ["malicious-activity"],
+        })
     bundle = {"type": "bundle", "id": f"bundle--{uuid.uuid4()}", "objects": objects}
     return JSONResponse(bundle, media_type="application/stix+json;version=2.1")
+
+
+@router.get("/iocs-hashes.csv")
+def iocs_hashes_csv(_: User = Depends(auth.require_perm("iocs.export")), db: Session = Depends(get_db)):
+    """CSV-экспорт хэшей вредоносных файлов (SHA-256), пойманных на ловушках."""
+    out = io.StringIO()
+    w = csv.writer(out)
+    w.writerow(["sha256", "filename", "size_bytes", "kind", "src_ip", "seen_count", "first_seen", "last_seen"])
+    for a in db.scalars(select(Artifact).order_by(Artifact.last_seen.desc())).all():
+        w.writerow([
+            _csv_cell(a.sha256), _csv_cell(a.name), a.size, _csv_cell(a.kind),
+            _csv_cell(a.src_ip), a.seen_count, a.first_seen.isoformat() + "Z", a.last_seen.isoformat() + "Z",
+        ])
+    return PlainTextResponse(out.getvalue(), media_type="text/csv; charset=utf-8",
+                             headers={"Content-Disposition": 'attachment; filename="iocs-hashes.csv"'})
 
 
 @router.get("/stats")

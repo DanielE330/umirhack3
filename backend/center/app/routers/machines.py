@@ -12,7 +12,7 @@ from ..schemas import MachineIn, MachinePatch
 from ..services import trap_status
 
 router = APIRouter(prefix="/api/machines", tags=["machines"])
-ACTIONS = {"start", "shutdown", "reboot"}
+ACTIONS = {"start", "shutdown", "reboot", "snapshot", "rollback"}
 
 
 def orchestrator(request: Request):
@@ -94,3 +94,9 @@ def delete_machine(vmid: int, request: Request, user: User = Depends(auth.requir
     auth.audit(db, user.username, "machine.delete", f"{vmid} (ловушек: {len(traps)})", auth.client_ip(request))
     db.commit()
     return result
+
+
+@router.get("/{vmid}/snapshots")
+def list_snapshots(vmid: int, request: Request, user: User = Depends(auth.require_perm("machines.view"))):
+    return orchestrator(request).request("GET", f"/{vmid}/snapshots", timeout=60)
+

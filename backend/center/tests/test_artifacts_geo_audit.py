@@ -28,6 +28,14 @@ def test_artifact_hash_and_download(admin, app):
     with app.state.session_factory() as db:
         assert db.get(Artifact, sha).size == len(body)
 
+    # Проверка экспорта IoC с хэшами файлов в CSV и STIX (FR-C7)
+    hashes_csv = admin.get("/api/iocs-hashes.csv").text
+    assert sha in hashes_csv and "x.sh" in hashes_csv
+
+    stix = admin.get("/api/iocs.stix.json").json()
+    file_patterns = {o["pattern"] for o in stix["objects"] if o["pattern"].startswith("[file:")}
+    assert f"[file:hashes.'SHA-256' = '{sha}']" in file_patterns
+
 
 def test_audit_log_admin_only(admin):
     mk_trap(admin)

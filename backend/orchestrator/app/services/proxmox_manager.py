@@ -263,4 +263,29 @@ class ProxmoxManager:
             print(f"Ошибка разблокировки IP {ip} в Proxmox: {e}")
             return False
 
+    def snapshot(self, vmid: int, name: str = "clean", description: str = "HoneyForge clean baseline") -> None:
+        """Создать снимок машины (для отката High-Interaction ловушки после атаки)."""
+        kind = self._kind_of(vmid)
+        api = self._api(kind)(vmid)
+        self._wait(api.snapshot.post(snapname=name, description=description), timeout=300)
+
+    def rollback(self, vmid: int, name: str = "clean") -> None:
+        """Откатить машину к чистому снимку после сессии атаки."""
+        kind = self._kind_of(vmid)
+        api = self._api(kind)(vmid)
+        status = api.status.current.get().get("status")
+        if status == "running":
+            self._wait(api.status.stop.post(), timeout=180)
+        self._wait(api.snapshot(name).rollback.post(), timeout=300)
+        self._wait(api.status.start.post(), timeout=180)
+
+    def list_snapshots(self, vmid: int) -> list[dict]:
+        """Список доступных снимков машины."""
+        kind = self._kind_of(vmid)
+        api = self._api(kind)(vmid)
+        try:
+            return api.snapshot.get()
+        except Exception:
+            return []
+
 

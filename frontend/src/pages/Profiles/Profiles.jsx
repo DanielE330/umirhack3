@@ -105,12 +105,16 @@ export default function Profiles() {
             <HelpMark text={t('Low — порт отвечает баннером сервиса и фиксирует подключение. Medium — работает поддельный SSH или веб-сервис, который собирает логины, пароли и команды.')} />
           </label>
           <Select id="p-level" value={form.level} onChange={set('level')}
-            options={[{ value: 'low', label: t('Low: баннеры портов') }, { value: 'medium', label: t('Medium: fake-SSH / fake-HTTP') }]} />
+            options={[
+              { value: 'low', label: t('Low: баннеры портов') },
+              { value: 'medium', label: t('Medium: fake-SSH / fake-HTTP / MySQL') },
+              { value: 'high', label: t('High: изолированная ОС в песочнице') },
+            ]} />
           <label htmlFor="p-services">
             {t('Сервисы (порт:протокол:баннер, по одному в строке)')}
-            <HelpMark text={t('Протокол: banner — просто строка-приветствие, ssh — поддельный SSH, http — поддельный веб-сервер. Баннер — то, что увидит сканер: чем правдоподобнее, тем лучше.')} />
+            <HelpMark text={t('Протокол: banner — строка-приветствие, ssh — эмуляция или песочница SSH, http — веб-сервер, mysql — база данных MySQL. Баннер — то, что увидит сканер: чем правдоподобнее, тем лучше.')} />
           </label>
-          <textarea id="p-services" rows={4} placeholder={'22:ssh:SSH-2.0-OpenSSH_8.2p1\n8080:http:Apache/2.4.41'} value={form.services} onChange={set('services')} />
+          <textarea id="p-services" rows={4} placeholder={'22:ssh:SSH-2.0-OpenSSH_8.2p1\n3306:mysql:8.0.36-0ubuntu0.22.04.1\n8080:http:Apache/2.4.41'} value={form.services} onChange={set('services')} />
           <label htmlFor="p-users">
             {t('Имена пользователей-приманок (по одному в строке)')}
             <HelpMark text={t('Учётные записи, которые «существуют» на ловушке. Атакующий увидит их и попробует подобрать к ним пароль.')} />

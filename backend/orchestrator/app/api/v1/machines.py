@@ -95,6 +95,38 @@ def remove_agent(vmid: int, trap_id: int):
     return {"vmid": vmid, "trap_id": trap_id, "status": "removed"}
 
 
+@router.post("/{vmid}/snapshot")
+def create_snapshot(vmid: int, name: str = "clean", description: str = "HoneyForge clean baseline"):
+    try:
+        manager().snapshot(vmid, name, description)
+    except NotOurMachine:
+        raise HTTPException(status_code=404, detail="Машина не найдена")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Ошибка создания снимка: {e}")
+    return {"vmid": vmid, "snapshot": name, "status": "created"}
+
+
+@router.post("/{vmid}/rollback")
+def rollback_snapshot(vmid: int, name: str = "clean"):
+    try:
+        manager().rollback(vmid, name)
+    except NotOurMachine:
+        raise HTTPException(status_code=404, detail="Машина не найдена")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Ошибка отката к снимку: {e}")
+    return {"vmid": vmid, "snapshot": name, "status": "restored"}
+
+
+@router.get("/{vmid}/snapshots")
+def list_machine_snapshots(vmid: int):
+    try:
+        return manager().list_snapshots(vmid)
+    except NotOurMachine:
+        raise HTTPException(status_code=404, detail="Машина не найдена")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Ошибка получения списка снимков: {e}")
+
+
 @router.post("/{vmid}/{action}")
 def machine_action(vmid: int, action: str):
     if action not in ("start", "shutdown", "reboot", "stop"):
@@ -126,6 +158,6 @@ def delete_machine(vmid: int):
     except NotOurMachine:
         if JOBS.pop(vmid, None):  # неудачное создание: просто забываем
             return {"vmid": vmid, "status": "deleted"}
-        raise HTTPException(status_code=404, detail="Машина не найдена")
     JOBS.pop(vmid, None)
     return {"vmid": vmid, "status": "deleted"}
+

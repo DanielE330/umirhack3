@@ -509,3 +509,161 @@ def test_sftp_upload_is_captured_hashed_and_removed(tmp_path):
         assert "/tmp/up.sh" in trap.fs.files
         assert not [p for p in tmp_path.iterdir() if p.name.startswith("sftp-")]  # временная папка убрана
     run(go())
+
+
+def test_mysql_trap_handshake_auth_and_honeytokens(tmp_path):
+    from netsvc.traps.mysql import MysqlTrap, make_packet
+
+    async def go():
+        buf = EventBuffer(":memory:")
+        trap = MysqlTrap(
+            {"port": 0, "banner": "8.0.36-0ubuntu0.22.04.1"},
+            {"level": "medium", "decoys": {"users": [{"username": "admin", "password": "x"}], "accept_any_password": True}},
+            Emitter(buf),
+            str(tmp_path),
+        )
+        await trap.start("127.0.0.1")
+
+        r, w = await asyncio.open_connection("127.0.0.1", trap.port)
+
+        # 1. Читаем Initial Handshake Packet
+        header = await r.readexactly(4)
+        length = header[0] | (header[1] << 8) | (header[2] << 16)
+        seq = header[3]
+        payload = await r.readexactly(length)
+        assert seq == 0
+        assert payload[0] == 0x0A  # Protocol 10
+        assert b"8.0.36" in payload
+
+        # 2. Отправляем Handshake Response 41
+        # caps(4) + max_packet(4) + charset(1) + reserved(23) + username + \x00 + auth_len + auth_data
+        caps = (0xF7FF).to_bytes(2, "little") + (0x81FF).to_bytes(2, "little")
+        client_hdr = caps + (16777216).to_bytes(4, "little") + b"\x21" + b"\x00" * 23
+        user_bytes = b"admin\x00"
+        auth_data = b"\x14" + b"A" * 20  # 20 bytes scramble
+        resp_payload = client_hdr + user_bytes + auth_data
+        w.write(make_packet(1, resp_payload))
+        await w.drain()
+
+        # 3. Читаем OK Packet
+        ok_hdr = await r.readexactly(4)
+        ok_len = ok_hdr[0] | (ok_hdr[1] << 8) | (ok_hdr[2] << 16)
+        ok_payload = await r.readexactly(ok_len)
+        assert ok_payload[0] == 0x00  # OK
+
+        # 4. Отправляем COM_QUERY: SELECT VERSION();
+        query = b"\x03SELECT VERSION();"
+        w.write(make_packet(0, query))
+        await w.drain()
+
+        # Читаем Resultset (column count packet)
+        q_hdr = await r.readexactly(4)
+        q_len = q_hdr[0] | (q_hdr[1] << 8) | (q_hdr[2] << 16)
+        q_payload = await r.readexactly(q_len)
+        assert q_payload[0] == 1  # 1 колонка
+
+        # 5. Отправляем COM_QUERY с чтением honeytoken таблицы: SELECT * FROM users;
+        ht_query = b"\x03SELECT * FROM users;"
+        w.write(make_packet(0, ht_query))
+        await w.drain()
+
+        # 6. Отправляем COM_QUIT
+        w.write(make_packet(0, b"\x01"))
+        await w.drain()
+        w.close()
+        await asyncio.sleep(0.3)
+        await trap.stop()
+
+        evs = buf.peek(50)
+        types_list = [e["type"] for e in evs]
+        assert "connect" in types_list
+        assert "auth_attempt" in types_list
+        assert "command" in types_list
+        assert "honeytoken" in types_list
+        assert "session_end" in types_list
+
+        # Проверяем захват имени пользователя
+        auth_ev = next(e for e in evs if e["type"] == "auth_attempt")
+        assert auth_ev["username"] == "admin"
+        assert auth_ev["proto"] == "mysql"
+    run(go())
+
+
+def test_mysql_trap_detects_ransomware_bot(tmp_path):
+    from netsvc.traps.mysql import MysqlTrap, make_packet
+
+    async def go():
+        buf = EventBuffer(":memory:")
+        trap = MysqlTrap(
+            {"port": 0},
+            {"level": "medium", "decoys": {"accept_any_password": True}},
+            Emitter(buf),
+            str(tmp_path),
+        )
+        await trap.start("127.0.0.1")
+
+        r, w = await asyncio.open_connection("127.0.0.1", trap.port)
+        await r.readexactly(4 + 80)  # пропускаем handshake
+
+        # Авторизуемся
+        caps = (0xF7FF).to_bytes(2, "little") + (0x81FF).to_bytes(2, "little")
+        client_hdr = caps + (16777216).to_bytes(4, "little") + b"\x21" + b"\x00" * 23
+        w.write(make_packet(1, client_hdr + b"root\x00\x00"))
+        await w.drain()
+        await r.readexactly(4 + 7)  # OK packet
+
+        # Эмулируем бота-вымогателя (Ransomware attack): DROP + таблица с Bitcoin кошельком
+        ransom_sql = (
+            b"\x03DROP DATABASE production_db; CREATE TABLE RESTORE_DATA (id INT, note TEXT); "
+            b"INSERT INTO RESTORE_DATA VALUES (1, 'Your data has been wiped. Pay 0.5 BTC to 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa');"
+        )
+        w.write(make_packet(0, ransom_sql))
+        await w.drain()
+
+        w.write(make_packet(0, b"\x01"))  # QUIT
+        await w.drain()
+        w.close()
+        await asyncio.sleep(0.3)
+        await trap.stop()
+
+        evs = buf.peek(50)
+        payload_evs = [e for e in evs if e["type"] == "payload" and e.get("data", {}).get("category") == "ransomware"]
+        assert len(payload_evs) >= 1
+        d = payload_evs[0]["data"]
+        assert d["threat_score"] == 95
+        assert d["crypto_address"] == "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+    run(go())
+
+
+def test_ssh_trap_high_interaction_os_sandbox(tmp_path):
+    async def go():
+        buf = EventBuffer(":memory:")
+        ht_token = "/root/keys.txt"
+        config = {
+            "level": "high",
+            "decoys": {
+                "hostname": "sandbox-box",
+                "honeytokens": [{"path": ht_token, "content": "SUPER_SECRET_TOKEN"}],
+            },
+        }
+        trap = SshTrap({"port": 0}, config, Emitter(buf), str(tmp_path))
+        assert trap.is_high is True
+        await trap.start("127.0.0.1")
+
+        # Выполняем команду через SSH
+        async with asyncssh.connect("127.0.0.1", trap.port, username="root", password="x", known_hosts=None) as conn:
+            result = await conn.run("echo 'honeypot_exec_test'")
+            assert "honeypot_exec_test" in result.stdout
+
+        await asyncio.sleep(0.3)
+        await trap.stop()
+
+        evs = buf.peek(50)
+        types_list = [e["type"] for e in evs]
+        assert "connect" in types_list
+        assert "auth_attempt" in types_list
+        assert "command" in types_list
+        cmd_evs = [e for e in evs if e["type"] == "command"]
+        assert any("echo 'honeypot_exec_test'" in e["command"] for e in cmd_evs)
+    run(go())
+

@@ -284,7 +284,7 @@ cd agent && .venv/bin/python -m pytest -q            # агент (venv: pip ins
 | FR-A2 логирование активности | сделано: connect, auth_attempt, command, http_request, payload, honeytoken, session_end | `agent/netsvc/emitter.py`, `traps/` |
 | FR-A3 телеметрия и обновление конфигурации | сделано | `agent/netsvc/core.py` |
 | FR-A4 буферизация при потере связи | сделано: SQLite-буфер, досылка с экспоненциальной задержкой | `agent/netsvc/buffer.py`, `core.py` |
-| FR-A5 high-interaction | нет (только создание машин в Proxmox) | `backend/orchestrator/app/services/proxmox_manager.py` |
+| FR-A5 high-interaction | сделано: изолированная песочница ОС (LXC/KVM в DMZ с отслеживанием команд/файлов + снимки/откат в Proxmox) и закрытая СУБД (бинарный MySQL wire protocol, SQLite-песочница, honeytokens, детектор Ransomware) | `agent/netsvc/traps/mysql.py`, `traps/ssh.py`, `backend/orchestrator/app/services/proxmox_manager.py`, `backend/center/app/routers/machines.py` |
 | FR-A6 honeytokens | сделано: файлы в SSH-ФС, URL в HTTP | `traps/ssh.py`, `traps/http.py` |
 | MASK-1 Сквозное шифрование и TLS | сделано: сквозное шифрование полезной нагрузки AES-256-GCM (AEAD) между ловушкой и центром, деривация ключей SHA-256 KDF из токена; TLS поддерживается | `agent/netsvc/crypto.py`, `backend/center/app/channel_crypto.py`, `center.py`, `agent_api.py` |
 | MASK-2 неприметный endpoint | сделано | `routers/agent_api.py` |
