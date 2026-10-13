@@ -87,10 +87,16 @@ def get_session_assessment(session_id: str, _: User = Depends(auth.current_user)
            "human_reason": None, "script_seen_before": None, "threat_score": None,
            "download_then_execute": None, "ssh_client": None, "updated_at": None, "summary": summary}
     if a is not None:
+        res_data = a.result or {}
         out.update(is_human=a.is_human, human_probability=a.human_probability, human_method=a.human_method,
                    human_reason=a.human_reason, script_seen_before=a.script_seen_before,
                    threat_score=a.threat_score, download_then_execute=a.download_then_execute,
                    ssh_client=a.ssh_client,
+                   dual_loop_report=res_data.get("dual_loop_report"),
+                   detection_rules=res_data.get("detection_rules"),
+                   mitre_engage=res_data.get("mitre_engage"),
+                   intent_prediction=res_data.get("intent_prediction"),
+                   hassh_profile=res_data.get("hassh_profile"),
                    updated_at=a.updated_at.isoformat() + "Z")
     return out
 

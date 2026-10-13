@@ -48,6 +48,10 @@ class CanonEvent:
     src_ip: str | None = None
     raw_type: str | None = None
     client: str | None = None     # строка версии SSH-клиента (SSH-2.0-Go, SSH-2.0-OpenSSH_9.6 …), если ловушка её прислала
+    action: str | None = None     # planted / exfiltrated для honeytoken
+    token_id: str | None = None   # идентификатор канареечного токена
+    hassh: str | None = None      # отпечаток SSH-клиента (RFC 4253 / Salesforce HASSH)
+    hassh_raw: str | None = None  # строка алгоритмов KEXINIT до хеширования
 
 
 def _s(v: Any) -> str | None:
@@ -126,6 +130,10 @@ def canonicalize(obj: Any) -> CanonEvent:
     if raw_type == "payload" and command is not None and url is None and fhash is None:
         kind = KIND_COMMAND
     # honeytoken в центре кладёт путь в поле command — оставляем как есть
+    action = _first(detail, "action", "status")
+    token_id = _first(detail, "token_id", "canary_token", "token")
+    hassh = _first(detail, "hassh", "ssh_hassh")
+    hassh_raw = _first(detail, "hassh_raw", "ssh_hassh_raw")
     success = detail.get("success")
     if raw_type == "cowrie.login.success":
         success = True
@@ -137,4 +145,6 @@ def canonicalize(obj: Any) -> CanonEvent:
         ts=_parse_ts(_first(obj, "timestamp", "ts", "received_at", "time")),
         session_id=_s(_first(obj, "session_id", "session")), src_ip=_s(_first(obj, "attacker_ip", "src_ip")),
         raw_type=raw_type, client=_s(client)[:200] if client is not None else None,
+        action=_s(action), token_id=_s(token_id),
+        hassh=_s(hassh), hassh_raw=_s(hassh_raw),
     )

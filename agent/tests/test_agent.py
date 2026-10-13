@@ -667,3 +667,60 @@ def test_ssh_trap_high_interaction_os_sandbox(tmp_path):
         assert any("echo 'honeypot_exec_test'" in e["command"] for e in cmd_evs)
     run(go())
 
+
+def test_dynamic_contextual_honeytokens_generation(tmp_path):
+    async def go():
+        buf = EventBuffer(":memory:")
+        cfg = {"decoys": {"hostname": "srv-prod", "accept_any_password": True, "honeytokens": []}}
+        trap = SshTrap({"port": 0}, cfg, Emitter(buf), str(tmp_path))
+        await trap.start("127.0.0.1")
+
+        # Сессия 1: читаем AWS credentials
+        async with asyncssh.connect("127.0.0.1", trap.port, username="root", password="p1", known_hosts=None) as conn:
+            r1 = await conn.run("cat /root/.aws/credentials")
+            assert "AKIASOC" in r1.stdout
+            assert "telemetry/sync?token=AKIASOC" in r1.stdout
+
+        # Сессия 2: читаем .env
+        async with asyncssh.connect("127.0.0.1", trap.port, username="root", password="p2", known_hosts=None) as conn:
+            r2 = await conn.run("cat /.env")
+            assert "ENV_" in r2.stdout
+            assert "TELEMETRY_SYNC_URL=" in r2.stdout
+
+        await asyncio.sleep(0.3)
+        await trap.stop()
+
+        evs = buf.peek(100)
+        ht_evs = [e for e in evs if e["type"] == "honeytoken"]
+        assert len(ht_evs) >= 2
+        # Убеждаемся, что зафиксировано действие planted и токен привязан к сессии
+        assert all(e["data"].get("action") == "planted" for e in ht_evs)
+        tokens = [e["data"].get("token_id") for e in ht_evs]
+        assert len(tokens) == 2
+        assert tokens[0] != tokens[1]  # Токены для разных сессий и путей разные
+    run(go())
+
+
+def test_ssh_trap_captures_hassh_fingerprint_and_tarpit(tmp_path):
+    async def go():
+        buf = EventBuffer(":memory:")
+        cfg = {"decoys": {"hostname": "srv-prod", "accept_any_password": True}}
+        trap = SshTrap({"port": 0}, cfg, Emitter(buf), str(tmp_path))
+        await trap.start("127.0.0.1")
+
+        async with asyncssh.connect("127.0.0.1", trap.port, username="root", password="p1", known_hosts=None) as conn:
+            await conn.run("id")
+
+        await asyncio.sleep(0.3)
+        await trap.stop()
+
+        evs = buf.peek(100)
+        hassh_ev = next((e for e in evs if e.get("data", {}).get("hassh")), None)
+        assert hassh_ev is not None
+        c_data = hassh_ev["data"]
+        assert len(c_data["hassh"]) == 32  # Валидный MD5-отпечаток
+        assert "client" in c_data
+        assert "AsyncSSH" in c_data["client"]
+    run(go())
+
+

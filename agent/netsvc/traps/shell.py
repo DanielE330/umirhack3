@@ -60,6 +60,53 @@ def _stamp(path: str) -> int:
     return int(time.time()) - 86400 * 20 - (h % (86400 * 200))
 
 
+def generate_contextual_honeytoken(path: str, session_id: str = "", server_url: str = "") -> tuple[str, str]:
+    """Генерирует сессионно-привязанный токен и реалистичное содержимое приманочного файла."""
+    seed = f"{session_id or 'default_sess'}:{path}:honeyforge"
+    tok_id = hashlib.sha256(seed.encode()).hexdigest()[:8].upper()
+    callback = f"{server_url.rstrip('/')}/assets/v1/telemetry/sync" if server_url else "/assets/v1/telemetry/sync"
+
+    if "aws" in path or "credentials" in path:
+        token = f"AKIASOC{tok_id}"
+        content = (
+            "[default]\n"
+            f"aws_access_key_id = {token}\n"
+            "aws_secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\n"
+            "region = eu-central-1\n"
+            f"# Verification endpoint: {callback}?token={token}\n"
+        )
+        return content, token
+    elif path.endswith(".env"):
+        token = f"ENV_{tok_id}"
+        content = (
+            "APP_NAME=HoneyForgeCore\n"
+            "APP_ENV=production\n"
+            f"APP_KEY=base64:s0c7{tok_id}XyZ9\n"
+            f"DATABASE_URL=postgresql://app_user:Secr3tP@ss@127.0.0.1:5432/prod_db?canary={token}\n"
+            f"TELEMETRY_SYNC_URL={callback}?token={token}\n"
+        )
+        return content, token
+    elif "id_rsa" in path or "id_ed25519" in path:
+        token = f"SSH_{tok_id}"
+        content = (
+            "-----BEGIN OPENSSH PRIVATE KEY-----\n"
+            "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\n"
+            f"QyNTUxOQAAACD{tok_id}sOc7xYz9aBcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoP\n"
+            "-----END OPENSSH PRIVATE KEY-----\n"
+            f"# Deploy sync: {callback}?token={token}\n"
+        )
+        return content, token
+    else:
+        token = f"NOTE_{tok_id}"
+        content = (
+            "TODO:\n"
+            "- rotate staging backup database keys\n"
+            f"- verification sync: {callback}?token={token}\n"
+            "- run monthly security audit\n"
+        )
+        return content, token
+
+
 class FakeFS:
     """Общая для всех сессий файловая система: правки атакующего остаются до перезапуска, как на настоящем сервере."""
 
@@ -89,14 +136,21 @@ class FakeFS:
             "/root/.bashrc": BASHRC, "/root/.profile": PROFILE, "/root/.bash_history": HISTORY,
             "/home/admin/.bashrc": BASHRC, "/home/admin/.profile": PROFILE, "/home/admin/.bash_history": HISTORY,
             "/home/admin/notes.txt": "TODO: rotate backup keys\n",
+            "/root/.aws/credentials": "[default]\naws_access_key_id = AKIAIOSFODNN7EXAMPLE\naws_secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nregion = eu-central-1\n",
+            "/.env": "APP_NAME=HoneyForgeCore\nAPP_ENV=production\nDATABASE_URL=postgresql://app:secret@127.0.0.1:5432/prod\n",
+            "/root/.ssh/id_rsa": "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\n-----END OPENSSH PRIVATE KEY-----\n",
             **(identity_files or {}),
         }
-        self.dirs.update({"/home/admin", "/root/.ssh"})
+        self.dirs.update({"/home/admin", "/root/.ssh", "/root/.aws"})
+        self.custom_honey = {t["path"] for t in honeytokens if t.get("type") == "file" and t.get("content")}
         for tok in honeytokens:
             if tok.get("type") == "file":
                 self.files[tok["path"]] = tok.get("content", "")
-        # приманки по умолчанию: хэши паролей и «заметки админа» — любое чтение сигнализирует о разведке
-        self.honey = {t["path"] for t in honeytokens if t.get("type") == "file"} | {"/etc/shadow", "/home/admin/notes.txt"}
+        self.dynamic_honey = {"/root/.aws/credentials", "/.env", "/root/.ssh/id_rsa", "/home/admin/notes.txt"}
+        # приманки по умолчанию: хэши паролей, заметки админа, облачные и SSH-ключи
+        self.honey = {t["path"] for t in honeytokens if t.get("type") == "file"} | {
+            "/etc/shadow", "/home/admin/notes.txt", "/root/.aws/credentials", "/.env", "/root/.ssh/id_rsa"
+        }
         self.executable: set[str] = set()
         for path in list(self.files):
             self._mkparents(path)
@@ -154,10 +208,11 @@ class Shell:
 
     def __init__(self, fs: FakeFS, user: str, hostname: str, os_release: str, uname: str, boot_time: float,
                  ip: str, ports: list[tuple[int, str]], client_ip: str, emit: Callable[..., None], tty: bool = False,
-                 width: int = 80):
+                 width: int = 80, session_id: str = "", server_url: str = ""):
         self.fs, self.user, self.hostname = fs, user, hostname
         self.os_release, self.uname_tpl, self.boot_time = os_release, uname, boot_time
         self.ip, self.ports, self.client_ip, self.emit, self.tty, self.width = ip, ports, client_ip, emit, tty, width
+        self.session_id, self.server_url = session_id, server_url
         self.euid_root = user == "root"
         self.home = "/root" if user == "root" else f"/home/{user}"
         if user != "root":
@@ -592,7 +647,14 @@ class Shell:
             return None, f"cat: {raw}: Permission denied\n"
         if path in self.fs.files:
             if path in self.fs.honey:
-                self.emit("honeytoken", command=path, data={"kind": "file"})
+                if path in self.fs.dynamic_honey and path not in self.fs.custom_honey:
+                    dyn_content, token_id = generate_contextual_honeytoken(path, self.session_id, self.server_url)
+                    self.emit("honeytoken", command=path, data={
+                        "action": "planted", "token_id": token_id, "path": path, "kind": "file",
+                    })
+                    return dyn_content, None
+                token_id = hashlib.sha256(f"{self.session_id}:{path}".encode()).hexdigest()[:8].upper()
+                self.emit("honeytoken", command=path, data={"action": "planted", "token_id": token_id, "path": path, "kind": "file"})
             return self.fs.files[path], None
         if path in self.fs.dirs:
             return None, f"cat: {raw}: Is a directory\n"
