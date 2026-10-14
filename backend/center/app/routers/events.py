@@ -58,7 +58,7 @@ def list_events(trap_id: int | None = None, type: str | None = None, src_ip: str
                 since: datetime | None = None, until: datetime | None = None, q: str | None = Query(None, max_length=100),
                 session_id: str | None = Query(None, max_length=64), min_score: int | None = Query(None, ge=0, le=100),
                 before_id: int | None = None, limit: int = Query(50, ge=1, le=200),
-                _: User = Depends(auth.current_user), db: Session = Depends(get_db)):
+                _: User = Depends(auth.require_perm("events.view")), db: Session = Depends(get_db)):
     _validate_type(type)
     stmt = _filtered(select(Event).options(joinedload(Event.trap)), trap_id, type, src_ip, since, until, q, session_id, min_score)
     if before_id:
@@ -70,7 +70,7 @@ def list_events(trap_id: int | None = None, type: str | None = None, src_ip: str
 
 
 @router.get("/sessions/{session_id}")
-def get_session_assessment(session_id: str, _: User = Depends(auth.current_user), db: Session = Depends(get_db)):
+def get_session_assessment(session_id: str, _: User = Depends(auth.require_perm("events.view")), db: Session = Depends(get_db)):
     """Итог сессии: длительность и счётчики по событиям + оценка HoneyMind «человек или бот» (считается при session_end)."""
     first, last, total, src = db.execute(select(func.min(Event.ts), func.max(Event.ts), func.count(), func.min(Event.src_ip))
                                          .where(Event.session_id == session_id)).one()
@@ -110,7 +110,7 @@ def _csv_cell(value) -> str:
 def export_events(trap_id: int | None = None, type: str | None = None, src_ip: str | None = None,
                   since: datetime | None = None, until: datetime | None = None, q: str | None = Query(None, max_length=100),
                   session_id: str | None = Query(None, max_length=64), min_score: int | None = Query(None, ge=0, le=100),
-                  _: User = Depends(auth.current_user), db: Session = Depends(get_db)):
+                  _: User = Depends(auth.require_perm("events.export")), db: Session = Depends(get_db)):
     _validate_type(type)
     stmt = _filtered(select(Event).options(joinedload(Event.trap)), trap_id, type, src_ip, since, until, q, session_id, min_score)
     rows = db.scalars(stmt.order_by(Event.id.desc()).limit(10000)).all()
@@ -135,7 +135,7 @@ def _ioc_rows(db: Session):
 
 
 @router.get("/iocs.csv")
-def iocs_csv(_: User = Depends(auth.current_user), db: Session = Depends(get_db)):
+def iocs_csv(_: User = Depends(auth.require_perm("iocs.export")), db: Session = Depends(get_db)):
     out = io.StringIO()
     w = csv.writer(out)
     w.writerow(["ip", "country", "asn", "org", "events", "first_seen", "last_seen"])
@@ -150,7 +150,7 @@ def iocs_csv(_: User = Depends(auth.current_user), db: Session = Depends(get_db)
 
 
 @router.get("/iocs.stix.json")
-def iocs_stix(_: User = Depends(auth.current_user), db: Session = Depends(get_db)):
+def iocs_stix(_: User = Depends(auth.require_perm("iocs.export")), db: Session = Depends(get_db)):
     """STIX 2.1: по индикатору на каждый наблюдаемый IP источника атак и хэши пойманных файлов."""
     objects = []
     for ip, n, first, last in _ioc_rows(db):
@@ -185,7 +185,7 @@ def iocs_stix(_: User = Depends(auth.current_user), db: Session = Depends(get_db
 
 
 @router.get("/iocs-hashes.csv")
-def iocs_hashes_csv(_: User = Depends(auth.current_user), db: Session = Depends(get_db)):
+def iocs_hashes_csv(_: User = Depends(auth.require_perm("iocs.export")), db: Session = Depends(get_db)):
     """CSV-экспорт хэшей вредоносных файлов (SHA-256), пойманных на ловушках."""
     out = io.StringIO()
     w = csv.writer(out)
@@ -200,7 +200,7 @@ def iocs_hashes_csv(_: User = Depends(auth.current_user), db: Session = Depends(
 
 
 @router.get("/stats")
-def stats(request: Request, _: User = Depends(auth.current_user), db: Session = Depends(get_db)):
+def stats(request: Request, _: User = Depends(auth.require_perm("events.view")), db: Session = Depends(get_db)):
     settings = auth.settings_of(request)
     now = utcnow()
     day = now - timedelta(hours=24)
@@ -272,7 +272,8 @@ async def ws_events(ws: WebSocket):
 
     def check() -> bool:
         with factory() as db:
-            return auth.load_session_token(db, settings, token, "full") is not None
+            sess = auth.load_session_token(db, settings, token, "full")
+            return sess is not None and "events.view" in auth.permissions_of(db, sess.user)
 
     if not await run_in_threadpool(check):
         await ws.close(code=1008)

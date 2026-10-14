@@ -11,7 +11,8 @@ from ..models import Profile, Trap, User
 from ..schemas import ProfileIn
 
 router = APIRouter(prefix="/api/profiles", tags=["profiles"])
-operator = auth.require_role("admin", "operator")
+view = auth.require_perm("profiles.view")
+manage = auth.require_perm("profiles.manage")
 
 
 def profile_view(p: Profile, traps: int = 0) -> dict:
@@ -38,13 +39,13 @@ def _get(db: Session, profile_id: int) -> Profile:
 
 
 @router.get("")
-def list_profiles(_: User = Depends(auth.current_user), db: Session = Depends(get_db)):
+def list_profiles(_: User = Depends(view), db: Session = Depends(get_db)):
     counts = dict(db.execute(select(Trap.profile_id, func.count()).group_by(Trap.profile_id)).all())
     return [profile_view(p, counts.get(p.id, 0)) for p in db.scalars(select(Profile).order_by(Profile.id))]
 
 
 @router.post("", status_code=201)
-def create_profile(body: ProfileIn, request: Request, user: User = Depends(operator), db: Session = Depends(get_db)):
+def create_profile(body: ProfileIn, request: Request, user: User = Depends(manage), db: Session = Depends(get_db)):
     p = Profile()
     _apply(p, body)
     db.add(p)
@@ -58,14 +59,14 @@ def create_profile(body: ProfileIn, request: Request, user: User = Depends(opera
 
 
 @router.get("/{profile_id}")
-def get_profile(profile_id: int, _: User = Depends(auth.current_user), db: Session = Depends(get_db)):
+def get_profile(profile_id: int, _: User = Depends(view), db: Session = Depends(get_db)):
     p = _get(db, profile_id)
     n = db.scalar(select(func.count()).select_from(Trap).where(Trap.profile_id == p.id)) or 0
     return profile_view(p, n)
 
 
 @router.put("/{profile_id}")
-def update_profile(profile_id: int, body: ProfileIn, request: Request, user: User = Depends(operator),
+def update_profile(profile_id: int, body: ProfileIn, request: Request, user: User = Depends(manage),
                    db: Session = Depends(get_db)):
     p = _get(db, profile_id)
     _apply(p, body)
@@ -79,7 +80,7 @@ def update_profile(profile_id: int, body: ProfileIn, request: Request, user: Use
 
 
 @router.delete("/{profile_id}", status_code=204)
-def delete_profile(profile_id: int, request: Request, user: User = Depends(operator), db: Session = Depends(get_db)):
+def delete_profile(profile_id: int, request: Request, user: User = Depends(manage), db: Session = Depends(get_db)):
     p = _get(db, profile_id)
     if db.scalar(select(func.count()).select_from(Trap).where(Trap.profile_id == p.id)):
         raise HTTPException(409, "Профиль используется ловушками")

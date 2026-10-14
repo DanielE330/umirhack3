@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../../lib/api.js'
+import { useAuth } from '../../context/auth.js'
 import { useData } from '../../context/data.js'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
@@ -14,6 +15,7 @@ export default function EventModal({ ev }) {
   const { openTrap } = useModals()
   const { t } = useLanguage()
   const navigate = useNavigate()
+  const { can } = useAuth()
   const [sess, setSess] = useState(null)
   useEffect(() => {
     if (!ev.session_id) return undefined
@@ -64,7 +66,7 @@ export default function EventModal({ ev }) {
         <button className="ghost" onClick={() => filterBy({ trap: ev.trap })}>{t('☰ События этой ловушки')}</button>
         <button className="ghost" onClick={copyIp}>{t('⧉ Копировать IP')}</button>
         <button className="ghost" onClick={openTrapOf}>{t('→ Открыть ловушку')}</button>
-        {ev.data && ev.data.artifact && <a className="ghost btn" href={'/api/artifacts/' + ev.data.artifact + '/download'}>{t('⬇ Скачать файл')}</a>}
+        {ev.data && ev.data.artifact && can('files.download') && <a className="ghost btn" href={'/api/artifacts/' + ev.data.artifact + '/download'}>{t('⬇ Скачать файл')}</a>}
       </div>
     </>
   )

@@ -13,7 +13,7 @@ from ..db import get_db
 from ..models import TrapIdea, User, utcnow
 
 router = APIRouter(prefix="/api/ideas", tags=["ideas"])
-admin = auth.require_role("admin")
+admin = auth.require_perm("ideas.manage")
 MAX_PER_DAY = 20  # защита от заваливания формы одним пользователем
 
 

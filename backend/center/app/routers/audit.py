@@ -17,7 +17,7 @@ router = APIRouter(prefix="/api/audit", tags=["audit"])
 @router.get("")
 def list_audit(actor: str | None = Query(None, max_length=64), action: str | None = Query(None, max_length=64),
                since: datetime | None = None, before_id: int | None = None, limit: int = Query(100, ge=1, le=500),
-               _: User = Depends(auth.require_role("admin")), db: Session = Depends(get_db)):
+               _: User = Depends(auth.require_perm("audit.view")), db: Session = Depends(get_db)):
     stmt = select(AuditLog)
     if actor:
         stmt = stmt.where(AuditLog.actor == actor)

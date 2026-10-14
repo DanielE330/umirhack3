@@ -80,6 +80,8 @@ erDiagram
         int seen_count
         blob content "до 64 КБ"
     }
+    roles { int id PK  string name UK  string title  json permissions "флаги доступа"  bool is_system }
+    users }o--|| roles : "role (слаг)"
     trap_ideas { int id PK  string author  string title  string status }
 ```
 

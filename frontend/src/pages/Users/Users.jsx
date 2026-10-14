@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
 import Select from '../../components/Select.jsx'
 import { ArmedButton, Field } from '../../components/common.jsx'
 import { useAuth } from '../../context/auth.js'
@@ -8,13 +7,12 @@ import { useUi } from '../../context/ui.js'
 import { api } from '../../lib/api.js'
 import { fmtDateTime } from '../../lib/model.js'
 
-const ROLES = ['operator', 'admin']
 
 // Окно создания пользователя: пароль проверяет центр (длина, без логина внутри); 2FA пользователь настроит при входе
-function NewUserModal({ onDone }) {
+function NewUserModal({ onDone, roles }) {
   const { closeModal, showToast } = useUi()
   const { t } = useLanguage()
-  const [form, setForm] = useState({ username: '', password: '', role: 'operator' })
+  const [form, setForm] = useState({ username: '', password: '', role: (roles.find((r) => r.name === 'viewer') || roles[0] || { name: '' }).name })
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
@@ -38,7 +36,7 @@ function NewUserModal({ onDone }) {
       <Field label="Пароль"><input type="password" required minLength={12} maxLength={128} autoComplete="new-password" value={form.password} onChange={set('password')} /></Field>
       <Field label="Роль">
         <Select value={form.role} onChange={set('role')} aria-label={t('Роль')}
-          options={ROLES.map((r) => ({ value: r, label: r === 'admin' ? t('admin — всё, включая пользователей') : t('operator — ловушки и машины') }))} />
+          options={roles.map((r) => ({ value: r.name, label: r.title + ' — ' + r.permissions.length + ' ' + t('прав') }))} />
       </Field>
       <p className="hint">{t('Не короче 12 символов и без логина внутри.')}</p>
       <div className="err" role="alert">{err}</div>
@@ -56,20 +54,21 @@ export default function Users() {
   const { showToast, openModal } = useUi()
   const { t } = useLanguage()
   const [users, setUsers] = useState(null)
+  const [roles, setRoles] = useState([])
 
   const load = useCallback(async () => {
     try {
-      setUsers(await api('/api/users'))
+      const [u, r] = await Promise.all([api('/api/users'), api('/api/roles')])
+      setUsers(u)
+      setRoles(r)
     } catch (e) {
       showToast(e.message, true)
     }
   }, [showToast])
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- начальная загрузка списка
-    if (user.role === 'admin') load()
-  }, [user.role, load])
-
-  if (user.role !== 'admin') return <Navigate to="/containers" replace />
+    load()
+  }, [load])
 
   const patch = async (u, body, msg) => {
     try {
@@ -93,7 +92,7 @@ export default function Users() {
   return (
     <section>
       <div className="toolbar">
-        <button className="btn" onClick={() => openModal(t('Новый пользователь'), <NewUserModal onDone={load} />)}>{t('+ Новый пользователь')}</button>
+        <button className="btn" onClick={() => openModal(t('Новый пользователь'), <NewUserModal onDone={load} roles={roles} />)}>{t('+ Новый пользователь')}</button>
         <span className="spacer" />
         <span className="hint">{t('Пользователей: {n}', { n: users ? users.length : 0 })}</span>
       </div>
@@ -111,7 +110,7 @@ export default function Users() {
                   <td>
                     <Select value={u.role} aria-label={t('Роль')} className="users-role" onChange={(e) => e.target.value !== u.role
                       && patch(u, { role: e.target.value }, t('Роль «{name}» изменена, его сеансы завершены', { name: u.username }))}
-                      options={ROLES.map((r) => ({ value: r, label: r }))} />
+                      options={roles.map((r) => ({ value: r.name, label: r.title }))} />
                   </td>
                   <td><span className={'tag ' + (u.is_active ? 'low' : 'high')}>{u.is_active ? t('активен') : t('заблокирован')}</span></td>
                   <td>{u.totp_enabled ? t('включена') : t('не настроена')}</td>

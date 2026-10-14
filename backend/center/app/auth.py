@@ -151,3 +151,22 @@ def require_role(*roles: str):
             raise HTTPException(403, "Недостаточно прав")
         return user
     return dep
+
+
+def permissions_of(db: Session, user: User) -> frozenset[str]:
+    """Эффективные права пользователя: admin — все, остальные — по флагам своей роли (неизвестная роль — ничего)."""
+    from .models import Role
+    from .permissions import ALL
+    if user.role == "admin":
+        return ALL
+    role = db.scalar(select(Role).where(Role.name == user.role))
+    return frozenset(role.permissions) & ALL if role else frozenset()
+
+
+def require_perm(*flags: str):
+    """Зависимость: у пользователя должны быть все перечисленные флаги."""
+    def dep(user: User = Depends(current_user), db: Session = Depends(get_db)) -> User:
+        if not set(flags) <= permissions_of(db, user):
+            raise HTTPException(403, "Недостаточно прав")
+        return user
+    return dep

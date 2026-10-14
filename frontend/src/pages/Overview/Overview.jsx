@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Select from '../../components/Select.jsx'
 import { HelpMark, TypeTag } from '../../components/common.jsx'
 import { clickable } from '../../lib/clickable.js'
+import { useAuth } from '../../context/auth.js'
 import { useData } from '../../context/data.js'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
@@ -41,6 +42,7 @@ export default function Overview() {
     setCFilter, trapByName } = useData()
   const { showToast } = useUi()
   const { openEvent } = useModals()
+  const { can } = useAuth()
   const { t, locale } = useLanguage()
   const navigate = useNavigate()
 
@@ -113,7 +115,7 @@ export default function Overview() {
             <button className="ghost" data-tip={t('Очистить ленту на экране (в базе события останутся)')} onClick={() => { clearFeed(); showToast(t('Лента очищена')) }}>
               {t('Очистить')}
             </button>
-            <button className="ghost" data-tip={t('Скачать отфильтрованные события таблицей для Excel')} onClick={exportCsv}>{t('Экспорт CSV')}</button>
+            {can('events.export') && <button className="ghost" data-tip={t('Скачать отфильтрованные события таблицей для Excel')} onClick={exportCsv}>{t('Экспорт CSV')}</button>}
           </div>
           <div className="feed">
             <table>
@@ -158,12 +160,12 @@ export default function Overview() {
               <span className="hint">{t('нажмите для фильтра')}</span>
             </h3>
             <TopList map={stats.src} active={eventFilter.q} onPick={(v) => setEventFilter({ q: v })} />
-            <div className="mt-10">
+            {can('iocs.export') && <div className="mt-10">
               <button className="ghost" data-tip={t('IoC (индикаторы компрометации) — список IP атакующих. Его можно загрузить в межсетевой экран или SIEM')}
                 onClick={() => { location.href = '/api/iocs.csv' }}>
                 {t('Экспорт IoC (CSV)')}
               </button>
-            </div>
+            </div>}
           </div>
           <div className="card">
             <h3>

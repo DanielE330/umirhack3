@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/auth.js'
 import { useData } from '../../context/data.js'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
@@ -17,6 +18,8 @@ export default function TrapModal({ trapId }) {
   const { openTrap, openEvent, openDeploy } = useModals()
   const { t } = useLanguage()
   const navigate = useNavigate()
+  const { can } = useAuth()
+  const manage = can('traps.manage')
   const tr = traps.find((x) => x.id === trapId)
   const [name, setName] = useState(tr ? tr.name : '')
   const [target, setTarget] = useState(tr ? tr.container : '')
@@ -90,28 +93,28 @@ export default function TrapModal({ trapId }) {
     <>
       <div className="inline mb-12">
         <StateBadge state={tr.state} />
-        <Switch on={tr.enabled} tip={tr.enabled ? t('Выключить ловушку (агент закроет её порты)') : t('Включить ловушку')}
+        <Switch on={tr.enabled} disabled={!manage} tip={tr.enabled ? t('Выключить ловушку (агент закроет её порты)') : t('Включить ловушку')}
           onToggle={() => patch({ enabled: !tr.enabled }, tr.enabled ? t('Ловушка выключена') : t('Ловушка включена'))} />
       </div>
       <Kv rows={[
         ['Имя', (
           <div className="inline">
             <input className="trap-name-input" value={name} maxLength={60} aria-label={t('Имя ловушки')} onChange={(e) => setName(e.target.value)} />
-            <button className="ghost small" onClick={rename}>{t('✎ Переименовать')}</button>
+            <button className="ghost small" disabled={!manage} onClick={rename}>{t('✎ Переименовать')}</button>
           </div>
         )],
         ['Машина', (
           <div className="inline">
             <Select value={target} onChange={(e) => setTarget(e.target.value)} aria-label={t('Машина')}
               options={containers.map((x) => ({ value: x.name, label: x.name + ' · ' + TYPE_INFO[x.type].kind + ' ' + x.vmid }))} />
-            <button className="ghost small" onClick={move}>{t('⇄ Переместить')}</button>
+            <button className="ghost small" disabled={!manage} onClick={move}>{t('⇄ Переместить')}</button>
           </div>
         )],
         ['Профиль', (
           <div className="inline">
             <Select value={profile} onChange={(e) => setProfile(e.target.value)} aria-label={t('Профиль')}
               options={profiles.map((p) => ({ value: p.name, label: p.name + ' (' + p.level + ')' }))} />
-            <button className="ghost small" onClick={apply}>{t('✓ Применить')}</button>
+            <button className="ghost small" disabled={!manage} onClick={apply}>{t('✓ Применить')}</button>
           </div>
         )],
         ['Порты', portsOf(tr.profile).join(', ')],
@@ -120,19 +123,19 @@ export default function TrapModal({ trapId }) {
       <div className="inline">
         <button className="ghost" onClick={() => { closeModal(); setCFilter((f) => ({ ...f, q: tr.container })); navigate('/containers') }}>{t('▦ Показать машину')}</button>
         <button className="ghost" onClick={() => { closeModal(); setEventFilter({ trap: tr.name, type: '', q: '' }); navigate('/overview') }}>{t('☰ Все события ловушки')}</button>
-        <ArmedButton label={tr.vmid ? t('⚡ Переустановить агента') : t('⚡ Подключить агента')} armLabel={t('Старый токен перестанет работать. Точно?')}
+        {can('traps.deploy') && <ArmedButton label={tr.vmid ? t('⚡ Переустановить агента') : t('⚡ Подключить агента')} armLabel={t('Старый токен перестанет работать. Точно?')}
           tip={tr.vmid
             ? t('Выпустить новый токен и перезапустить агента внутри машины — автоматически, токен никто не видит')
             : t('Ловушка не в машине: выпустить токен и показать команду для ручного запуска агента')}
-          onConfirm={tr.vmid ? reinstall : () => deploy('script')} />
-        <ArmedButton label={t('🐳 Docker-команда')} armLabel={t('Старый токен перестанет работать. Точно?')}
+          onConfirm={tr.vmid ? reinstall : () => deploy('script')} />}
+        {can('traps.deploy') && <ArmedButton label={t('🐳 Docker-команда')} armLabel={t('Старый токен перестанет работать. Точно?')}
           tip={t('Выпустить новый токен и показать команду docker run для ручного запуска агента (образ: docker build -t honeyforge-agent agent/)')}
-          onConfirm={() => deploy('docker')} />
-        <button className="ghost" data-tip={t('Агент перезапустит ловушки при ближайшем опросе центра')}
-          onClick={() => command('restart', t('Команда «перезапустить» отправлена: агент выполнит её при ближайшем опросе'))}>{t('↻ Перезапустить ловушку')}</button>
-        <button className="ghost" data-tip={t('Агент заново запросит конфигурацию у центра при ближайшем опросе')}
-          onClick={() => command('refresh', t('Команда «обновить конфиг» отправлена: агент выполнит её при ближайшем опросе'))}>{t('⟳ Обновить конфиг')}</button>
-        <ArmedButton label={t('🗑 Удалить')} armLabel={t('Точно удалить?')} className="ghost danger" onConfirm={() => { closeModal(); removeTrap(tr) }} />
+          onConfirm={() => deploy('docker')} />}
+        {can('traps.command') && <button className="ghost" data-tip={t('Агент перезапустит ловушки при ближайшем опросе центра')}
+          onClick={() => command('restart', t('Команда «перезапустить» отправлена: агент выполнит её при ближайшем опросе'))}>{t('↻ Перезапустить ловушку')}</button>}
+        {can('traps.command') && <button className="ghost" data-tip={t('Агент заново запросит конфигурацию у центра при ближайшем опросе')}
+          onClick={() => command('refresh', t('Команда «обновить конфиг» отправлена: агент выполнит её при ближайшем опросе'))}>{t('⟳ Обновить конфиг')}</button>}
+        {manage && <ArmedButton label={t('🗑 Удалить')} armLabel={t('Точно удалить?')} className="ghost danger" onConfirm={() => { closeModal(); removeTrap(tr) }} />}
       </div>
       <h4>{t('Последние события')}</h4>
       <table className="mini">

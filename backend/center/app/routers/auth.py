@@ -7,11 +7,11 @@ import secrets
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import delete, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 
 from .. import auth, security
 from ..db import get_db
-from ..models import AuthSession, RecoveryCode, User, utcnow
+from ..models import AuthSession, RecoveryCode, Role, User, utcnow
 from .users import check_password_policy
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -37,9 +37,13 @@ def _upgrade(db: Session, request: Request, response: Response, pre: AuthSession
 
 
 def _user_info(user: User, csrf: str) -> dict:
+    db = object_session(user)
+    role = db.scalar(select(Role).where(Role.name == user.role))
     return {
         "username": user.username,
         "role": user.role,
+        "role_title": role.title if role else user.role,
+        "permissions": sorted(auth.permissions_of(db, user)),
         "csrf": csrf,
         "telegram_linked": bool(user.telegram_chat_id),
         "telegram_username": user.telegram_username,

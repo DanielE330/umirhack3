@@ -89,7 +89,7 @@ def main() -> None:
     sub.add_parser("gen-key")
     cu = sub.add_parser("create-user")
     cu.add_argument("username")
-    cu.add_argument("--role", choices=("admin", "operator"), default="operator")
+    cu.add_argument("--role", default="operator", help="admin, operator, analyst, deployer, auditor, viewer или своя роль")
     ca = sub.add_parser("create-admin")
     ca.add_argument("username")
 

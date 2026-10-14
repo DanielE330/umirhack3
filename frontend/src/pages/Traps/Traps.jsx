@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LevelTag } from '../../components/common.jsx'
 import CatalogAddModal from '../../components/modals/CatalogAddModal.jsx'
+import { useAuth } from '../../context/auth.js'
 import { useData } from '../../context/data.js'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
@@ -9,6 +10,7 @@ import { CATALOG, CAT_LEVELS, HELP, formFromTemplate } from '../../lib/model.js'
 
 function CatalogCard({ entry, used, onUse, onAdd }) {
   const { t } = useLanguage()
+  const { can } = useAuth()
   const showBanner = (b) => (b ? t('Баннер: {b}', { b: b.replace(/\r\n/g, ' ⏎ ') }) : t('Без баннера: порт молча ждёт данных'))
   return (
     <article className={'tcard lv-' + entry.level + (entry.planned ? ' planned' : '')}>
@@ -43,8 +45,8 @@ function CatalogCard({ entry, used, onUse, onAdd }) {
           ? <button className="ghost small" disabled data-tip={t('Появится в следующих версиях')}>{t('Скоро')}</button>
           : (
             <>
-              <button className="ghost" data-tip={t('Открыть конструктор профиля, заполненный этим шаблоном')} onClick={() => onUse(entry)}>{t('Создать профиль')}</button>
-              <button className="btn lg" data-tip={t('Сразу поставить такую ловушку в выбранный контейнер: профиль создастся сам')} onClick={() => onAdd(entry)}>{t('Добавить в контейнер')}</button>
+              {can('profiles.manage') && <button className="ghost" data-tip={t('Открыть конструктор профиля, заполненный этим шаблоном')} onClick={() => onUse(entry)}>{t('Создать профиль')}</button>}
+              {can('traps.manage') && can('profiles.manage') && <button className="btn lg" data-tip={t('Сразу поставить такую ловушку в выбранный контейнер: профиль создастся сам')} onClick={() => onAdd(entry)}>{t('Добавить в контейнер')}</button>}
             </>
           )}
       </div>

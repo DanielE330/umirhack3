@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useAuth } from '../../context/auth.js'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
 import { api } from '../../lib/api.js'
@@ -10,6 +11,7 @@ const KINDS = { upload: 'загрузка', write: 'запись', download: 'с
 export default function Files() {
   const { t } = useLanguage()
   const { showToast } = useUi()
+  const { can } = useAuth()
   const [items, setItems] = useState(null)
 
   const load = useCallback(async () => {
@@ -66,9 +68,9 @@ export default function Files() {
                 <td className="m">{a.src_ip}</td>
                 <td>{a.seen_count}</td>
                 <td className="m">{fmtDateTime(Date.parse(a.last_seen))}</td>
-                <td>{a.has_content
+                <td>{a.has_content && can('files.download')
                   ? <a className="btn small" href={'/api/artifacts/' + a.sha256 + '/download'}>{t('Скачать')}</a>
-                  : <span className="hint">{t('нет содержимого')}</span>}</td>
+                  : <span className="hint">{a.has_content ? t('нет права скачивать') : t('нет содержимого')}</span>}</td>
               </tr>
             ))}
             {items && !items.length && <tr><td colSpan={9} className="empty">{t('Файлов пока нет')}</td></tr>}

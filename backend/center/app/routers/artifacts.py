@@ -20,7 +20,7 @@ def view(a: Artifact, trap_name: str = "") -> dict:
 
 
 @router.get("")
-def list_artifacts(limit: int = Query(100, ge=1, le=500), _: User = Depends(auth.current_user),
+def list_artifacts(limit: int = Query(100, ge=1, le=500), _: User = Depends(auth.require_perm("files.view")),
                    db: Session = Depends(get_db)):
     rows = db.execute(select(Artifact, Trap.name).outerjoin(Trap, Trap.id == Artifact.first_trap_id)
                       .order_by(Artifact.last_seen.desc()).limit(limit)).all()
@@ -28,7 +28,7 @@ def list_artifacts(limit: int = Query(100, ge=1, le=500), _: User = Depends(auth
 
 
 @router.get("/{sha256}/download")
-def download(sha256: str, user: User = Depends(auth.require_role("admin", "operator")), db: Session = Depends(get_db)):
+def download(sha256: str, user: User = Depends(auth.require_perm("files.download")), db: Session = Depends(get_db)):
     a = db.get(Artifact, sha256.lower())
     if a is None or a.content is None:
         raise HTTPException(404, "Содержимое файла не сохранено")

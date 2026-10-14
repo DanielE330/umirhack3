@@ -5,6 +5,7 @@ import { DEMO, demoEvent } from '../lib/demo.js'
 import {
   EMPTY_FORM, TYPE_INFO, containerState, formFromTemplate, profileToApi, readProfileForm, templateProfiles, eventFromApi, machineFromApi, profileFromApi, trapFromApi, trapState,
 } from '../lib/model.js'
+import { useAuth } from './auth.js'
 import { DataContext } from './data.js'
 import { useUi } from './ui.js'
 
@@ -14,6 +15,11 @@ const NO_FILTER = { type: '', trap: '', q: '' }
 // Все данные центра: профили, машины (Proxmox), ловушки, события, статистика + живой поток WebSocket.
 export default function DataProvider({ children }) {
   const { showToast } = useUi()
+  const { can } = useAuth()
+  const canProfiles = can('profiles.view')
+  const canTraps = can('traps.view')
+  const canMachines = can('machines.view')
+  const canEvents = can('events.view')
   const [profiles, setProfiles] = useState([])
   const [machines, setMachines] = useState([])
   const [trapsRaw, setTrapsRaw] = useState([])
@@ -35,7 +41,7 @@ export default function DataProvider({ children }) {
   // ---------- загрузка ----------
   const refresh = useCallback(async (forceMachines = false) => {
     try {
-      const [ps, ts] = await Promise.all([api('/api/profiles'), api('/api/traps')])
+      const [ps, ts] = await Promise.all([canProfiles ? api('/api/profiles') : [], canTraps ? api('/api/traps') : []])
       setProfiles(ps.map(profileFromApi))
       setTrapsRaw(ts)
       outage.current = false
@@ -44,7 +50,7 @@ export default function DataProvider({ children }) {
       // а повторяем раз в 30 секунд (или сразу при явном действии оператора).
       const now = Date.now()
       const interval = orchFailed.current ? 30000 : 5000
-      if (forceMachines || now - lastMachinesCheck.current >= interval) {
+      if (canMachines && (forceMachines || now - lastMachinesCheck.current >= interval)) {
         lastMachinesCheck.current = now
         try {
           const ms = await api('/api/machines')
@@ -64,7 +70,7 @@ export default function DataProvider({ children }) {
         showToast(t('Нет связи с центром — повторяю попытку…'), true)
       }
     }
-  }, [fail, showToast])
+  }, [fail, showToast, canProfiles, canTraps, canMachines])
 
   const loadStats = useCallback(async () => {
     try {
@@ -177,6 +183,7 @@ export default function DataProvider({ children }) {
       const t = setInterval(() => ingest(eventFromApi(demoEvent())), 4000)
       return () => clearInterval(t)
     }
+    if (!canEvents) return undefined
     let ws
     let timer = 0
     let closed = false
@@ -197,19 +204,19 @@ export default function DataProvider({ children }) {
       clearTimeout(timer)
       ws.close()
     }
-  }, [ingest])
+  }, [ingest, canEvents])
 
   // ---------- запуск и опрос ----------
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- начальная загрузка данных центра
-    refresh().then(() => Promise.all([loadEvents(), loadStats()]))
+    refresh().then(() => (canEvents ? Promise.all([loadEvents(), loadStats()]) : undefined))
     const timers = [
       setInterval(refresh, 5000), // машины, ловушки, профили: статусы и «на связи»
-      setInterval(loadStats, 30000), // агрегаты пересчитывает центр
+      ...(canEvents ? [setInterval(loadStats, 30000)] : []), // агрегаты пересчитывает центр
       setInterval(() => setStats((s) => ({ ...s, buckets: [...s.buckets.slice(1), 0] })), 60000),
     ]
     return () => timers.forEach(clearInterval)
-  }, [refresh, loadStats, loadEvents])
+  }, [refresh, loadStats, loadEvents, canEvents])
 
   // ---------- действия ----------
   const machineAction = useCallback(

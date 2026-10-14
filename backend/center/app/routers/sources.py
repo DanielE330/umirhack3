@@ -18,7 +18,7 @@ PERIODS = {"24h": timedelta(hours=24), "7d": timedelta(days=7), "30d": timedelta
 
 @router.get("/sources")
 def sources(request: Request, background: BackgroundTasks, period: str = Query("24h", pattern="^(24h|7d|30d|all)$"),
-            limit: int = Query(200, ge=1, le=500), _: User = Depends(auth.current_user), db: Session = Depends(get_db)):
+            limit: int = Query(200, ge=1, le=500), _: User = Depends(auth.require_perm("events.view")), db: Session = Depends(get_db)):
     """Источники атак за период: события, попытки входа, команды, затронутые ловушки, максимальная опасность."""
     cond = [Event.src_ip != "", Event.type != "alert"]
     if period in PERIODS:
