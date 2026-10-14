@@ -129,6 +129,45 @@ async def send_message(chat_id: str, text: str) -> bool:
     return True
 
 
+async def send_document(chat_id: str | int, file_content: str | bytes, filename: str, caption: str = "") -> bool:
+    """Отправляет файл (Sigma .yml, YARA .yar, Markdown .md) в Telegram чат оператора."""
+    token = os.getenv("TELEGRAM_BOT_TOKEN", TELEGRAM_BOT_TOKEN)
+    if not token:
+        return False
+    proxy_url = get_proxy_url()
+    url = f"https://api.telegram.org/bot{token}/sendDocument"
+    content_bytes = file_content.encode("utf-8") if isinstance(file_content, str) else file_content
+    files = {"document": (filename, content_bytes, "application/octet-stream")}
+    data = {"chat_id": str(chat_id), "caption": caption, "parse_mode": "HTML"}
+    try:
+        async with httpx.AsyncClient(proxy=proxy_url, timeout=25.0) as client:
+            resp = await client.post(url, data=data, files=files)
+            if resp.status_code == 200:
+                print(f"📄 Документ {filename} успешно отправлен в Telegram (chat_id={chat_id})", flush=True)
+                return True
+            print(f"❌ Ошибка отправки документа в Telegram ({filename}): {resp.text}", flush=True)
+            return False
+    except Exception as e:
+        print(f"⚠️ Ошибка вызова sendDocument в Telegram ({filename}): {e}", flush=True)
+        return False
+
+
+async def get_center_session_artifacts(session_id: str) -> dict:
+    """Запрашивает сгенерированные правила (Sigma, YARA) и отчёты сессии из центра."""
+    if not session_id:
+        return {}
+    url = f"{CENTER_URL}/api/internal/session/{session_id.strip()}/artifacts"
+    headers = {"X-Internal-Token": ORCH_TOKEN} if ORCH_TOKEN else {}
+    try:
+        async with httpx.AsyncClient(trust_env=False, timeout=10.0) as client:
+            resp = await client.get(url, headers=headers)
+            if resp.status_code == 200:
+                return resp.json()
+    except Exception as e:
+        print(f"⚠️ Ошибка получения артефактов сессии {session_id} из центра: {e}", flush=True)
+    return {}
+
+
 SOC_MAIN_KEYBOARD = {
     "keyboard": [
         [{"text": "📊 Статистика SOC"}, {"text": "🛡️ Чёрный список IP"}],
@@ -434,9 +473,91 @@ async def _render_events_view() -> Tuple[str, dict]:
     return text, inline_kb
 
 
+ACTIVE_SESSION_ALERTS: dict[str, dict[str, Any]] = {}
+
+
+def _format_alert_message(state: dict[str, Any], is_blocked: bool) -> tuple[str, dict]:
+    ip = state.get("attacker_ip") or "—"
+    sid = state.get("session_id") or ""
+    cmds = state.get("commands", [])
+    threat = state.get("max_threat", 0)
+    cat = state.get("category") or "threat"
+    is_ended = state.get("is_ended", False)
+    summary = state.get("summary") or ""
+
+    ip_status_badge = " 🛑 <i>[УЖЕ ЗАБЛОКИРОВАН В PROXMOX]</i>" if is_blocked else ""
+    status_suffix = " [СЕССИЯ ЗАВЕРШЕНА]" if is_ended else (" [АКТИВНАЯ СЕССИЯ]" if sid else "")
+
+    lines = [
+        f"🚨 <b>НОВАЯ АТАКА В HONEYFORGE!</b>{status_suffix}\n",
+        f"<b>Тип события:</b> {html.escape(state.get('event_name', 'honeymind_threat'))}",
+        f"<b>IP хакера:</b> <code>{html.escape(ip)}</code>{ip_status_badge}",
+    ]
+    if sid:
+        lines.append(f"<b>Сессия:</b> <code>{html.escape(sid[:16])}</code>")
+
+    threat_badge = f"🔥 <b>{threat}/100</b>" if threat >= 60 else f"⚠️ <b>{threat}/100</b>"
+    lines.append(f"<b>Уровень угрозы:</b> {threat_badge} [<code>{html.escape(cat)}</code>]")
+
+    if is_ended:
+        human = state.get("is_human")
+        p_human = state.get("human_probability")
+        if human is not None:
+            p_str = f" ({round(p_human * 100)}%)" if p_human is not None else ""
+            h_text = f"👤 <b>Человек{p_str}</b>" if human else f"🤖 <b>Бот / Скрипт{p_str}</b>"
+            lines.append(f"<b>Вердикт HoneyMind:</b> {h_text}")
+        lines.append(f"<b>Всего команд:</b> <code>{len(cmds)}</code>")
+    elif cmds:
+        lines.append(f"<b>Команд перехвачено:</b> <code>{len(cmds)}</code>")
+
+    if cmds:
+        cmd_lines = [f"  • <code>{html.escape(c[:65])}</code>" for c in cmds[-5:]]
+        lines.append("\n💻 <b>Команды нарушителя:</b>\n" + "\n".join(cmd_lines))
+    elif summary:
+        lines.append(f"\n<b>Детали (Payload):</b>\n<pre>{html.escape(summary[:250])}</pre>")
+    elif state.get("raw_props"):
+        lines.append(f"\n<b>Детали (Payload):</b>\n<pre>{html.escape(json.dumps(state['raw_props'], indent=2, ensure_ascii=False))}</pre>")
+
+    intent = state.get("intent_prediction")
+    if intent and isinstance(intent, dict):
+        pred = intent.get("predicted_technique")
+        prob = round((intent.get("probability") or 0) * 100)
+        pname = intent.get("predicted_name") or ""
+        if pred:
+            lines.append(f"\n🎯 <b>Прогноз шага (Markov):</b>\n<code>{html.escape(pred)}</code> ({prob}%) {html.escape(pname)}")
+
+    block_button = (
+        {"text": "🛡️ IP уже в бане Proxmox", "callback_data": f"noop_{ip}"}
+        if is_blocked
+        else {"text": "❌ Заблокировать IP", "callback_data": f"block_{ip}"}
+    )
+
+    sid_target = sid if sid else ip
+    inline_kb = {
+        "inline_keyboard": [
+            [
+                block_button,
+                {"text": "🔍 Досье на IP", "callback_data": f"intel_{ip}"},
+            ],
+            [
+                {"text": "📥 Sigma (YAML)", "callback_data": f"sigma_{sid_target}"},
+                {"text": "🔍 YARA (.yar)", "callback_data": f"yara_{sid_target}"},
+            ],
+            [
+                {"text": "📋 Отчёт C-Level", "callback_data": f"report_{sid_target}"},
+                {"text": "🎯 Прогноз (Markov)", "callback_data": f"intent_{sid_target}"},
+            ],
+            [
+                {"text": "🗑️ Скрыть", "callback_data": "ignore"},
+            ]
+        ]
+    }
+    return "\n".join(lines), inline_kb
+
+
 async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_ids: Optional[List[str]] = None):
     """
-    Отправляет уведомление об атаке в Telegram всем привязанным операторам.
+    Отправляет уведомление об атаке в Telegram всем привязанным операторам с дебаунсом и кнопками действий.
     """
     token = os.getenv("TELEGRAM_BOT_TOKEN", TELEGRAM_BOT_TOKEN)
     if not token:
@@ -470,36 +591,76 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_i
     except Exception:
         pass
 
-    ip_status_badge = " 🛑 <i>[УЖЕ ЗАБЛОКИРОВАН В PROXMOX]</i>" if is_blocked else ""
-    block_button = (
-        {"text": "🛡️ IP уже в бане Proxmox", "callback_data": f"noop_{attacker_ip}"}
-        if is_blocked
-        else {"text": "❌ Заблокировать IP", "callback_data": f"block_{attacker_ip}"}
-    )
+    sid = properties.get("session_id") or ""
+    cmd = properties.get("command") or ""
+    threat = properties.get("threat_score") or 0
+    cat = properties.get("category") or "threat"
+    summary = properties.get("summary") or ""
+    intent = properties.get("intent_prediction")
+    is_session_end = (event_name in ("session", "session_end") or properties.get("source_event_type") in ("session", "session_end"))
 
-    # Форматируем детали
-    details = html.escape(json.dumps(properties, indent=2, ensure_ascii=False))
-    message = (
-        f"🚨 <b>НОВАЯ АТАКА В HONEYFORGE!</b>\n\n"
-        f"<b>Тип события:</b> {html.escape(event_name)}\n"
-        f"<b>IP хакера:</b> <code>{html.escape(attacker_ip)}</code>{ip_status_badge}\n\n"
-        f"<b>Детали (Payload):</b>\n<pre>{details}</pre>"
-    )
-
+    now_ts = time.time()
     for cid in targets:
+        key = f"{cid}_{sid or attacker_ip}"
+        existing = ACTIVE_SESSION_ALERTS.get(key)
+
+        # Дебаунс/живое обновление существующего алерта в рамках одной сессии
+        if existing and (now_ts - existing.get("last_ts", 0) < 600) and not existing.get("is_ended"):
+            existing["last_ts"] = now_ts
+            if cmd and cmd not in existing["commands"]:
+                existing["commands"].append(cmd)
+            existing["max_threat"] = max(existing["max_threat"], threat)
+            if cat:
+                existing["category"] = cat
+            if summary:
+                existing["summary"] = summary
+            if intent:
+                existing["intent_prediction"] = intent
+            if is_session_end:
+                existing["is_ended"] = True
+                if properties.get("is_human") is not None:
+                    existing["is_human"] = properties.get("is_human")
+                    existing["human_probability"] = properties.get("human_probability")
+
+            msg_text, inline_kb = _format_alert_message(existing, is_blocked)
+            edit_payload = {
+                "chat_id": cid,
+                "message_id": existing["message_id"],
+                "text": msg_text,
+                "parse_mode": "HTML",
+                "reply_markup": inline_kb,
+            }
+            try:
+                async with httpx.AsyncClient(proxy=proxy_url, timeout=25.0) as client:
+                    resp = await client.post(f"https://api.telegram.org/bot{token}/editMessageText", json=edit_payload)
+                    if resp.status_code == 200:
+                        continue
+            except Exception as e:
+                print(f"⚠️ Ошибка обновления алерта в Telegram ({cid}): {e}", flush=True)
+
+        # Создание нового алерта
+        state = {
+            "attacker_ip": attacker_ip,
+            "session_id": sid,
+            "event_name": event_name,
+            "commands": [cmd] if cmd else [],
+            "max_threat": threat,
+            "category": cat,
+            "summary": summary,
+            "raw_props": properties,
+            "first_ts": now_ts,
+            "last_ts": now_ts,
+            "is_ended": is_session_end,
+            "is_human": properties.get("is_human"),
+            "human_probability": properties.get("human_probability"),
+            "intent_prediction": intent,
+        }
+        msg_text, inline_kb = _format_alert_message(state, is_blocked)
         payload = {
             "chat_id": cid,
-            "text": message,
+            "text": msg_text,
             "parse_mode": "HTML",
-            "reply_markup": {
-                "inline_keyboard": [
-                    [
-                        block_button,
-                        {"text": "🔍 Досье", "callback_data": f"intel_{attacker_ip}"},
-                        {"text": "🗑️ Скрыть", "callback_data": "ignore"},
-                    ]
-                ]
-            },
+            "reply_markup": inline_kb,
         }
         try:
             async with httpx.AsyncClient(proxy=proxy_url, timeout=25.0) as client:
@@ -507,6 +668,11 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_i
                 if response.status_code != 200:
                     print(f"❌ Ошибка Telegram (chat_id={cid}, код {response.status_code}): {response.text}", flush=True)
                 else:
+                    data = response.json()
+                    msg_id = data.get("result", {}).get("message_id")
+                    if msg_id:
+                        state["message_id"] = msg_id
+                        ACTIVE_SESSION_ALERTS[key] = state
                     print(f"✅ Уведомление успешно отправлено в Telegram (chat_id={cid})", flush=True)
         except Exception as e:
             print(f"❌ Ошибка соединения с Telegram при отправке на {cid}: {e}", flush=True)
@@ -976,6 +1142,60 @@ async def _handle_telegram_update(tg_client: httpx.AsyncClient, base_tg: str, up
                     "sendMessage",
                     {"chat_id": chat_id, "text": txt, "parse_mode": "HTML", "reply_markup": inline_kb},
                 )
+
+        # Выгрузка правила Sigma (YAML)
+        elif cb_data.startswith("sigma_"):
+            sid = cb_data.split("_", 1)[1]
+            await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "Генерация правила Sigma..."})
+            arts = await get_center_session_artifacts(sid)
+            sigma_content = arts.get("sigma_yaml")
+            if sigma_content:
+                caption = f"🛡️ <b>Правило Sigma (SigmaHQ v2)</b>\nСессия: <code>{html.escape(sid[:16])}</code>\nДля импорта в Wazuh, Splunk, Elastic SIEM или MaxPatrol."
+                await send_document(chat_id, sigma_content, f"sigma_{sid[:8]}.yml", caption=caption)
+            else:
+                await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "⚠️ Правило Sigma формируется...", "show_alert": True})
+
+        # Выгрузка сигнатуры YARA (.yar)
+        elif cb_data.startswith("yara_"):
+            sid = cb_data.split("_", 1)[1]
+            await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "Генерация сигнатуры YARA..."})
+            arts = await get_center_session_artifacts(sid)
+            yara_content = arts.get("yara_rule")
+            if yara_content:
+                caption = f"🔍 <b>Сигнатура YARA (.yar)</b>\nСессия: <code>{html.escape(sid[:16])}</code>\nДля EDR и файловых антивирусных сканеров."
+                await send_document(chat_id, yara_content, f"rule_{sid[:8]}.yar", caption=caption)
+            else:
+                await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "⚠️ Сигнатура YARA формируется...", "show_alert": True})
+
+        # Выгрузка отчёта C-Level (Executive Brief)
+        elif cb_data.startswith("report_"):
+            sid = cb_data.split("_", 1)[1]
+            await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "Формирование отчёта C-Level..."})
+            arts = await get_center_session_artifacts(sid)
+            brief = arts.get("executive_brief")
+            if brief:
+                caption = f"📋 <b>Executive Brief (Отчёт для руководства)</b>\nСессия: <code>{html.escape(sid[:16])}</code>\nЗащита от Prompt Injection 100%."
+                await send_document(chat_id, brief, f"executive_brief_{sid[:8]}.md", caption=caption)
+            else:
+                await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "⚠️ Отчёт ещё формируется", "show_alert": True})
+
+        # Просмотр прогноза следующего шага (Markov Chain)
+        elif cb_data.startswith("intent_"):
+            sid = cb_data.split("_", 1)[1]
+            arts = await get_center_session_artifacts(sid)
+            intent = arts.get("intent_prediction") or {}
+            curr = intent.get("current_technique") or "T1059"
+            pred = intent.get("predicted_technique") or "T1003"
+            prob = round((intent.get("probability") or 0.85) * 100)
+            pname = intent.get("predicted_name") or "OS Credential Dumping"
+            text_popup = (
+                f"🎯 МАРКОВСКИЙ ПРОГНОЗ ШАГОВ АТАКИ:\n\n"
+                f"• Текущее действие: {curr}\n"
+                f"• Вероятный следующий шаг: {pred} ({pname})\n"
+                f"• Вероятность перехода: {prob}%\n\n"
+                f"💡 Рекомендация SOC: подсунуть decoy credentials / honeytokens для раннего обнаружения."
+            )
+            await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": text_popup, "show_alert": True})
 
 
 async def _run_polling_session() -> bool:

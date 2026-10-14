@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from .. import auth, security
 from ..config import Settings
 from ..db import get_db
-from ..models import Event, Trap, User, utcnow
+from ..models import Event, SessionAssessment, Trap, User, utcnow
 
 router = APIRouter(prefix="/api/internal", tags=["internal"], include_in_schema=False)
 
@@ -258,3 +258,47 @@ def get_internal_ip_intel(ip: str, db: Session = Depends(get_db)):
         "last_type": last_event.type if last_event else None,
         "last_detail": (last_event.command or last_event.username or "") if last_event else "",
     }
+
+
+@router.get("/session/{session_id}/artifacts", dependencies=[Depends(require_internal_token)])
+def get_internal_session_artifacts(session_id: str, request: Request, db: Session = Depends(get_db)):
+    """Выгрузка сгенерированных правил (Sigma, YARA) и отчётов по сессии для Telegram-бота."""
+    from ..scoring import _event_payload
+    a = db.get(SessionAssessment, session_id)
+    res_data = (a.result or {}) if a and a.result and isinstance(a.result, dict) else {}
+    rules = res_data.get("detection_rules")
+    reports = res_data.get("dual_loop_report")
+    intent = res_data.get("intent_prediction")
+
+    honeymind = getattr(request.app.state, "honeymind", None)
+    if (not rules or not reports) and honeymind:
+        rows = db.scalars(select(Event).where(Event.session_id == session_id).order_by(Event.ts)).all()
+        events = [_event_payload({
+            "type": r.type, "command": r.command, "username": r.username, "password": r.password,
+            "session_id": r.session_id, "ts": r.ts.isoformat() + "Z" if r.ts else "", "data": r.data,
+        }) for r in rows]
+        if events:
+            if not rules:
+                rules = honeymind.export_detection_rules(events, session_id=session_id) or {}
+            if not reports:
+                reports = honeymind.generate_report(events=events) or {}
+            if a and rules and reports:
+                if not a.result or not isinstance(a.result, dict):
+                    a.result = {}
+                a.result["detection_rules"] = rules
+                a.result["dual_loop_report"] = reports
+                db.commit()
+
+    return {
+        "session_id": session_id,
+        "is_human": a.is_human if a else None,
+        "human_probability": a.human_probability if a else None,
+        "human_reason": a.human_reason if a else None,
+        "threat_score": a.threat_score if a else None,
+        "sigma_yaml": (rules or {}).get("sigma_yaml"),
+        "yara_rule": (rules or {}).get("yara_rule"),
+        "executive_brief": (reports or {}).get("executive_brief_markdown"),
+        "technical_dfir": (reports or {}).get("technical_dfir_markdown"),
+        "intent_prediction": intent,
+    }
+

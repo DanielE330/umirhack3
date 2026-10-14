@@ -98,25 +98,36 @@ def _score_event(session_factory: sessionmaker[Session], honeymind: HoneyMind,
     threat_score = result.get("threat_score") or 0
     event_type = event_view.get("type")
     if threat_score >= ALERT_THRESHOLD and event_type not in SKIP_THREAT_ALERT_TYPES:
-        _notify_threat(orchestrator, event_type, event_view.get("src_ip", ""), result)
+        _notify_threat(orchestrator, event_type, event_view.get("src_ip", ""), result,
+                       session_id=event_view.get("session_id"), command=event_view.get("command"))
 
 
-def _notify_threat(orchestrator: Orchestrator, event_type: str, src_ip: str, result: dict[str, Any]) -> None:
+def _notify_threat(orchestrator: Orchestrator, event_type: str, src_ip: str, result: dict[str, Any],
+                   session_id: str | None = None, command: str | None = None) -> None:
     """Алерт в Telegram через существующий канал центр -> оркестратор -> send_alert.
 
-    Передаём только поля ответа HoneyMind (summary собран из шаблонов, без текста атакующего —
-    honeymind/README.md, раздел «Безопасность»), а не сырой payload события.
+    Передаём поля ответа HoneyMind, session_id для группировки сессий и команду.
     """
     try:
+        sid = session_id or result.get("session_id") or ""
+        props = {
+            "source_event_type": event_type,
+            "category": result.get("category"),
+            "threat_score": result.get("threat_score"),
+            "summary": result.get("summary", ""),
+            "session_id": sid,
+            "command": command or "",
+            "is_human": result.get("is_human"),
+            "human_probability": result.get("human_probability"),
+            "human_reason": result.get("human_reason"),
+            "intent_prediction": result.get("intent_prediction"),
+        }
+        event_name = "honeymind_threat"
         orchestrator.request("POST", "/", {
-            "event_name": "honeymind_threat",
+            "event_name": event_name,
             "attacker_ip": src_ip or "",
-            "properties": {
-                "source_event_type": event_type,
-                "category": result.get("category"),
-                "threat_score": result.get("threat_score"),
-                "summary": result.get("summary", ""),
-            },
+            "session_id": sid,
+            "properties": props,
         }, timeout=10, base="/api/v1/notify")
     except Exception:
         pass  # алерт вторичен: оценка уже сохранена в БД
@@ -162,7 +173,7 @@ def _assess_session(session_factory: sessionmaker[Session], honeymind: HoneyMind
     threat_score = result.get("threat_score") or 0
     download_then_exec = bool(result.get("download_then_execute"))
     if orchestrator and (download_then_exec or threat_score >= ALERT_THRESHOLD):
-        _notify_threat(orchestrator, "session", last_src_ip, result)
+        _notify_threat(orchestrator, "session_end", last_src_ip, result, session_id=session_id)
 
 
 def rescore_unscored_events(

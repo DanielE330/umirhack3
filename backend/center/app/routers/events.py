@@ -7,6 +7,7 @@ import io
 import ipaddress
 import uuid
 from datetime import datetime, timedelta
+from typing import Any
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
@@ -78,11 +79,13 @@ def get_session_assessment(session_id: str, _: User = Depends(auth.require_perm(
     if not total and a is None:
         raise HTTPException(404, "Сессия ещё не оценена")
     counts = dict(db.execute(select(Event.type, func.count()).where(Event.session_id == session_id).group_by(Event.type)).all())
+    cmds = db.scalars(select(Event.command).where(Event.session_id == session_id, Event.command != "").order_by(Event.id.asc()).limit(50)).all()
     summary = {"events": total, "src_ip": src or "", "first_ts": first.isoformat() + "Z" if first else None,
                "last_ts": last.isoformat() + "Z" if last else None,
                "duration_seconds": round((last - first).total_seconds(), 1) if first and last else 0,
                "commands": counts.get("command", 0), "auth_attempts": counts.get("auth_attempt", 0),
-               "honeytokens": counts.get("honeytoken", 0)}
+               "honeytokens": counts.get("honeytoken", 0),
+               "commands_list": [c for c in cmds if c]}
     out = {"session_id": session_id, "is_human": None, "human_probability": None, "human_method": None,
            "human_reason": None, "script_seen_before": None, "threat_score": None,
            "download_then_execute": None, "ssh_client": None, "updated_at": None, "summary": summary}
@@ -99,6 +102,76 @@ def get_session_assessment(session_id: str, _: User = Depends(auth.require_perm(
                    hassh_profile=res_data.get("hassh_profile"),
                    updated_at=a.updated_at.isoformat() + "Z")
     return out
+
+
+def _get_or_synth_session_artifacts(db: Session, session_id: str, request: Request) -> tuple[dict[str, Any], dict[str, Any]]:
+    from ..scoring import _event_payload
+    a = db.get(SessionAssessment, session_id)
+    res_data = (a.result or {}) if a and a.result else {}
+    rules = res_data.get("detection_rules")
+    reports = res_data.get("dual_loop_report")
+    if rules and reports:
+        return rules, reports
+
+    honeymind = getattr(request.app.state, "honeymind", None)
+    if honeymind:
+        rows = db.scalars(select(Event).where(Event.session_id == session_id).order_by(Event.ts)).all()
+        events = [_event_payload({
+            "type": r.type, "command": r.command, "username": r.username, "password": r.password,
+            "session_id": r.session_id, "ts": r.ts.isoformat() + "Z" if r.ts else "", "data": r.data,
+        }) for r in rows]
+        if events:
+            if not rules:
+                rules = honeymind.export_detection_rules(events, session_id=session_id) or {}
+            if not reports:
+                reports = honeymind.generate_report(events=events) or {}
+            if a and rules and reports:
+                if not a.result or not isinstance(a.result, dict):
+                    a.result = {}
+                a.result["detection_rules"] = rules
+                a.result["dual_loop_report"] = reports
+                db.commit()
+    return rules or {}, reports or {}
+
+
+@router.get("/sessions/{session_id}/sigma.yml")
+def download_session_sigma(session_id: str, request: Request, _: User = Depends(auth.require_perm("events.export")), db: Session = Depends(get_db)):
+    rules, _ = _get_or_synth_session_artifacts(db, session_id, request)
+    sigma = rules.get("sigma_yaml")
+    if not sigma:
+        raise HTTPException(404, "Правило Sigma не сформировано для этой сессии")
+    return PlainTextResponse(sigma, media_type="application/x-yaml; charset=utf-8",
+                             headers={"Content-Disposition": f'attachment; filename="sigma_{session_id[:16]}.yml"'})
+
+
+@router.get("/sessions/{session_id}/yara.yar")
+def download_session_yara(session_id: str, request: Request, _: User = Depends(auth.require_perm("events.export")), db: Session = Depends(get_db)):
+    rules, _ = _get_or_synth_session_artifacts(db, session_id, request)
+    yara = rules.get("yara_rule")
+    if not yara:
+        raise HTTPException(404, "Правило YARA не сформировано для этой сессии")
+    return PlainTextResponse(yara, media_type="text/plain; charset=utf-8",
+                             headers={"Content-Disposition": f'attachment; filename="rule_{session_id[:16]}.yar"'})
+
+
+@router.get("/sessions/{session_id}/report.md")
+def download_session_report(session_id: str, request: Request, _: User = Depends(auth.require_perm("events.view")), db: Session = Depends(get_db)):
+    _, reports = _get_or_synth_session_artifacts(db, session_id, request)
+    brief = reports.get("executive_brief_markdown")
+    if not brief:
+        raise HTTPException(404, "Executive Brief не сформирован для этой сессии")
+    return PlainTextResponse(brief, media_type="text/markdown; charset=utf-8",
+                             headers={"Content-Disposition": f'attachment; filename="executive_brief_{session_id[:16]}.md"'})
+
+
+@router.get("/sessions/{session_id}/dfir.md")
+def download_session_dfir(session_id: str, request: Request, _: User = Depends(auth.require_perm("events.view")), db: Session = Depends(get_db)):
+    _, reports = _get_or_synth_session_artifacts(db, session_id, request)
+    dfir = reports.get("technical_dfir_markdown")
+    if not dfir:
+        raise HTTPException(404, "DFIR-отчёт не сформирован для этой сессии")
+    return PlainTextResponse(dfir, media_type="text/markdown; charset=utf-8",
+                             headers={"Content-Disposition": f'attachment; filename="technical_dfir_{session_id[:16]}.md"'})
 
 
 def _csv_cell(value) -> str:
