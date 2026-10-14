@@ -271,12 +271,16 @@ class DualLoopReport:
     technical: TechnicalDFIRReport
 
     def to_dict(self) -> dict[str, Any]:
+        exec_md = self.executive.to_markdown()
+        tech_md = self.technical.to_markdown()
         return {
             "session_id": self.session_id,
             "executive": self.executive.to_dict(),
             "technical": self.technical.to_dict(),
-            "executive_markdown": self.executive.to_markdown(),
-            "technical_markdown": self.technical.to_markdown(),
+            "executive_markdown": exec_md,
+            "technical_markdown": tech_md,
+            "executive_brief_markdown": exec_md,
+            "technical_dfir_markdown": tech_md,
         }
 
 

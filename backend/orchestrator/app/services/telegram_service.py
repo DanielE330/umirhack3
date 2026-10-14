@@ -1172,12 +1172,26 @@ async def _handle_telegram_update(tg_client: httpx.AsyncClient, base_tg: str, up
             sid = cb_data.split("_", 1)[1]
             await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "Формирование отчёта C-Level..."})
             arts = await get_center_session_artifacts(sid)
-            brief = arts.get("executive_brief")
+            brief = arts.get("executive_brief") or arts.get("executive_markdown") or arts.get("executive_brief_markdown")
             if brief:
                 caption = f"📋 <b>Executive Brief (Отчёт для руководства)</b>\nСессия: <code>{html.escape(sid[:16])}</code>\nЗащита от Prompt Injection 100%."
                 await send_document(chat_id, brief, f"executive_brief_{sid[:8]}.md", caption=caption)
             else:
-                await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "⚠️ Отчёт ещё формируется", "show_alert": True})
+                if chat_id:
+                    await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": f"⚠️ <b>Отчёт для сессии <code>{html.escape(sid[:16])}</code> ещё формируется</b>\n(события сессии обрабатываются моделью)", "parse_mode": "HTML"})
+
+        # Выгрузка отчёта DFIR
+        elif cb_data.startswith("dfir_"):
+            sid = cb_data.split("_", 1)[1]
+            await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "Формирование DFIR-отчёта..."})
+            arts = await get_center_session_artifacts(sid)
+            dfir = arts.get("technical_dfir") or arts.get("technical_markdown") or arts.get("technical_dfir_markdown")
+            if dfir:
+                caption = f"🔬 <b>Technical DFIR Report</b>\nСессия: <code>{html.escape(sid[:16])}</code>\nIoC, MITRE ATT&CK & Engage, таймлайн."
+                await send_document(chat_id, dfir, f"technical_dfir_{sid[:8]}.md", caption=caption)
+            else:
+                if chat_id:
+                    await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": f"⚠️ <b>DFIR-отчёт для сессии <code>{html.escape(sid[:16])}</code> ещё формируется</b>\n(события сессии обрабатываются моделью)", "parse_mode": "HTML"})
 
         # Просмотр прогноза следующего шага (Markov Chain)
         elif cb_data.startswith("intent_"):

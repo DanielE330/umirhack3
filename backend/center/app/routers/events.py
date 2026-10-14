@@ -157,7 +157,7 @@ def download_session_yara(session_id: str, request: Request, _: User = Depends(a
 @router.get("/sessions/{session_id}/report.md")
 def download_session_report(session_id: str, request: Request, _: User = Depends(auth.require_perm("events.view")), db: Session = Depends(get_db)):
     _, reports = _get_or_synth_session_artifacts(db, session_id, request)
-    brief = reports.get("executive_brief_markdown")
+    brief = (reports or {}).get("executive_markdown") or (reports or {}).get("executive_brief_markdown")
     if not brief:
         raise HTTPException(404, "Executive Brief не сформирован для этой сессии")
     return PlainTextResponse(brief, media_type="text/markdown; charset=utf-8",
@@ -167,7 +167,7 @@ def download_session_report(session_id: str, request: Request, _: User = Depends
 @router.get("/sessions/{session_id}/dfir.md")
 def download_session_dfir(session_id: str, request: Request, _: User = Depends(auth.require_perm("events.view")), db: Session = Depends(get_db)):
     _, reports = _get_or_synth_session_artifacts(db, session_id, request)
-    dfir = reports.get("technical_dfir_markdown")
+    dfir = (reports or {}).get("technical_markdown") or (reports or {}).get("technical_dfir_markdown")
     if not dfir:
         raise HTTPException(404, "DFIR-отчёт не сформирован для этой сессии")
     return PlainTextResponse(dfir, media_type="text/markdown; charset=utf-8",

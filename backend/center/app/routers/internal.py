@@ -297,8 +297,8 @@ def get_internal_session_artifacts(session_id: str, request: Request, db: Sessio
         "threat_score": a.threat_score if a else None,
         "sigma_yaml": (rules or {}).get("sigma_yaml"),
         "yara_rule": (rules or {}).get("yara_rule"),
-        "executive_brief": (reports or {}).get("executive_brief_markdown"),
-        "technical_dfir": (reports or {}).get("technical_dfir_markdown"),
+        "executive_brief": (reports or {}).get("executive_markdown") or (reports or {}).get("executive_brief_markdown"),
+        "technical_dfir": (reports or {}).get("technical_markdown") or (reports or {}).get("technical_dfir_markdown"),
         "intent_prediction": intent,
     }
 
