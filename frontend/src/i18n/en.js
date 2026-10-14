@@ -40,6 +40,16 @@ const en = {
     'Proxmox could not create the machine: see details on the card. You can delete it and create it again',
   'Proxmox недоступен: {err}. Машины не показываются, остальное работает.':
     'Proxmox unavailable: {err}. Machines are hidden, everything else works.',
+  'Закрыть уведомление': 'Dismiss notification',
+  'Гипервизор Proxmox не подключён': 'Proxmox hypervisor not connected',
+  'Автономный режим': 'Standalone mode',
+  'Причина: {err}': 'Reason: {err}',
+  'HoneyForge работает в автономном режиме: ловушки и агенты могут запускаться прямо на хосте или в Docker. Чтобы создавать изолированные виртуальные машины LXC/QEMU в Proxmox VE, настройте параметры доступа в infra/.env (PROXMOX_HOST, PROXMOX_TOKEN_NAME, PROXMOX_TOKEN_VALUE).':
+    'HoneyForge is running in standalone mode: traps and agents can run directly on the host or in Docker. To create isolated LXC/QEMU virtual machines in Proxmox VE, configure access settings in infra/.env (PROXMOX_HOST, PROXMOX_TOKEN_NAME, PROXMOX_TOKEN_VALUE).',
+  'Невозможно создать контейнер: Proxmox не подключён ({err})':
+    'Cannot create container: Proxmox is not connected ({err})',
+  'Машины недоступны — Proxmox оффлайн или не настроен':
+    'Machines unavailable — Proxmox is offline or not configured',
   'QR-код для приложения-аутентификатора': 'QR code for the authenticator app',
   'SSH-сканер': 'SSH scanner',
   'VMID / нода': 'VMID / node',

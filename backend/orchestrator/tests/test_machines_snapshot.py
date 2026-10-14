@@ -52,3 +52,26 @@ def test_orchestrator_snapshot_and_rollback(monkeypatch):
     resp3 = client.get("/api/v1/machines/1100/snapshots", headers=INTERNAL_HEADERS)
     assert resp3.status_code == 200
     assert resp3.json() == [{"name": "clean", "description": "baseline"}]
+
+
+def test_proxmox_not_configured_returns_503(monkeypatch):
+    monkeypatch.setenv("ORCH_TOKEN", "orch-secret-token-change-me")
+    monkeypatch.delenv("PROXMOX_PASSWORD", raising=False)
+    monkeypatch.delenv("PROXMOX_TOKEN_NAME", raising=False)
+    monkeypatch.delenv("PROXMOX_TOKEN_VALUE", raising=False)
+    monkeypatch.setattr(machines, "_manager", None)
+
+    resp = client.get("/api/v1/machines/", headers=INTERNAL_HEADERS)
+    assert resp.status_code == 503
+    assert "Учётные данные Proxmox не настроены" in resp.json()["detail"]
+
+
+def test_proxmox_error_during_list_returns_503(monkeypatch):
+    monkeypatch.setenv("ORCH_TOKEN", "orch-secret-token-change-me")
+    mock = MagicMock()
+    mock.list_machines.side_effect = RuntimeError("Network timeout to node")
+    monkeypatch.setattr(machines, "manager", lambda: mock)
+
+    resp = client.get("/api/v1/machines/", headers=INTERNAL_HEADERS)
+    assert resp.status_code == 503
+    assert "Proxmox недоступен: Network timeout to node" in resp.json()["detail"]

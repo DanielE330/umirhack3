@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Bell, ChartColumn, Globe2, FileDown, FileWarning, Layers, LayoutDashboard, Radar, ScrollText, Server, Settings, Users } from 'lucide-react'
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import ModalHost from '../components/ModalHost.jsx'
@@ -31,6 +32,22 @@ function Shell() {
   const { t } = useLanguage()
   const { layout } = useLayout()
   const { pathname } = useLocation() // новый key при смене раздела перезапускает анимацию появления
+
+  const [orchDismissed, setOrchDismissed] = useState(() => {
+    try {
+      return sessionStorage.getItem('hf_orch_dismissed') === '1'
+    } catch {
+      return false
+    }
+  })
+
+  const dismissOrch = () => {
+    setOrchDismissed(true)
+    try {
+      sessionStorage.setItem('hf_orch_dismissed', '1')
+    } catch {}
+  }
+
   return (
     <div className={'app-shell ' + (layout === 'side' ? 'layout-side' : 'layout-top')}>
       <header className="topbar">
@@ -61,9 +78,18 @@ function Shell() {
             {t('Демо-режим: данные вымышленные, бэкенд не используется, изменения не сохраняются.')}
           </div>
         )}
-        {orchError && (
-          <div className="demo" role="status">
-            {t('Proxmox недоступен: {err}. Машины не показываются, остальное работает.', { err: orchError })}
+        {orchError && !orchDismissed && (pathname === '/containers' || pathname === '/') && (
+          <div className="demo orch-banner" role="status">
+            <span>{t('Proxmox недоступен: {err}. Машины не показываются, остальное работает.', { err: orchError })}</span>
+            <button
+              type="button"
+              className="orch-banner-close"
+              onClick={dismissOrch}
+              aria-label={t('Закрыть')}
+              title={t('Закрыть уведомление')}
+            >
+              ✕
+            </button>
           </div>
         )}
         <div key={pathname} className="page"><Outlet /></div>

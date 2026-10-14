@@ -14,6 +14,14 @@ class NotOurMachine(Exception):
     """Машины нет или она не помечена тегом honeyforge."""
 
 
+class ProxmoxNotConfigured(Exception):
+    """Учётные данные Proxmox не настроены в окружении."""
+
+
+class ProxmoxUnavailable(Exception):
+    """Proxmox настроен, но недоступен по сети или не отвечает."""
+
+
 class ProxmoxManager:
     """
     Управление машинами-ловушками в Proxmox (LXC и QEMU).
@@ -23,13 +31,22 @@ class ProxmoxManager:
     def __init__(self, host, user, password=None, token_name=None, token_value=None, node=None,
                  verify_ssl=False, port=8006, storage="hdd", bridge="vmbr1", network="10.20.0.0/24",
                  gateway="10.20.0.1", nameserver="1.1.1.1", template_lxc=9101, template_kvm=None, pool=None):
-        # Подключение к Proxmox API: API-токен предпочтительнее пароля
+        # Проверяем, заданы ли учётные данные. Без токена или пароля подключаться к сети бессмысленно.
+        has_auth = bool((token_name and token_value) or password)
+        if not has_auth:
+            raise ProxmoxNotConfigured(
+                "Учётные данные Proxmox не настроены (задайте PROXMOX_TOKEN_* или PROXMOX_PASSWORD в infra/.env)"
+            )
         auth = {"token_name": token_name, "token_value": token_value} if token_name else {"password": password}
-        self.proxmox = ProxmoxAPI(host, user=user, verify_ssl=verify_ssl, port=port, **auth)
-        if hasattr(self.proxmox, "_backend") and hasattr(self.proxmox._backend, "session"):
-            self.proxmox._backend.session.trust_env = False
-        # Имя ноды берём из Proxmox, если не задано явно
-        self.node = node or self.proxmox.nodes.get()[0]["node"]
+        try:
+            self.proxmox = ProxmoxAPI(host, user=user, verify_ssl=verify_ssl, port=port, **auth)
+            if hasattr(self.proxmox, "_backend") and hasattr(self.proxmox._backend, "session"):
+                self.proxmox._backend.session.trust_env = False
+            # Имя ноды берём из Proxmox, если не задано явно
+            self.node = node or self.proxmox.nodes.get()[0]["node"]
+        except Exception as e:
+            raise ProxmoxUnavailable(f"Proxmox ({host}:{port}) недоступен: {e}")
+
         self.storage, self.bridge, self.nameserver = storage, bridge, nameserver
         self.network = ipaddress.ip_network(network)
         self.gateway = gateway
@@ -44,19 +61,19 @@ class ProxmoxManager:
         env = os.environ.get
         kvm = env("PROXMOX_TEMPLATE_KVM")
         return cls(
-            host=env("PROXMOX_HOST", "192.168.1.94"),
-            user=env("PROXMOX_USER", "root@pam"),
-            password=env("PROXMOX_PASSWORD"),
-            token_name=env("PROXMOX_TOKEN_NAME"),
-            token_value=env("PROXMOX_TOKEN_VALUE"),
-            node=env("PROXMOX_NODE"),
-            port=int(env("PROXMOX_PORT", "8006")),
-            storage=env("PROXMOX_STORAGE", "hdd"),
-            bridge=env("PROXMOX_BRIDGE", "vmbr1"),
-            network=env("PROXMOX_NETWORK", "10.20.0.0/24"),
-            gateway=env("PROXMOX_GATEWAY", "10.20.0.1"),
-            nameserver=env("PROXMOX_NAMESERVER", "1.1.1.1"),
-            template_lxc=int(env("PROXMOX_TEMPLATE_LXC", "9101")),
+            host=env("PROXMOX_HOST") or "192.168.1.94",
+            user=env("PROXMOX_USER") or "root@pam",
+            password=env("PROXMOX_PASSWORD") or None,
+            token_name=env("PROXMOX_TOKEN_NAME") or None,
+            token_value=env("PROXMOX_TOKEN_VALUE") or None,
+            node=env("PROXMOX_NODE") or None,
+            port=int(env("PROXMOX_PORT") or "8006"),
+            storage=env("PROXMOX_STORAGE") or "hdd",
+            bridge=env("PROXMOX_BRIDGE") or "vmbr1",
+            network=env("PROXMOX_NETWORK") or "10.20.0.0/24",
+            gateway=env("PROXMOX_GATEWAY") or "10.20.0.1",
+            nameserver=env("PROXMOX_NAMESERVER") or "1.1.1.1",
+            template_lxc=int(env("PROXMOX_TEMPLATE_LXC") or "9101"),
             template_kvm=int(kvm) if kvm else None,
             pool=env("PROXMOX_POOL") or None,
         )

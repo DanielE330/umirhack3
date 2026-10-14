@@ -12,6 +12,15 @@ button { font: inherit; }
 .splash { min-height: 100vh; display: grid; place-items: center; color: var(--muted); }
 
 .demo { background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); color: var(--note-fg); padding: 7px 14px; border-radius: 10px; font-size: 12.5px; margin-bottom: 16px; }
+.orch-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.orch-banner-close { background: none; border: none; color: var(--muted); cursor: pointer; padding: 2px 8px; border-radius: 6px; font-size: 14px; line-height: 1; transition: color 0.15s, background 0.15s; }
+.orch-banner-close:hover { color: var(--fg); background: color-mix(in srgb, var(--accent) 25%, transparent); }
+
+.orch-offline-card { background: var(--card); border: 1px dashed var(--line-2); border-radius: var(--r); padding: 18px 20px; margin-bottom: 18px; }
+.orch-offline-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 14px; }
+.orch-offline-desc { color: var(--coral); font-size: 12.5px; font-family: var(--font-mono); margin: 0 0 8px; word-break: break-all; }
+.orch-offline-hint { color: var(--muted); font-size: 12.5px; margin: 0; line-height: 1.5; }
+
 .hint { color: var(--faint); font-weight: 400; font-size: 12.5px; text-transform: none; letter-spacing: 0; margin-left: 6px; }
 p.hint { margin: 0 0 10px; }
 
