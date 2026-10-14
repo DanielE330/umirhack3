@@ -247,6 +247,18 @@ class Analyzer:
         return self._analyze_canon(ev)
 
     def _analyze_canon(self, ev: CanonEvent) -> Verdict:
+        if ev.category and ev.category in rules.CATEGORIES and ev.category not in ("benign", rules.UNKNOWN):
+            score = ev.threat_score or rules.CATEGORIES[ev.category].severity
+            mitre_map = {
+                "sqli": ["T1190"], "xss": ["T1189"], "rce": ["T1059.004", "T1190"],
+                "lfi": ["T1005", "T1083"], "log4shell": ["T1190"], "wordpot": ["T1110.001", "T1190"],
+                "ransomware": ["T1486"],
+            }
+            mitre = mitre_map.get(ev.category, ["T1190"])
+            return Verdict(score, ev.category, kind=ev.kind, confidence=0.95, source="rules",
+                           matched_rules=[f"web_{ev.category}"], mitre=mitre,
+                           summary=f"{rules.title_ru(ev.category)}, оценка {score}/100.",
+                           model_version=self._ver())
         if ev.kind == KIND_COMMAND or ev.kind == KIND_HTTP:
             v = self.analyze_command(ev.command, kind=ev.kind)
             if ev.kind == KIND_HTTP and v.source != "rules":
