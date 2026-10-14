@@ -601,12 +601,14 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_i
 
     now_ts = time.time()
     for cid in targets:
-        key = f"{cid}_{sid or attacker_ip}"
+        key = f"{cid}_{attacker_ip or sid}"
         existing = ACTIVE_SESSION_ALERTS.get(key)
 
-        # Дебаунс/живое обновление существующего алерта в рамках одной сессии
+        # Дебаунс/живое обновление существующего алерта в рамках одного атакующего / сессии
         if existing and (now_ts - existing.get("last_ts", 0) < 600) and not existing.get("is_ended"):
             existing["last_ts"] = now_ts
+            if sid:
+                existing["session_id"] = sid
             if cmd and cmd not in existing["commands"]:
                 existing["commands"].append(cmd)
             existing["max_threat"] = max(existing["max_threat"], threat)
