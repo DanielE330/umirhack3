@@ -319,3 +319,55 @@ def test_send_document_helper(monkeypatch):
     assert doc_sent[0]["data"]["chat_id"] == "123"
     assert doc_sent[0]["files"]["document"][0] == "rule.yml"
 
+
+def test_callback_query_intent_handles_prediction(monkeypatch):
+    monkeypatch.setattr(ts, "TELEGRAM_BOT_TOKEN", "mock_token")
+
+    async def fake_auth(uid):
+        return {"authenticated": True, "username": "admin", "role": "admin"}
+
+    async def fake_arts(sid):
+        return {
+            "intent_prediction": {
+                "current_technique": "T1548.003",
+                "predicted_technique": "T1098.004",
+                "probability": 0.256,
+                "predicted_name": "SSH Authorized Keys",
+                "operator_style": "manual_exploratory",
+            }
+        }
+
+    monkeypatch.setattr(ts, "check_user_auth", fake_auth)
+    monkeypatch.setattr(ts, "get_center_session_artifacts", fake_arts)
+
+    calls = []
+    class MockClient:
+        async def post(self, url, json=None, **kwargs):
+            calls.append({"url": url, "json": json})
+            class Resp:
+                status_code = 200
+                text = "ok"
+            return Resp()
+
+    update = {
+        "callback_query": {
+            "id": "cb_123",
+            "data": "intent_sess_abc",
+            "from": {"id": 100, "username": "admin"},
+            "message": {"message_id": 456, "chat": {"id": 789}}
+        }
+    }
+
+    asyncio.run(ts._handle_telegram_update(MockClient(), "https://api.telegram.org/botmock", update))
+
+    ans = [c for c in calls if "answerCallbackQuery" in c["url"]]
+    assert len(ans) == 1
+    assert len(ans[0]["json"]["text"]) <= 200  # Strictly <= 200 characters for Telegram Bot API!
+    assert ans[0]["json"]["show_alert"] is True
+
+    msg = [c for c in calls if "sendMessage" in c["url"]]
+    assert len(msg) == 1
+    assert "T1098.004" in msg[0]["json"]["text"]
+    assert "SSH Authorized Keys" in msg[0]["json"]["text"]
+
+

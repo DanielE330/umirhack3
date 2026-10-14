@@ -1202,14 +1202,24 @@ async def _handle_telegram_update(tg_client: httpx.AsyncClient, base_tg: str, up
             pred = intent.get("predicted_technique") or "T1003"
             prob = round((intent.get("probability") or 0.85) * 100)
             pname = intent.get("predicted_name") or "OS Credential Dumping"
-            text_popup = (
-                f"🎯 МАРКОВСКИЙ ПРОГНОЗ ШАГОВ АТАКИ:\n\n"
-                f"• Текущее действие: {curr}\n"
-                f"• Вероятный следующий шаг: {pred} ({pname})\n"
-                f"• Вероятность перехода: {prob}%\n\n"
-                f"💡 Рекомендация SOC: подсунуть decoy credentials / honeytokens для раннего обнаружения."
-            )
-            await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": text_popup, "show_alert": True})
+            op_style = intent.get("operator_style") or "manual_exploratory"
+
+            # Компактный alert для pop-up (СТРОГО <= 200 символов по спецификации Telegram API!)
+            popup = f"🎯 След. шаг: {pred} ({prob}%)\n{pname[:45]}\nТекущее: {curr}\nРекомендация: подсунуть decoy token"
+            await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": popup[:190], "show_alert": True})
+
+            # И одновременно отправляем полную карточку прогноза в чат сообщением
+            if chat_id:
+                msg_text = (
+                    f"🎯 <b>МАРКОВСКИЙ ПРОГНОЗ ШАГОВ АТАКИ</b>\n"
+                    f"Сессия: <code>{html.escape(sid[:16])}</code>\n\n"
+                    f"• <b>Текущее действие:</b> <code>{html.escape(curr)}</code>\n"
+                    f"• <b>Вероятный следующий шаг:</b> <code>{html.escape(pred)}</code> ({prob}%)\n"
+                    f"• <b>Название техники:</b> {html.escape(pname)}\n"
+                    f"• <b>Стиль оператора:</b> <code>{html.escape(op_style)}</code>\n\n"
+                    f"💡 <b>Рекомендация SOC:</b> подсунуть decoy credentials / honeytokens для раннего обнаружения и локализации."
+                )
+                await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": msg_text, "parse_mode": "HTML"})
 
 
 async def _run_polling_session() -> bool:

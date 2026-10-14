@@ -271,7 +271,7 @@ def get_internal_session_artifacts(session_id: str, request: Request, db: Sessio
     intent = res_data.get("intent_prediction")
 
     honeymind = getattr(request.app.state, "honeymind", None)
-    if (not rules or not reports) and honeymind:
+    if (not rules or not reports or not intent) and honeymind:
         rows = db.scalars(select(Event).where(Event.session_id == session_id).order_by(Event.ts)).all()
         events = [_event_payload({
             "type": r.type, "command": r.command, "username": r.username, "password": r.password,
@@ -282,11 +282,17 @@ def get_internal_session_artifacts(session_id: str, request: Request, db: Sessio
                 rules = honeymind.export_detection_rules(events, session_id=session_id) or {}
             if not reports:
                 reports = honeymind.generate_report(events=events) or {}
-            if a and rules and reports:
+            if not intent:
+                intent = honeymind.predict_intent(events=events) or {}
+            if a:
                 if not a.result or not isinstance(a.result, dict):
                     a.result = {}
-                a.result["detection_rules"] = rules
-                a.result["dual_loop_report"] = reports
+                if rules:
+                    a.result["detection_rules"] = rules
+                if reports:
+                    a.result["dual_loop_report"] = reports
+                if intent:
+                    a.result["intent_prediction"] = intent
                 db.commit()
 
     return {
