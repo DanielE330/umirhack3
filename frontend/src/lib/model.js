@@ -281,7 +281,8 @@ export function readProfileForm(f, old) {
     const [port, proto = 'banner', ...rest] = line.split(':')
     const n = Number(port)
     if (!Number.isInteger(n) || n < 1 || n > 65535) return { error: t('Неверный порт: {line}', { line }) }
-    if (!['banner', 'ssh', 'http'].includes(proto)) return { error: t('Протокол: banner, ssh или http ({line})', { line }) }
+    const allowed = ['banner', 'ssh', 'http', 'mysql', 'db', 'k8s', 'kubernetes', 'llm', 'ai', 'langchain']
+    if (!allowed.includes(proto)) return { error: t('Протокол: banner, ssh, http, mysql, k8s или llm ({line})', { line }) }
     if (f.level === 'low' && proto !== 'banner') return { error: t('Low-ловушка умеет только баннеры (banner)') }
     if (services.some((s) => s.port === n)) return { error: t('Порт {n} указан дважды', { n }) }
     services.push({ port: n, proto, banner: rest.join(':') })
