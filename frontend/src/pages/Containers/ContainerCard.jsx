@@ -48,6 +48,9 @@ export default function ContainerCard({ c }) {
         {resParts(c).map((r, i) => <span key={i} data-tip={resHelp[i]}>{r}</span>)}
         <span data-tip={t(HELP.dmz)}>{t('сеть {bridge} · DMZ', { bridge: c.bridge })}</span>
         <span data-tip={t('Физический сервер Proxmox, на котором запущена машина')}>{t('нода {node}', { node: c.node })}</span>
+        {can('machines.view_all') && c.createdBy && (
+          <span data-tip={t('Эту машину видят только администраторы и тот, кто её создал')}>{t('создал {name}', { name: c.createdBy })}</span>
+        )}
       </div>
 
       {st === 'failed' && (

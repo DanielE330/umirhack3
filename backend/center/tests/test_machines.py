@@ -4,10 +4,11 @@ import httpx
 import pytest
 from sqlalchemy import select
 
-from app.models import AuditLog, Trap
+from app import security
+from app.models import AuditLog, MachineOwner, Trap, User
 from app.orchestrator import Orchestrator
 
-from .conftest import fresh
+from .conftest import PASSWORD, csrf, fresh, login_and_enroll
 from .test_center import admin, mk_trap  # noqa: F401  (фикстура и помощник)
 
 MACHINE = {"vmid": 1100, "name": "edge-1", "type": "lxc", "status": "running", "cores": 1, "memory_mb": 1024,
@@ -159,6 +160,46 @@ def test_high_interaction_and_mysql_profile_creation(admin):
     assert p["level"] == "high"
     assert len(p["services"]) == 2
     assert p["services"][1]["proto"] == "mysql"
+
+
+def _login(app, name):
+    c = fresh(app)
+    _, data = login_and_enroll(c, name)
+    c.h = csrf(data)
+    return c
+
+
+def test_non_admin_sees_only_own_machines(app, admin, orch):
+    """Оператор без machines.view_all видит только машины, которые создал сам; админ — все."""
+    with app.state.session_factory() as db:
+        db.add(User(username="oper2", password_hash=security.hash_password(PASSWORD), role="operator"))
+        db.add(MachineOwner(vmid=1100, created_by="oper"))
+        db.commit()
+
+    oper, oper2 = _login(app, "oper"), _login(app, "oper2")
+    assert [m["vmid"] for m in oper.get("/api/machines", headers=oper.h).json()] == [1100]
+    assert oper2.get("/api/machines", headers=oper2.h).json() == []  # не владелец — ничего не видит
+    admin_machines = admin.get("/api/machines", headers=admin.h).json()
+    assert [m["vmid"] for m in admin_machines] == [1100]  # admin видит всё независимо от владельца
+    assert admin_machines[0]["created_by"] == "oper"
+
+
+def test_create_records_owner(app, orch):
+    oper = _login(app, "oper")
+    r = oper.post("/api/machines", json={"name": "edge-3"}, headers=oper.h)
+    assert r.status_code == 202
+    with app.state.session_factory() as db:
+        owner = db.get(MachineOwner, r.json()["vmid"])
+        assert owner is not None and owner.created_by == "oper"
+
+
+def test_delete_clears_owner_record(app, admin, orch):
+    with app.state.session_factory() as db:
+        db.add(MachineOwner(vmid=1100, created_by="admin"))
+        db.commit()
+    assert admin.delete("/api/machines/1100", headers=admin.h).status_code == 200
+    with app.state.session_factory() as db:
+        assert db.get(MachineOwner, 1100) is None
 
 
 def test_machine_snapshot_and_rollback(admin, orch):

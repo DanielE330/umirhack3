@@ -242,6 +242,16 @@ class Artifact(Base):
     content: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
 
 
+class MachineOwner(Base):
+    """Кто создал машину в Proxmox (VMID уникален в пуле): админ видит все машины, остальные — только свои."""
+
+    __tablename__ = "machine_owners"
+
+    vmid: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_by: Mapped[str] = mapped_column(String(64), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
 class Role(Base):
     """Роль = набор флагов доступа (app/permissions.py). Системные роли создаются кодом, свои — операторами с roles.manage."""
 

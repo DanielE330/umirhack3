@@ -459,6 +459,8 @@ const en = {
   'не настроен': 'not configured',
   'никогда': 'never',
   'нода {node}': 'node {node}',
+  'создал {name}': 'created by {name}',
+  'Эту машину видят только администраторы и тот, кто её создал': 'Only administrators and whoever created this machine can see it',
   'оркестратор через Proxmox API делает полный клон шаблона {tpl} в {kind} {vmid} на хранилище {storage}.':
     'the orchestrator makes a full clone of template {tpl} into {kind} {vmid} on storage {storage} via the Proxmox API.',
   'порт {port} уже занят: {name}': 'port {port} is already taken: {name}',

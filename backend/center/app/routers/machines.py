@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from .. import auth
 from ..db import get_db
-from ..models import Event, Trap, User
+from ..models import Event, MachineOwner, Trap, User
 from ..schemas import MachineIn, MachinePatch
 from ..services import trap_status
 
@@ -30,9 +30,13 @@ def _link(machine: dict, traps: list[Trap], settings) -> str:
 
 
 @router.get("")
-def list_machines(request: Request, _: User = Depends(auth.require_perm("machines.view")), db: Session = Depends(get_db)):
+def list_machines(request: Request, user: User = Depends(auth.require_perm("machines.view")), db: Session = Depends(get_db)):
     settings = auth.settings_of(request)
     machines = orchestrator(request).request("GET", "/")
+    owners = dict(db.execute(select(MachineOwner.vmid, MachineOwner.created_by)).all())
+    can_view_all = "machines.view_all" in auth.permissions_of(db, user)
+    if not can_view_all:
+        machines = [m for m in machines if owners.get(m["vmid"]) == user.username]
     traps = db.scalars(select(Trap).options(joinedload(Trap.profile)).where(Trap.machine_vmid.is_not(None))).all()
     counts = dict(db.execute(select(Event.trap_id, func.count()).group_by(Event.trap_id)).all())
     by_vmid: dict[int, list[Trap]] = {}
@@ -41,6 +45,7 @@ def list_machines(request: Request, _: User = Depends(auth.require_perm("machine
     for m in machines:
         own = by_vmid.get(m["vmid"], [])
         m["agent"] = _link(m, own, settings)
+        m["created_by"] = owners.get(m["vmid"], "")
         last = max((t.last_seen for t in own if t.last_seen), default=None)
         m["last_seen"] = last.isoformat() + "Z" if last else None
         m["traps"] = [{"id": t.id, "name": t.name, "profile": t.profile.name if t.profile else None,
@@ -55,7 +60,10 @@ def create_machine(body: MachineIn, request: Request, user: User = Depends(auth.
                "memory_mb": body.memory_gb * 1024, "disk_gb": body.disk_gb}
     result = orchestrator(request).request("POST", "/", payload)
     with request.app.state.session_factory() as db:
-        auth.audit(db, user.username, "machine.create", f"{body.name} ({body.type} {result.get('vmid')})",
+        vmid = result.get("vmid")
+        if vmid is not None:
+            db.merge(MachineOwner(vmid=vmid, created_by=user.username))
+        auth.audit(db, user.username, "machine.create", f"{body.name} ({body.type} {vmid})",
                    auth.client_ip(request))
         db.commit()
     return result
@@ -91,6 +99,9 @@ def delete_machine(vmid: int, request: Request, user: User = Depends(auth.requir
     traps = db.scalars(select(Trap).where(Trap.machine_vmid == vmid)).all()
     for t in traps:  # ловушки машины уходят вместе с ней
         db.delete(t)
+    owner = db.get(MachineOwner, vmid)
+    if owner:  # VMID может быть переиспользован Proxmox — запись о прежнем владельце не должна остаться
+        db.delete(owner)
     auth.audit(db, user.username, "machine.delete", f"{vmid} (ловушек: {len(traps)})", auth.client_ip(request))
     db.commit()
     return result

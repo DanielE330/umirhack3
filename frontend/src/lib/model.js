@@ -162,7 +162,7 @@ export function machineFromApi(m) {
   return {
     id: m.vmid, vmid: m.vmid, name: m.name || 'vm-' + m.vmid, type: m.type === 'kvm' ? 'kvm' : 'lxc', node: m.node || '',
     bridge: m.bridge || PVE.bridge, host: m.ip || '', status: m.status, job: m.job || null, agent: m.agent || 'never',
-    seen: m.last_seen ? Date.parse(m.last_seen) : null, cores: m.cores || 1,
+    createdBy: m.created_by || '', seen: m.last_seen ? Date.parse(m.last_seen) : null, cores: m.cores || 1,
     ram: Math.max(1, Math.round((m.memory_mb || 1024) / 1024)), disk: m.disk_gb || 0,
   }
 }
