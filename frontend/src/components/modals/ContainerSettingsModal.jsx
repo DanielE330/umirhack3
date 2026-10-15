@@ -56,7 +56,7 @@ export default function ContainerSettingsModal({ vmid }) {
         ['VMID / нода', info.kind + ' ' + c.vmid + ' · ' + c.node],
         ['Состояние', <StateBadge key="s" state={c.state} />],
         ['Сеть', t(PVE.bridgeLabel)],
-        ['IP в DMZ', c.host || '—'],
+        ['IP в DMZ', c.host ? <span data-tip={t('Доступен по Tailscale (маршрут 10.20.0.0/24), без захода в домашнюю сеть')}>{c.host}</span> : '—'],
         ['Порты', containerPorts(c.name).join(', ') || '—'],
       ]} />
       <Field label="Имя (hostname)">

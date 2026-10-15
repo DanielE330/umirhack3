@@ -40,7 +40,7 @@ export default function ContainerCard({ c }) {
       </div>
 
       <div className="cmeta">
-        <StateBadge state={st} /> · IP <span className="m" data-tip={t('Адрес машины внутри изолированной сети DMZ')}>{c.host || '—'}</span> ·{' '}
+        <StateBadge state={st} /> · IP <span className="m" data-tip={t('Адрес машины внутри изолированной сети DMZ. Доступен по Tailscale (маршрут 10.20.0.0/24) без захода в домашнюю сеть')}>{c.host || '—'}</span> ·{' '}
         <span data-tip={t(HELP.seen)}>{t('на связи')}</span> <span>{seen}</span><HelpMark text={t(HELP.agent)} />
       </div>
 
