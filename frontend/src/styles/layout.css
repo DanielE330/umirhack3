@@ -80,7 +80,7 @@ main { padding: clamp(14px, 2vw, 30px); max-width: clamp(1240px, 86vw, 1680px); 
 .login button.ghost { border-color: var(--line); }
 /* Поле пароля с кнопкой «показать» */
 .pw { position: relative; }
-.login .pw input { padding-right: 44px; }
+.pw input { padding-right: 44px; }
 .pw-toggle { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; }
 .pw-toggle:hover { color: var(--fg); background: color-mix(in srgb, var(--accent) 10%, transparent); }
 .pw-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }

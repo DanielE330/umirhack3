@@ -1,26 +1,9 @@
 import { useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
+import { PasswordField } from '../../components/common.jsx'
 import { useAuth } from '../../context/auth.js'
 import { useLanguage } from '../../context/language.js'
 import { api } from '../../lib/api.js'
-
-// Поле пароля с кнопкой «показать/скрыть»: проверить, что набрано, до отправки
-function PasswordField({ id, ...props }) {
-  const { t } = useLanguage()
-  const [shown, setShown] = useState(false)
-  const Icon = shown ? EyeOff : Eye
-  return (
-    <div className="pw">
-      <input id={id} type={shown ? 'text' : 'password'} spellCheck="false" autoCapitalize="none" {...props} />
-      <button type="button" className="pw-toggle" aria-controls={id} aria-pressed={shown}
-        aria-label={shown ? t('Скрыть пароль') : t('Показать пароль')} title={shown ? t('Скрыть пароль') : t('Показать пароль')}
-        onClick={() => setShown((v) => !v)}>
-        <Icon size={18} strokeWidth={1.6} aria-hidden="true" />
-      </button>
-    </div>
-  )
-}
 
 // Вход: логин/пароль → (первый вход) настройка 2FA и резервные коды → код подтверждения
 export default function Login() {

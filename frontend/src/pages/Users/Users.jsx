@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import Select from '../../components/Select.jsx'
-import { ArmedButton, Field } from '../../components/common.jsx'
+import { ArmedButton, Field, PasswordField } from '../../components/common.jsx'
 import { useAuth } from '../../context/auth.js'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
@@ -39,7 +39,7 @@ function NewUserModal({ onDone, roles }) {
     // снаружи выглядит так, будто кнопка ничего не делает. Проверяем сами и показываем ошибку в .err ниже.
     <form onSubmit={save} noValidate>
       <Field label="Логин"><input required autoFocus maxLength={64} autoCapitalize="none" spellCheck="false" value={form.username} onChange={set('username')} /></Field>
-      <Field label="Пароль"><input type="password" required maxLength={128} autoComplete="new-password" value={form.password} onChange={set('password')} /></Field>
+      <Field label="Пароль"><PasswordField id="new-user-pw" maxLength={128} autoComplete="new-password" value={form.password} onChange={set('password')} /></Field>
       <Field label="Роль">
         <Select value={form.role} onChange={set('role')} aria-label={t('Роль')}
           options={roles.map((r) => ({ value: r.name, label: r.title + ' — ' + r.permissions.length + ' ' + t('прав') }))} />

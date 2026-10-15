@@ -1,10 +1,28 @@
 import { useEffect, useRef, useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import { useLanguage } from '../context/language.js'
 import { EVENT_HELP, HELP, STATES } from '../lib/model.js'
 
 // Знак «?» с подсказкой
 export function HelpMark({ text }) {
   return <span className="q" tabIndex={0} data-tip={text} aria-label={text}>?</span>
+}
+
+// Поле пароля с кнопкой «показать/скрыть»
+export function PasswordField({ id, ...props }) {
+  const { t } = useLanguage()
+  const [shown, setShown] = useState(false)
+  const Icon = shown ? EyeOff : Eye
+  return (
+    <div className="pw">
+      <input id={id} type={shown ? 'text' : 'password'} spellCheck="false" autoCapitalize="none" {...props} />
+      <button type="button" className="pw-toggle" aria-controls={id} aria-pressed={shown}
+        aria-label={shown ? t('Скрыть пароль') : t('Показать пароль')} title={shown ? t('Скрыть пароль') : t('Показать пароль')}
+        onClick={() => setShown((v) => !v)}>
+        <Icon size={18} strokeWidth={1.6} aria-hidden="true" />
+      </button>
+    </div>
+  )
 }
 
 export function LevelTag({ level }) {

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useLanguage } from '../../context/language.js'
 import { useUi } from '../../context/ui.js'
 import { api } from '../../lib/api.js'
-import { Field } from '../common.jsx'
+import { Field, PasswordField } from '../common.jsx'
 
 // Смена своего пароля: центр проверяет текущий пароль и политику, остальные сессии закрываются
 export default function PasswordModal() {
@@ -35,13 +35,13 @@ export default function PasswordModal() {
     // снаружи выглядит так, будто кнопка ничего не делает. Проверяем сами и показываем ошибку в .err ниже.
     <form onSubmit={save} noValidate>
       <Field label="Текущий пароль">
-        <input type="password" autoComplete="current-password" autoFocus value={form.current} onChange={set('current')} />
+        <PasswordField id="pw-current" autoComplete="current-password" autoFocus value={form.current} onChange={set('current')} />
       </Field>
       <Field label="Новый пароль">
-        <input type="password" autoComplete="new-password" maxLength={128} value={form.next} onChange={set('next')} />
+        <PasswordField id="pw-next" autoComplete="new-password" maxLength={128} value={form.next} onChange={set('next')} />
       </Field>
       <Field label="Повторите новый пароль">
-        <input type="password" autoComplete="new-password" value={form.repeat} onChange={set('repeat')} />
+        <PasswordField id="pw-repeat" autoComplete="new-password" value={form.repeat} onChange={set('repeat')} />
       </Field>
       <p className="hint">{t('Не короче 12 символов и без логина внутри.')}</p>
       <div className="err" role="alert">{err}</div>
