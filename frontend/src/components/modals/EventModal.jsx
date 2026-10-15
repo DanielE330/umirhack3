@@ -8,6 +8,7 @@ import { useUi } from '../../context/ui.js'
 import { useModals } from '../../hooks/useModals.jsx'
 import { fmtDateTime } from '../../lib/model.js'
 import { Kv } from '../common.jsx'
+import TerminalPlayer from '../TerminalPlayer.jsx'
 
 export default function EventModal({ ev }) {
   const { trapByName, setEventFilter } = useData()
@@ -105,17 +106,15 @@ export default function EventModal({ ev }) {
               {t('🔬 DFIR Отчёт')}
             </a>
           )}
+          {can('events.export') && (
+            <a className="ghost btn" href={'/api/sessions/' + ev.session_id + '/stix.json'} download title={t('Скачать граф STIX 2.1 Bundle (OpenCTI / MISP)')}>
+              {t('🌐 STIX 2.1 (JSON)')}
+            </a>
+          )}
         </div>
       )}
       {sess && sess.summary && Array.isArray(sess.summary.commands_list) && sess.summary.commands_list.length > 0 && (
-        <div style={{ marginTop: '0.8rem', padding: '0.6rem 0.8rem', borderRadius: '6px', background: 'var(--bg-subtle, rgba(255,255,255,0.04))', border: '1px solid var(--border, rgba(255,255,255,0.08))' }}>
-          <div style={{ fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-muted, #888)' }}>
-            {t('💻 Перехваченные команды сессии ({n}):', { n: sess.summary.commands_list.length })}
-          </div>
-          <pre style={{ margin: 0, maxHeight: '140px', overflowY: 'auto', fontSize: '0.82rem', lineHeight: '1.4' }}>
-            {sess.summary.commands_list.map((c, i) => `${i + 1}. ${c}`).join('\n')}
-          </pre>
-        </div>
+        <TerminalPlayer commands={sess.summary.commands_list} sessionId={ev.session_id} />
       )}
     </>
   )

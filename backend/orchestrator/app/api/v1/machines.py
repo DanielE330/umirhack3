@@ -132,6 +132,17 @@ def rollback_snapshot(vmid: int, name: str = "clean"):
     return {"vmid": vmid, "snapshot": name, "status": "restored"}
 
 
+@router.post("/{vmid}/freeze")
+def freeze_machine(vmid: int, session_id: str = "manual"):
+    try:
+        snapname = manager().forensic_freeze(vmid, session_id)
+    except NotOurMachine:
+        raise HTTPException(status_code=404, detail="Машина не найдена")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Ошибка криминалистической заморозки: {e}")
+    return {"vmid": vmid, "snapshot": snapname, "status": "frozen"}
+
+
 @router.get("/{vmid}/snapshots")
 def list_machine_snapshots(vmid: int):
     try:

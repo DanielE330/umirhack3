@@ -174,6 +174,145 @@ def download_session_dfir(session_id: str, request: Request, _: User = Depends(a
                              headers={"Content-Disposition": f'attachment; filename="technical_dfir_{session_id[:16]}.md"'})
 
 
+@router.get("/sessions/{session_id}/stix.json")
+def download_session_stix(session_id: str, request: Request,
+                          _: User = Depends(auth.require_perm("events.export")),
+                          db: Session = Depends(get_db)):
+    """STIX 2.1 Bundle: полный граф разведки и атаки сессии (OpenCTI, MISP, SIEM, SOAR)."""
+    rows = db.scalars(select(Event).where(Event.session_id == session_id).order_by(Event.ts.asc())).all()
+    if not rows:
+        raise HTTPException(404, "Сессия не найдена")
+
+    first_ts = rows[0].ts
+    last_ts = rows[-1].ts
+    src_ip = next((r.src_ip for r in rows if r.src_ip), "")
+
+    first_iso = first_ts.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    last_iso = last_ts.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+    identity_id = f"identity--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:identity:center')}"
+    objects: list[dict[str, Any]] = [
+        {
+            "type": "identity",
+            "spec_version": "2.1",
+            "id": identity_id,
+            "created": first_iso,
+            "modified": first_iso,
+            "name": "HoneyForge Cyber Deception Platform",
+            "identity_class": "system",
+            "description": "Автономная распределённая платформа киберобмана и перехвата APT.",
+        }
+    ]
+
+    # Indicator на IP
+    indicator_id = None
+    if src_ip:
+        try:
+            addr = ipaddress.ip_address(src_ip)
+            kind = "ipv4-addr" if addr.version == 4 else "ipv6-addr"
+            indicator_id = f"indicator--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:session:' + session_id + ':ip:' + src_ip)}"
+            objects.append({
+                "type": "indicator",
+                "spec_version": "2.1",
+                "id": indicator_id,
+                "created": first_iso,
+                "modified": last_iso,
+                "name": f"Attacker IP: {src_ip}",
+                "description": f"Атакующий адрес, зафиксированный в сессии {session_id}",
+                "pattern": f"[{kind}:value = '{src_ip}']",
+                "pattern_type": "stix",
+                "valid_from": first_iso,
+                "indicator_types": ["malicious-activity", "compromised"],
+            })
+        except ValueError:
+            pass
+
+    # Выявляем техники MITRE ATT&CK
+    attack_patterns = []
+    has_commands = any(r.type == "command" for r in rows)
+    has_auth = any(r.type == "auth_attempt" for r in rows)
+    has_k8s = any(r.data and r.data.get("attack_type") == "k8s_secret_theft" or r.proto == "k8s" for r in rows)
+    has_llm = any(r.data and r.data.get("attack_type") == "llm_prompt_injection" or r.proto == "llm" for r in rows)
+    has_tokens = any(r.type == "honeytoken" for r in rows)
+
+    if has_k8s:
+        ap_id = f"attack-pattern--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:mitre:T1552.007')}"
+        objects.append({
+            "type": "attack-pattern", "spec_version": "2.1", "id": ap_id,
+            "created": first_iso, "modified": last_iso,
+            "name": "Container and Resource Discovery / Unsecured K8s Secrets",
+            "description": "Попытка сбора секретов кластера Kubernetes (kubectl get secrets)",
+            "external_references": [{"source_name": "mitre-attack", "external_id": "T1552.007"}],
+        })
+        attack_patterns.append(ap_id)
+
+    if has_llm:
+        ap_id = f"attack-pattern--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:atlas:AML.T0054')}"
+        objects.append({
+            "type": "attack-pattern", "spec_version": "2.1", "id": ap_id,
+            "created": first_iso, "modified": last_iso,
+            "name": "LLM Jailbreak / Adversarial Prompt Injection",
+            "description": "Атака на корпоративную языковую модель с целью обхода ограничений (OWASP LLM07)",
+            "external_references": [{"source_name": "mitre-atlas", "external_id": "AML.T0054"}],
+        })
+        attack_patterns.append(ap_id)
+
+    if has_commands:
+        ap_id = f"attack-pattern--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:mitre:T1059.004')}"
+        objects.append({
+            "type": "attack-pattern", "spec_version": "2.1", "id": ap_id,
+            "created": first_iso, "modified": last_iso,
+            "name": "Command and Scripting Interpreter: Unix Shell",
+            "description": "Выполнение интерактивных команд в шелле ловушки",
+            "external_references": [{"source_name": "mitre-attack", "external_id": "T1059.004"}],
+        })
+        attack_patterns.append(ap_id)
+
+    if has_auth:
+        ap_id = f"attack-pattern--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:mitre:T1110.001')}"
+        objects.append({
+            "type": "attack-pattern", "spec_version": "2.1", "id": ap_id,
+            "created": first_iso, "modified": last_iso,
+            "name": "Brute Force: Password Guessing",
+            "description": "Попытки подбора паролей к сервисам ловушки",
+            "external_references": [{"source_name": "mitre-attack", "external_id": "T1110.001"}],
+        })
+        attack_patterns.append(ap_id)
+
+    if has_tokens and not has_k8s:
+        ap_id = f"attack-pattern--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:mitre:T1552')}"
+        objects.append({
+            "type": "attack-pattern", "spec_version": "2.1", "id": ap_id,
+            "created": first_iso, "modified": last_iso,
+            "name": "Unsecured Credentials",
+            "description": "Доступ к файлам-приманкам и канареечным токенам",
+            "external_references": [{"source_name": "mitre-attack", "external_id": "T1552"}],
+        })
+        attack_patterns.append(ap_id)
+
+    # Связи (Relationship) indicator -> indicates -> attack-pattern
+    if indicator_id:
+        for ap_id in attack_patterns:
+            objects.append({
+                "type": "relationship",
+                "spec_version": "2.1",
+                "id": f"relationship--{uuid.uuid4()}",
+                "created": first_iso,
+                "modified": last_iso,
+                "relationship_type": "indicates",
+                "source_ref": indicator_id,
+                "target_ref": ap_id,
+            })
+
+    bundle = {
+        "type": "bundle",
+        "id": f"bundle--{uuid.uuid4()}",
+        "objects": objects,
+    }
+    return JSONResponse(bundle, media_type="application/stix+json;version=2.1",
+                        headers={"Content-Disposition": f'attachment; filename="stix_bundle_{session_id[:16]}.json"'})
+
+
 def _csv_cell(value) -> str:
     text = "" if value is None else str(value)
     return "'" + text if text[:1] in ("=", "+", "-", "@", "\t", "\r") else text  # защита от CSV-инъекций в Excel

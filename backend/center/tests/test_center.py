@@ -206,3 +206,22 @@ def test_websocket_requires_session_and_same_origin(app, admin):
     with pytest.raises(WebSocketDisconnect):
         with admin.websocket_connect("/api/ws/events", headers={"origin": "https://evil.example"}):
             pass
+
+
+def test_session_stix_bundle_export(admin):
+    t = mk_trap(admin)
+    sid = "sess-stix-test-01"
+    ev1 = event(type="connect", src_ip="198.51.100.22", session_id=sid, proto="k8s")
+    ev2 = event(type="honeytoken", src_ip="198.51.100.22", session_id=sid, data={"attack_type": "k8s_secret_theft"})
+    admin.post("/assets/v1/log", json={"events": [ev1, ev2]}, headers=agent_headers(t["token"]))
+
+    resp = admin.get(f"/api/sessions/{sid}/stix.json")
+    assert resp.status_code == 200
+    bundle = resp.json()
+    assert bundle["type"] == "bundle"
+    assert "objects" in bundle
+    types = [o["type"] for o in bundle["objects"]]
+    assert "identity" in types
+    assert "indicator" in types
+    assert "attack-pattern" in types
+    assert "relationship" in types

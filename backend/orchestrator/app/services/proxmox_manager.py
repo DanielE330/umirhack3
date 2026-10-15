@@ -177,7 +177,13 @@ class ProxmoxManager:
                                      net0=f"name=eth0,{net},type=veth")
                 disk_name = "rootfs"
             else:
-                api(vmid).config.post(**common, net0=f"virtio,bridge={self.bridge}",
+                # Маскировка гипервизора (Anti-Anti-Honeypot): скрываем CPUID KVM и подменяем SMBIOS вендора
+                kvm_hardening = {
+                    "cpu": "host,hidden=1",
+                    "smbios1": "manufacturer=Dell Inc.,product=PowerEdge R740,serial=HF7829104,version=2.1",
+                    "args": "-cpu host,kvm=off,hv_vendor_id=GenuineIntel",
+                }
+                api(vmid).config.post(**common, **kvm_hardening, net0=f"virtio,bridge={self.bridge}",
                                       ipconfig0=f"ip={ip}/{self.network.prefixlen},gw={self.gateway}")
                 disk_name = "scsi0"
             # Proxmox умеет только увеличивать диск: меньше, чем у шаблона, не сделать
@@ -304,5 +310,11 @@ class ProxmoxManager:
             return api.snapshot.get()
         except Exception:
             return []
+
+    def forensic_freeze(self, vmid: int, session_id: str) -> str:
+        """Создает мгновенный снимок криминалистического слепка атаки (ZFS CoW snapshot)."""
+        snapname = f"forensic_{session_id[:12]}_{int(time.time())}"
+        self.snapshot(vmid, name=snapname, description=f"Forensic freeze for session {session_id}")
+        return snapname
 
 

@@ -522,8 +522,17 @@ def _format_alert_message(state: dict[str, Any], is_blocked: bool) -> tuple[str,
     ip_status_badge = " 🛑 <i>[УЖЕ ЗАБЛОКИРОВАН В PROXMOX]</i>" if is_blocked else ""
     status_suffix = " [СЕССИЯ ЗАВЕРШЕНА]" if is_ended else (" [АКТИВНАЯ СЕССИЯ]" if sid else "")
 
+    raw = state.get("raw_props") or {}
+    attack_type = raw.get("attack_type") or ""
+
+    header = f"🚨 <b>НОВАЯ АТАКА В HONEYFORGE!</b>{status_suffix}\n"
+    if attack_type == "k8s_secret_theft":
+        header = f"☸️ <b>КРАЖА СЕКРЕТОВ KUBERNETES!</b>{status_suffix}\n"
+    elif attack_type == "llm_prompt_injection":
+        header = f"🤖 <b>ПРОМПТ-ИНЪЕКЦИЯ В КОРПОРАТИВНУЮ LLM!</b>{status_suffix}\n"
+
     lines = [
-        f"🚨 <b>НОВАЯ АТАКА В HONEYFORGE!</b>{status_suffix}\n",
+        header,
         f"<b>Тип события:</b> {html.escape(state.get('event_name', 'honeymind_threat'))}",
         f"<b>IP хакера:</b> <code>{html.escape(ip)}</code>{ip_status_badge}",
     ]
@@ -543,6 +552,17 @@ def _format_alert_message(state: dict[str, Any], is_blocked: bool) -> tuple[str,
         lines.append(f"<b>Всего команд:</b> <code>{len(cmds)}</code>")
     elif cmds:
         lines.append(f"<b>Команд перехвачено:</b> <code>{len(cmds)}</code>")
+
+    if attack_type == "k8s_secret_theft":
+        secrets_list = ", ".join(raw.get("exfiltrated_secrets", []))
+        lines.append(f"\n🔑 <b>Скомпрометированные секреты:</b> <code>{html.escape(secrets_list)}</code>")
+        if raw.get("token"):
+            lines.append(f"🎫 <b>Токен нарушителя:</b> <code>{html.escape(str(raw.get('token'))[:30])}...</code>")
+    elif attack_type == "llm_prompt_injection":
+        rules = ", ".join(raw.get("detected_rules", []))
+        lines.append(f"\n🧠 <b>OWASP LLM07 сигнатуры:</b> <code>{html.escape(rules)}</code>")
+        if raw.get("prompt_sample"):
+            lines.append(f"💬 <b>Промпт нарушителя:</b> <i>{html.escape(str(raw.get('prompt_sample'))[:200])}</i>")
 
     if cmds:
         cmd_lines = [f"  • <code>{html.escape(c[:65])}</code>" for c in cmds[-5:]]

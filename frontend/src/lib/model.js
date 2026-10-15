@@ -33,7 +33,7 @@ export const TYPE_INFO = {
   lxc: { label: 'LXC', title: 'Контейнер', kind: 'CT', cli: 'pct', desc: 'Лёгкий, стартует за секунды. Подходит для Low и Medium.' },
   kvm: { label: 'KVM', title: 'Виртуальная машина', kind: 'VM', cli: 'qm', desc: 'Полноценная ОС и сильнее изоляция. Дольше стартует.' },
 }
-export const EVENT_TYPES = ['connect', 'auth_attempt', 'command', 'http_request', 'payload', 'honeytoken', 'session_end', 'alert']
+export const EVENT_TYPES = ['connect', 'auth_attempt', 'command', 'http_request', 'payload', 'honeytoken', 'k8s_recon', 'llm_recon', 'llm_query', 'session_end', 'alert']
 
 export const plural = (n, one, few, many) =>
   n % 10 === 1 && n % 100 !== 11 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? few : many
@@ -60,6 +60,9 @@ export const EVENT_HELP = {
   http_request: 'HTTP-запрос к поддельному веб-сервису.',
   payload: 'Данные, которые атакующий отправил в порт (полезная нагрузка).',
   honeytoken: 'Атакующий открыл файл-приманку (honeytoken) — признак настоящего взлома.',
+  k8s_recon: 'Разведка Kubernetes кластера (kubectl get pods, get namespaces, version, auth can-i).',
+  llm_recon: 'Разведка AI-сервисов (сканирование моделей OpenAI / LangChain).',
+  llm_query: 'Обращение к корпоративному AI-ассистенту / LLM.',
   alert: 'Тревога центра: например, слишком много попыток входа с одного IP за минуту (перебор паролей).',
 }
 
@@ -120,6 +123,16 @@ export const CATALOG = [
     users: ['admin', 'manager'], tokens: ['/.env', '/etc/passwd'],
     emulates: 'Интерактивный веб-сервер с реакцией на curl: XSS (отражённые скрипты в /search), SQL-инъекции (UNION SELECT и ошибки MySQL в /api/products), LFI (/download), Command Injection (/tools/ping) и Log4Shell.',
     collects: 'XSS-пейлоады, SQL-инъекции, LFI обходы каталогов, RCE команды, попытки эксплуатации JNDI/Log4j.', risk: 'Умеренный' },
+  { id: 'fake-kube', icon: 'K8S', name: 'Kubernetes Decoy (KubeForge)', level: 'medium',
+    services: [{ port: 6443, proto: 'k8s', banner: 'Kubernetes API Server v1.29.2' }],
+    users: ['cluster-admin', 'system:anonymous'], tokens: ['/root/.kube/config', 'k8s-secret:db-prod-credentials'],
+    emulates: 'Эмуляция Kubernetes API Server (порты 6443/8443). Поддерживает kubectl get pods, kubectl get namespaces, kubectl auth can-i, перехват кражи секретов (kubectl get secrets) и выдачу канареечных токенов.',
+    collects: 'Разведка подов и пространств имён, ServiceAccount токены, выкачивание секретов и Canary-ключей базы данных.', risk: 'Умеренный' },
+  { id: 'llm-trap', icon: 'AI', name: 'LLM Prompt-Injection Trap', level: 'medium',
+    services: [{ port: 8000, proto: 'llm', banner: 'OpenAI / LangChain Compatible API' }],
+    users: ['ai_attacker', 'copilot-user'], tokens: ['canary:hf_kube_canary_sec_99182'],
+    emulates: 'Ловушка для AI-агентов и атак на корпоративные LLM (OWASP LLM07). Эмулирует OpenAI/LangChain эндпоинты (/v1/chat/completions). Детектирует попытки Jailbreak, "Ignore previous instructions", утечку системного промпта и скармливает галлюцинации-ловушки с перенаправлением в Kubernetes-декой.',
+    collects: 'Промпты атакующих, паттерны Jailbreak, токены авторизации, попытки кражи скрытых системных инструкций.', risk: 'Умеренный' },
   { id: 'high-vm', icon: 'VM', name: 'Настоящая ОС в песочнице', level: 'high',
     services: [{ port: 22, proto: 'ssh', banner: '' }],
     users: ['root', 'admin'], tokens: ['/root/.aws/credentials', '/etc/shadow'],

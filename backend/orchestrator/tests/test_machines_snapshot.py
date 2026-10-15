@@ -30,6 +30,11 @@ class MockManager:
     def list_snapshots(self, vmid: int):
         return [{"name": "clean", "description": "baseline"}]
 
+    def forensic_freeze(self, vmid: int, session_id: str):
+        snap = f"forensic_{session_id}"
+        self.snapshots.append((vmid, snap, f"Forensic freeze for session {session_id}"))
+        return snap
+
 
 def test_orchestrator_snapshot_and_rollback(monkeypatch):
     monkeypatch.setenv("ORCH_TOKEN", "orch-secret-token-change-me")
@@ -48,7 +53,13 @@ def test_orchestrator_snapshot_and_rollback(monkeypatch):
     assert resp2.json()["status"] == "restored"
     assert (1100, "clean") in mock.rolled_back
 
-    # 3. List snapshots
+    # 3. Freeze
+    resp_freeze = client.post("/api/v1/machines/1100/freeze?session_id=sess-99", headers=INTERNAL_HEADERS)
+    assert resp_freeze.status_code == 200
+    assert resp_freeze.json()["status"] == "frozen"
+    assert (1100, "forensic_sess-99", "Forensic freeze for session sess-99") in mock.snapshots
+
+    # 4. List snapshots
     resp3 = client.get("/api/v1/machines/1100/snapshots", headers=INTERNAL_HEADERS)
     assert resp3.status_code == 200
     assert resp3.json() == [{"name": "clean", "description": "baseline"}]
