@@ -18,6 +18,10 @@ function NewUserModal({ onDone, roles }) {
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
   const save = async (e) => {
     e.preventDefault()
+    const username = form.username.trim()
+    if (username.length < 3) return setErr(t('Логин короче 3 символов'))
+    if (form.password.length < 12) return setErr(t('Пароль короче 12 символов'))
+    if (username.toLowerCase() && form.password.toLowerCase().includes(username.toLowerCase())) return setErr(t('Пароль не должен содержать логин'))
     setBusy(true)
     setErr('')
     try {
@@ -31,9 +35,11 @@ function NewUserModal({ onDone, roles }) {
     return onDone()
   }
   return (
-    <form onSubmit={save}>
-      <Field label="Логин"><input required autoFocus minLength={3} maxLength={64} autoCapitalize="none" spellCheck="false" value={form.username} onChange={set('username')} /></Field>
-      <Field label="Пароль"><input type="password" required minLength={12} maxLength={128} autoComplete="new-password" value={form.password} onChange={set('password')} /></Field>
+    // noValidate: встроенная подсказка браузера рендерится внутри .sheet (overflow: auto) и там обрезается —
+    // снаружи выглядит так, будто кнопка ничего не делает. Проверяем сами и показываем ошибку в .err ниже.
+    <form onSubmit={save} noValidate>
+      <Field label="Логин"><input required autoFocus maxLength={64} autoCapitalize="none" spellCheck="false" value={form.username} onChange={set('username')} /></Field>
+      <Field label="Пароль"><input type="password" required maxLength={128} autoComplete="new-password" value={form.password} onChange={set('password')} /></Field>
       <Field label="Роль">
         <Select value={form.role} onChange={set('role')} aria-label={t('Роль')}
           options={roles.map((r) => ({ value: r.name, label: r.title + ' — ' + r.permissions.length + ' ' + t('прав') }))} />

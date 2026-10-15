@@ -15,6 +15,7 @@ export default function IdeaModal() {
 
   const send = async (e) => {
     e.preventDefault()
+    if (title.trim().length < 3) return setErr(t('Название короче 3 символов'))
     setBusy(true)
     setErr('')
     try {
@@ -28,9 +29,11 @@ export default function IdeaModal() {
   }
 
   return (
-    <form onSubmit={send}>
+    // noValidate: встроенная подсказка браузера рендерится внутри .sheet (overflow: auto) и там обрезается —
+    // снаружи выглядит так, будто кнопка ничего не делает. Проверяем сами и показываем ошибку в .err ниже.
+    <form onSubmit={send} noValidate>
       <Field label="Что за ловушка">
-        <input required minLength={3} maxLength={120} autoFocus placeholder={t('Например: поддельный RDP')} value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input maxLength={120} autoFocus placeholder={t('Например: поддельный RDP')} value={title} onChange={(e) => setTitle(e.target.value)} />
       </Field>
       <Field label="Описание">
         <textarea rows={5} maxLength={4000} placeholder={t('Какой сервис эмулировать, какие порты, что она должна собирать')}

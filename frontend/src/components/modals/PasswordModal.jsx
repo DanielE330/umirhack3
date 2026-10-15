@@ -15,6 +15,8 @@ export default function PasswordModal() {
 
   const save = async (e) => {
     e.preventDefault()
+    if (!form.current) return setErr(t('Укажите текущий пароль'))
+    if (form.next.length < 12) return setErr(t('Пароль короче 12 символов'))
     if (form.next !== form.repeat) return setErr(t('Пароли не совпадают'))
     setBusy(true)
     setErr('')
@@ -29,15 +31,17 @@ export default function PasswordModal() {
   }
 
   return (
-    <form onSubmit={save}>
+    // noValidate: встроенная подсказка браузера рендерится внутри .sheet (overflow: auto) и там обрезается —
+    // снаружи выглядит так, будто кнопка ничего не делает. Проверяем сами и показываем ошибку в .err ниже.
+    <form onSubmit={save} noValidate>
       <Field label="Текущий пароль">
-        <input type="password" autoComplete="current-password" required autoFocus value={form.current} onChange={set('current')} />
+        <input type="password" autoComplete="current-password" autoFocus value={form.current} onChange={set('current')} />
       </Field>
       <Field label="Новый пароль">
-        <input type="password" autoComplete="new-password" required minLength={12} maxLength={128} value={form.next} onChange={set('next')} />
+        <input type="password" autoComplete="new-password" maxLength={128} value={form.next} onChange={set('next')} />
       </Field>
       <Field label="Повторите новый пароль">
-        <input type="password" autoComplete="new-password" required value={form.repeat} onChange={set('repeat')} />
+        <input type="password" autoComplete="new-password" value={form.repeat} onChange={set('repeat')} />
       </Field>
       <p className="hint">{t('Не короче 12 символов и без логина внутри.')}</p>
       <div className="err" role="alert">{err}</div>
