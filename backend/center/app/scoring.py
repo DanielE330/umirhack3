@@ -13,11 +13,11 @@ import time
 from concurrent.futures import Executor, ThreadPoolExecutor
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from .honeymind import HoneyMind
-from .models import Event, SessionAssessment
+from .models import Event, SessionAssessment, User
 from .orchestrator import Orchestrator
 
 log = logging.getLogger("honeyforge.center.scoring")
@@ -85,6 +85,7 @@ def _score_event(session_factory: sessionmaker[Session], honeymind: HoneyMind,
         log.warning("honeymind: событие %s осталось без оценки (сервис недоступен)", event_view.get("id"))
         return
 
+    min_thresh = ALERT_THRESHOLD
     with session_factory() as db:
         ev = db.get(Event, event_view["id"])
         if ev is None:
@@ -95,9 +96,16 @@ def _score_event(session_factory: sessionmaker[Session], honeymind: HoneyMind,
         ev.honeymind_result = result
         db.commit()
 
+        custom_min = db.scalar(
+            select(func.min(User.alert_threat_threshold))
+            .where(User.is_active == True, User.telegram_chat_id.is_not(None))
+        )
+        if custom_min is not None:
+            min_thresh = custom_min
+
     threat_score = result.get("threat_score") or 0
     event_type = event_view.get("type")
-    if threat_score >= ALERT_THRESHOLD and event_type not in SKIP_THREAT_ALERT_TYPES:
+    if threat_score >= min_thresh and event_type not in SKIP_THREAT_ALERT_TYPES:
         _notify_threat(orchestrator, event_type, event_view.get("src_ip", ""), result,
                        session_id=event_view.get("session_id"), command=event_view.get("command"))
 

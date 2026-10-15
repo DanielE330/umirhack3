@@ -132,7 +132,12 @@ def get_telegram_subscribers(db: Session = Depends(get_db)):
     users = db.scalars(select(User).where(User.is_active == True, User.telegram_chat_id.is_not(None))).all()
     return {
         "subscribers": [
-            {"chat_id": u.telegram_chat_id, "username": u.username, "role": u.role}
+            {
+                "chat_id": u.telegram_chat_id,
+                "username": u.username,
+                "role": u.role,
+                "min_threat_score": u.alert_threat_threshold if u.alert_threat_threshold is not None else 60,
+            }
             for u in users
             if u.telegram_chat_id
         ]

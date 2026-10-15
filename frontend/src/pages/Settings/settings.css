@@ -47,3 +47,53 @@
   border-radius: 999px;
   font-weight: 600;
 }
+
+/* Настройка порога чувствительности алертов */
+.threshold-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.threshold-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.threshold-slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 4px;
+  background: var(--line, #333);
+  accent-color: var(--accent);
+  cursor: pointer;
+  outline: none;
+}
+.threshold-val {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--fg);
+  min-width: 65px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.threshold-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.threshold-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.threshold-badge.low { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+.threshold-badge.medium { background: rgba(234, 179, 8, 0.15); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.3); }
+.threshold-badge.high { background: rgba(249, 115, 22, 0.15); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.3); }
+.threshold-badge.critical { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+

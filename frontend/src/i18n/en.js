@@ -838,6 +838,15 @@ const en = {
   'Откроется бот: нажмите «Запустить» — привязка завершится сама': 'The bot opens: press “Start” and linking finishes by itself',
   'Код': 'Code',
   'Показать код и скопировать его': 'Show the code and copy it',
+  'Порог алертов в Telegram': 'Telegram Alert Threshold',
+  'Минимальный уровень угрозы (Threat Score 0–100), при котором бот присылает уведомление. Позволяет избавиться от Alert Fatigue.':
+    'Minimum Threat Score (0–100) required to trigger Telegram notifications. Mitigates Alert Fatigue.',
+  'Порог алертов сохранён: {val}/100': 'Alert threshold saved: {val}/100',
+  'Порог алертов': 'Alert threshold',
+  'Критический (RCE, деструктивные действия, утечки .env)': 'Critical (RCE, destructive actions, .env leaks)',
+  'Высокий (атаки, эксплойты и брутфорс)': 'High (attacks, exploits, brute-force)',
+  'Средний (подозрительная активность, рекомендуется)': 'Medium (suspicious activity, recommended)',
+  'Низкий (все события, включая фоновый шум)': 'Low (all events, including background noise)',
 }
 
 export default en

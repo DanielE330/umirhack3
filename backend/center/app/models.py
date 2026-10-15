@@ -31,6 +31,7 @@ class User(Base):
     telegram_username: Mapped[str | None] = mapped_column(String(64), nullable=True)
     telegram_link_code: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
     telegram_link_expires: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    alert_threat_threshold: Mapped[int] = mapped_column(Integer, default=60)
 
     recovery_codes: Mapped[list["RecoveryCode"]] = relationship(cascade="all, delete-orphan")
 

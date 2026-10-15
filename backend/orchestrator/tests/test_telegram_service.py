@@ -64,6 +64,27 @@ def test_send_alert_to_multiple_subscribers(monkeypatch):
     assert cids == {"1001", "1002"}
 
 
+def test_send_alert_threshold_filtering(monkeypatch):
+    monkeypatch.setattr(ts, "TELEGRAM_BOT_TOKEN", "test-token")
+    monkeypatch.setattr(ts.httpx, "AsyncClient", _FakeAsyncClient)
+
+    async def fake_subscribers_details():
+        return [
+            {"chat_id": "sub_40", "min_threat_score": 40},
+            {"chat_id": "sub_80", "min_threat_score": 80},
+        ]
+    monkeypatch.setattr(ts, "get_center_subscribers_details", fake_subscribers_details)
+    _FakeAsyncClient.sent = []
+
+    # Атака с threat_score = 50:
+    # Должна прийти sub_40 (50 >= 40), но отфильтроваться для sub_80 (50 < 80)
+    asyncio.run(ts.send_alert("honeymind_threat", "1.2.3.4", {"threat_score": 50, "command": "id"}))
+    cids = {s["json"]["chat_id"] for s in _FakeAsyncClient.sent}
+    assert cids == {"sub_40"}
+    assert "sub_80" not in cids
+
+
+
 def test_send_alert_noop_without_token(monkeypatch):
     monkeypatch.setattr(ts, "TELEGRAM_BOT_TOKEN", "")
     monkeypatch.setattr(ts, "TELEGRAM_CHAT_ID", "")

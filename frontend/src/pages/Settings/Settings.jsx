@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BookOpen, Languages, LayoutPanelLeft, LayoutPanelTop, Lightbulb, MoonStar, RotateCcw, Send } from 'lucide-react'
+import { Bell, BookOpen, Languages, LayoutPanelLeft, LayoutPanelTop, Lightbulb, MoonStar, RotateCcw, Send } from 'lucide-react'
 import { useAuth } from '../../context/auth.js'
 import { useLanguage } from '../../context/language.js'
 import { useLayout } from '../../context/layout.js'
@@ -73,6 +73,26 @@ export default function Settings() {
     await refresh()
   }
 
+  const [threshold, setThreshold] = useState(user.alertThreatThreshold ?? 60)
+  useEffect(() => {
+    if (user.alertThreatThreshold != null) {
+      setThreshold(user.alertThreatThreshold)
+    }
+  }, [user.alertThreatThreshold])
+
+  const saveThreshold = async (val) => {
+    try {
+      await api('/api/auth/me/alert-threshold', {
+        method: 'PATCH',
+        body: { threshold: Number(val) },
+      })
+      showToast(t('Порог алертов сохранён: {val}/100', { val }))
+      await refresh()
+    } catch (e) {
+      showToast(e.message, true)
+    }
+  }
+
   return (
     <section className="settings">
       <div className="page-title">
@@ -124,6 +144,40 @@ export default function Settings() {
                 data-tip={t('Показать код и скопировать его')}>{t('Код')}</button>
             </div>
           )}
+        </SettingCard>
+
+        <SettingCard icon={Bell} title={t('Порог алертов в Telegram')}
+          desc={t('Минимальный уровень угрозы (Threat Score 0–100), при котором бот присылает уведомление. Позволяет избавиться от Alert Fatigue.')}>
+          <div className="threshold-container">
+            <div className="threshold-slider-row">
+              <input
+                type="range"
+                className="threshold-slider"
+                min="0"
+                max="100"
+                step="5"
+                value={threshold}
+                onChange={(e) => setThreshold(Number(e.target.value))}
+                onMouseUp={() => saveThreshold(threshold)}
+                onTouchEnd={() => saveThreshold(threshold)}
+                aria-label={t('Порог алертов')}
+              />
+              <span className="threshold-val">{threshold} / 100</span>
+            </div>
+            <div className="threshold-meta">
+              <span className={`threshold-badge ${
+                threshold >= 85 ? 'critical' : threshold >= 70 ? 'high' : threshold >= 40 ? 'medium' : 'low'
+              }`}>
+                {threshold >= 85
+                  ? t('Критический (RCE, деструктивные действия, утечки .env)')
+                  : threshold >= 70
+                  ? t('Высокий (атаки, эксплойты и брутфорс)')
+                  : threshold >= 40
+                  ? t('Средний (подозрительная активность, рекомендуется)')
+                  : t('Низкий (все события, включая фоновый шум)')}
+              </span>
+            </div>
+          </div>
         </SettingCard>
 
         <SettingCard icon={RotateCcw} title={t('Сменить пароль')}

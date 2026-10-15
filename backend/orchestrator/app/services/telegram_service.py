@@ -26,20 +26,25 @@ def get_proxy_url() -> Optional[str]:
     return proxy_url if proxy_url else None
 
 
-async def get_center_subscribers() -> List[str]:
-    """Получает список chat_id авторизованных операторов из центра управления."""
+async def get_center_subscribers_details() -> List[Dict[str, Any]]:
+    """Получает детальный список подписчиков с их персональными порогами min_threat_score."""
     url = f"{CENTER_URL}/api/internal/telegram/subscribers"
     headers = {"X-Internal-Token": ORCH_TOKEN} if ORCH_TOKEN else {}
     try:
-        # trust_env=False: не пускать внутренний трафик через SOCKS5-прокси
         async with httpx.AsyncClient(trust_env=False, timeout=5.0) as client:
             resp = await client.get(url, headers=headers)
             if resp.status_code == 200:
                 subs = resp.json().get("subscribers", [])
-                return [str(s["chat_id"]) for s in subs if s.get("chat_id")]
+                return [s for s in subs if s.get("chat_id")]
     except Exception as e:
         print(f"⚠️ Не удалось получить подписчиков из центра ({e})")
     return []
+
+
+async def get_center_subscribers() -> List[str]:
+    """Получает список chat_id авторизованных операторов из центра управления."""
+    details = await get_center_subscribers_details()
+    return [str(s["chat_id"]) for s in details if s.get("chat_id")]
 
 
 async def check_user_auth(chat_id: str | int) -> Dict[str, Any]:
@@ -564,14 +569,21 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_i
         print("⚠️ [Telegram Alert] Не задан TELEGRAM_BOT_TOKEN — алерт пропущен.", flush=True)
         return
 
-    # Собираем список адресатов
-    targets = list(chat_ids or [])
-    if not targets:
-        targets = await get_center_subscribers()
+    # Собираем список адресатов и их персональные пороги чувствительности
+    sub_thresholds: Dict[str, int] = {}
+    if chat_ids:
+        targets = list(chat_ids)
+    else:
+        details = await get_center_subscribers_details()
+        for d in details:
+            cid = str(d.get("chat_id"))
+            sub_thresholds[cid] = int(d.get("min_threat_score") if d.get("min_threat_score") is not None else 60)
+        targets = list(sub_thresholds.keys())
     
     env_chat_id = os.getenv("TELEGRAM_CHAT_ID", TELEGRAM_CHAT_ID)
     if not targets and env_chat_id:
         targets = [str(env_chat_id)]
+        sub_thresholds[str(env_chat_id)] = 60
 
     if not targets:
         print(f"ℹ️ [Telegram Alert] Алерт '{event_name}' ({attacker_ip}) получен, но нет привязанных операторов! Выполните /login или /link в боте.", flush=True)
@@ -593,6 +605,7 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_i
 
     sid = properties.get("session_id") or ""
     cmd = properties.get("command") or ""
+    has_threat_score = properties.get("threat_score") is not None
     threat = properties.get("threat_score") or 0
     cat = properties.get("category") or "threat"
     summary = properties.get("summary") or ""
@@ -601,8 +614,15 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_i
 
     now_ts = time.time()
     for cid in targets:
+        # Фильтрация по персональному порогу угрозы оператора (только если событие оценено HoneyMind)
+        threshold = sub_thresholds.get(str(cid), 0)
+        is_test = "test" in event_name.lower() or "direct" in event_name.lower() or bool(chat_ids)
         key = f"{cid}_{attacker_ip or sid}"
         existing = ACTIVE_SESSION_ALERTS.get(key)
+
+        if not is_test and has_threat_score and threshold > 0 and threat < threshold and not is_session_end and not existing:
+            print(f"ℹ️ [Telegram Alert] Алерт пропущен для {cid}: Threat Score {threat} < порога оператора {threshold}", flush=True)
+            continue
 
         # Дебаунс/живое обновление существующего алерта в рамках одного атакующего / сессии
         if existing and (now_ts - existing.get("last_ts", 0) < 600) and not existing.get("is_ended"):

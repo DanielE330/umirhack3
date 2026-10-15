@@ -213,3 +213,16 @@ def test_telegram_link_flow(app, client):
     me_after = client.get("/api/auth/me").json()
     assert me_after["telegram_linked"] is False
 
+    # 8. Настройка персонального порога чувствительности алертов
+    r_thresh = client.patch("/api/auth/me/alert-threshold", json={"threshold": 75}, headers=csrf(data))
+    assert r_thresh.status_code == 200
+    assert r_thresh.json()["alert_threat_threshold"] == 75
+
+    me_thresh = client.get("/api/auth/me").json()
+    assert me_thresh["alert_threat_threshold"] == 75
+
+    # Валидация диапазона 0..100
+    r_invalid = client.patch("/api/auth/me/alert-threshold", json={"threshold": 150}, headers=csrf(data))
+    assert r_invalid.status_code == 422
+
+
