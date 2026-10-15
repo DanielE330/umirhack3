@@ -15,15 +15,10 @@ from sqlalchemy.orm import sessionmaker
 from . import security
 from .config import get_settings
 from .db import init_db, make_engine
-<<<<<<< HEAD
 from .honeymind import HoneyMind
 from .models import Event, EventLabel, User
-from .routers.users import check_password_policy
-from .scoring import rescore_events_cli
-=======
-from .models import User
 from .routers.users import _USERNAME, check_password_policy
->>>>>>> origin/dan
+from .scoring import rescore_events_cli
 
 
 def create_user(username: str, role: str = "operator", password: str | None = None) -> None:

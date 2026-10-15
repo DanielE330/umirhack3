@@ -97,3 +97,14 @@
 .threshold-badge.high { background: rgba(249, 115, 22, 0.15); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.3); }
 .threshold-badge.critical { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
 
+.threat-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.threat-preset-btn {
+  padding: 4px 8px; font-size: 12px; border-radius: var(--radius);
+  border: 1px solid var(--line); background: var(--card-bg, transparent);
+  color: var(--fg); cursor: pointer; transition: all 0.15s ease;
+}
+.threat-preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+.threat-preset-btn.active {
+  background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600;
+}
+

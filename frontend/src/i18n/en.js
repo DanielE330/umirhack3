@@ -837,7 +837,6 @@ const en = {
   'Привязать в Telegram': 'Link in Telegram',
   'Откроется бот: нажмите «Запустить» — привязка завершится сама': 'The bot opens: press “Start” and linking finishes by itself',
   'Код': 'Code',
-  'Показать код и скопировать его': 'Show the code and copy it',
   'Порог алертов в Telegram': 'Telegram Alert Threshold',
   'Минимальный уровень угрозы (Threat Score 0–100), при котором бот присылает уведомление. Позволяет избавиться от Alert Fatigue.':
     'Minimum Threat Score (0–100) required to trigger Telegram notifications. Mitigates Alert Fatigue.',
@@ -847,6 +846,18 @@ const en = {
   'Высокий (атаки, эксплойты и брутфорс)': 'High (attacks, exploits, brute-force)',
   'Средний (подозрительная активность, рекомендуется)': 'Medium (suspicious activity, recommended)',
   'Низкий (все события, включая фоновый шум)': 'Low (all events, including background noise)',
+  'Порог тревоги HoneyMind (спам-скор)': 'HoneyMind Alert Threshold (Spam-Score)',
+  'Минимальная оценка угрозы (0–100), при которой HoneyMind отправляет мгновенный алерт в Telegram. Чем выше значение, тем меньше уведомлений о фоновом шуме.': 'Minimum threat score (0–100) for HoneyMind to dispatch an instant Telegram alert. Higher values suppress background scanning noise.',
+  'Порог тревоги HoneyMind установлен: {val} / 100': 'HoneyMind alert threshold set to: {val} / 100',
+  'Критический': 'Critical',
+  'Стандартный': 'Standard',
+  'Чувствительный': 'Sensitive',
+  'Порог опасности': 'Threat Threshold',
+  '40 — Низкий': '40 — Low',
+  '60 — Стандарт': '60 — Standard',
+  '75 — Высокий': '75 — High',
+  '90 — Критический': '90 — Critical',
 }
 
 export default en
+

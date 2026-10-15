@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Bell, BookOpen, Languages, LayoutPanelLeft, LayoutPanelTop, Lightbulb, MoonStar, RotateCcw, Send } from 'lucide-react'
+import { Bell, BookOpen, Languages, LayoutPanelLeft, LayoutPanelTop, Lightbulb, MoonStar, RotateCcw, Send, Sliders } from 'lucide-react'
 import { useAuth } from '../../context/auth.js'
 import { useLanguage } from '../../context/language.js'
 import { useLayout } from '../../context/layout.js'
@@ -32,13 +32,16 @@ export default function Settings() {
   const { t, lang, setLang } = useLanguage()
   const { layout, setLayout } = useLayout()
   const { openModal, showToast } = useUi()
-  const { user, refresh } = useAuth()
+  const { user, can, refresh } = useAuth()
+  const canManageSettings = can ? (can('settings.manage') || can('traps.manage') || user.role === 'admin') : true
   const [theme, setTheme] = useState(getTheme)
   const switchTheme = (light) => {
     const next = light ? 'light' : 'dark'
     applyTheme(next)
     setTheme(next)
   }
+
+
   // Привязка одной кнопкой: код заранее выдаёт центр, ссылка t.me/<бот>?start=<код> сама отправляет боту /start <код>.
   // Статус проверяем раз в 3 секунды — карточка сама переключится, когда бот подтвердит привязку.
   const [tg, setTg] = useState(null)
@@ -81,12 +84,20 @@ export default function Settings() {
   }, [user.alertThreatThreshold])
 
   const saveThreshold = async (val) => {
+    const nextVal = typeof val === 'number' ? val : threshold
+    setThreshold(nextVal)
     try {
       await api('/api/auth/me/alert-threshold', {
         method: 'PATCH',
-        body: { threshold: Number(val) },
+        body: { threshold: Number(nextVal) },
       })
-      showToast(t('Порог алертов сохранён: {val}/100', { val }))
+      if (canManageSettings) {
+        api('/api/settings/threat-threshold', {
+          method: 'PUT',
+          body: { threshold: Number(nextVal) },
+        }).catch(() => {})
+      }
+      showToast(t('Порог алертов сохранён: {val}/100', { val: nextVal }))
       await refresh()
     } catch (e) {
       showToast(e.message, true)
@@ -146,7 +157,7 @@ export default function Settings() {
           )}
         </SettingCard>
 
-        <SettingCard icon={Bell} title={t('Порог алертов в Telegram')}
+        <SettingCard icon={Bell} title={t('Порог алертов в Telegram (спам-скор)')}
           desc={t('Минимальный уровень угрозы (Threat Score 0–100), при котором бот присылает уведомление. Позволяет избавиться от Alert Fatigue.')}>
           <div className="threshold-container">
             <div className="threshold-slider-row">
@@ -176,6 +187,23 @@ export default function Settings() {
                   ? t('Средний (подозрительная активность, рекомендуется)')
                   : t('Низкий (все события, включая фоновый шум)')}
               </span>
+            </div>
+            <div className="threat-presets">
+              {[
+                { label: t('40 — Низкий'), val: 40 },
+                { label: t('60 — Стандарт'), val: 60 },
+                { label: t('75 — Высокий'), val: 75 },
+                { label: t('90 — Критический'), val: 90 },
+              ].map((p) => (
+                <button
+                  key={p.val}
+                  type="button"
+                  className={`threat-preset-btn ${threshold === p.val ? 'active' : ''}`}
+                  onClick={() => saveThreshold(p.val)}
+                >
+                  {p.label}
+                </button>
+              ))}
             </div>
           </div>
         </SettingCard>

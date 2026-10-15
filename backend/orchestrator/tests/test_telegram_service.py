@@ -392,3 +392,78 @@ def test_callback_query_intent_handles_prediction(monkeypatch):
     assert "SSH Authorized Keys" in msg[0]["json"]["text"]
 
 
+def test_telegram_threshold_command_and_callback(monkeypatch):
+    current_threshold = {"val": 60}
+
+    async def fake_auth(cid):
+        return {"authenticated": True, "username": "admin", "role": "admin"}
+
+    async def fake_get_th():
+        return current_threshold["val"]
+
+    async def fake_set_th(v):
+        current_threshold["val"] = int(v)
+        return True, str(v)
+
+    monkeypatch.setattr(ts, "check_user_auth", fake_auth)
+    monkeypatch.setattr(ts, "get_threat_threshold", fake_get_th)
+    monkeypatch.setattr(ts, "set_threat_threshold", fake_set_th)
+
+    calls = []
+    class MockClient:
+        async def post(self, url, json=None, **kwargs):
+            calls.append({"url": url, "json": json})
+            class Resp:
+                status_code = 200
+                text = "ok"
+            return Resp()
+
+    # 1. Запрос /threshold без параметров показывает текущий порог и кнопки
+    update_cmd = {
+        "message": {
+            "message_id": 10,
+            "chat": {"id": 789},
+            "text": "/threshold",
+            "from": {"id": 100, "username": "admin"},
+        }
+    }
+    asyncio.run(ts._handle_telegram_update(MockClient(), "https://api.telegram.org/botmock", update_cmd))
+    assert len(calls) == 1
+    assert "60 / 100" in calls[0]["json"]["text"]
+    assert "inline_keyboard" in calls[0]["json"]["reply_markup"]
+
+    # 2. Установка через команду /threshold 85
+    calls.clear()
+    update_set = {
+        "message": {
+            "message_id": 11,
+            "chat": {"id": 789},
+            "text": "/threshold 85",
+            "from": {"id": 100, "username": "admin"},
+        }
+    }
+    asyncio.run(ts._handle_telegram_update(MockClient(), "https://api.telegram.org/botmock", update_set))
+    assert current_threshold["val"] == 85
+    assert "85 / 100" in calls[0]["json"]["text"]
+
+    # 3. Нажатие на инлайн-кнопку set_threshold_90
+    calls.clear()
+    update_cb = {
+        "callback_query": {
+            "id": "cb_thresh",
+            "data": "set_threshold_90",
+            "from": {"id": 100, "username": "admin"},
+            "message": {"message_id": 12, "chat": {"id": 789}},
+        }
+    }
+    asyncio.run(ts._handle_telegram_update(MockClient(), "https://api.telegram.org/botmock", update_cb))
+    assert current_threshold["val"] == 90
+    ans = [c for c in calls if "answerCallbackQuery" in c["url"]]
+    assert len(ans) == 1
+    assert "90/100" in ans[0]["json"]["text"]
+    edit = [c for c in calls if "editMessageText" in c["url"]]
+    assert len(edit) == 1
+    assert "90 / 100" in edit[0]["json"]["text"]
+
+
+

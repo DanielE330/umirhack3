@@ -52,6 +52,8 @@ class Settings(BaseSettings):
     default_beacon_seconds: int = 15
     alert_threshold: int = 5                  # попыток входа с одного IP на ловушку за окно -> алерт
     alert_window_seconds: int = 60
+    threat_alert_threshold: int = 60          # порог threat_score (0-100) HoneyMind, выше которого центр шлёт алерт в Telegram (спам-скор)
+
     max_batch_events: int = 500
     max_body_bytes: int = 1_000_000
     geoip_url: str = "http://ip-api.com/batch"   # геолокация/ASN источников; пусто — выключено

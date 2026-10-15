@@ -313,3 +313,21 @@ def get_internal_session_artifacts(session_id: str, request: Request, db: Sessio
         "intent_prediction": intent,
     }
 
+
+class InternalThresholdIn(BaseModel):
+    threshold: int = Field(ge=0, le=100)
+
+
+@router.get("/settings/threat-threshold", dependencies=[Depends(require_internal_token)])
+def internal_get_threat_threshold(db: Session = Depends(get_db)):
+    from ..scoring import get_threat_alert_threshold
+    return {"threshold": get_threat_alert_threshold(db)}
+
+
+@router.post("/settings/threat-threshold", dependencies=[Depends(require_internal_token)])
+def internal_set_threat_threshold(body: InternalThresholdIn, db: Session = Depends(get_db)):
+    from ..scoring import set_threat_alert_threshold
+    val = set_threat_alert_threshold(body.threshold, db, username="telegram_orchestrator")
+    return {"status": "ok", "threshold": val}
+
+
