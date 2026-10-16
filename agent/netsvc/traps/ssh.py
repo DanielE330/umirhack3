@@ -9,6 +9,7 @@ import posixpath
 import random
 import shutil
 import socket
+import struct
 import tempfile
 import time
 import uuid
@@ -94,6 +95,36 @@ def algorithm_options() -> dict:
 
 MAX_UPLOAD = 5 * 1024 * 1024        # больше этого за сессию SFTP не принимаем
 MAX_ARTIFACT = 64 * 1024            # столько байт содержимого уходит в центр (хэш считается по всему файлу)
+
+
+def extract_hassh(data: bytes) -> tuple[str, str]:
+    """Извлекает MD5-отпечаток HASSH и строку алгоритмов KEXINIT согласно стандарту Salesforce."""
+    if not data or len(data) < 20:
+        return "", ""
+    offset = 16
+
+    def read_namelist() -> str:
+        nonlocal offset
+        if offset + 4 > len(data):
+            return ""
+        length = struct.unpack(">I", data[offset:offset + 4])[0]
+        offset += 4
+        val = data[offset:offset + length].decode("utf-8", "replace")
+        offset += length
+        return val
+
+    try:
+        kex = read_namelist()
+        _ = read_namelist()  # host key
+        enc_cs = read_namelist()
+        _ = read_namelist()  # enc sc
+        mac_cs = read_namelist()
+        _ = read_namelist()  # mac sc
+        comp_cs = read_namelist()
+        raw = f"{kex};{enc_cs};{mac_cs};{comp_cs}"
+        return hashlib.md5(raw.encode()).hexdigest(), raw
+    except Exception:
+        return "", ""
 
 
 def file_artifact(path: str, data: bytes, kind: str) -> dict:
@@ -203,23 +234,63 @@ class SshTrap:
                 peer = conn.get_extra_info("peername") or ("", 0)
                 self.sid = uuid.uuid4().hex[:16]
                 trap._sessions[id(conn)] = self.sid
+
+                raw_kex = getattr(conn, "_client_kexinit", b"")
+                self.hassh, self.hassh_raw = extract_hassh(raw_kex)
+                raw_ver = getattr(conn, "_client_version", b"")
+                self.client_version = raw_ver.decode("utf-8", "replace") if isinstance(raw_ver, bytes) else str(raw_ver or "")
+                self.auth_count = 0
+
                 self.base = dict(src_ip=peer[0], src_port=peer[1], dst_port=trap.service["port"], proto="ssh",
                                  session_id=self.sid)
-                trap.emitter.emit("connect", **self.base)
+                c_data = {}
+                if self.hassh:
+                    c_data["hassh"] = self.hassh
+                    c_data["hassh_raw"] = self.hassh_raw
+                if self.client_version:
+                    c_data["client"] = self.client_version
+                trap.emitter.emit("connect", **self.base, data=c_data)
 
             def connection_lost(self, exc: Exception | None) -> None:
                 trap._sessions.pop(id(self.conn), None)
                 trap.emitter.emit("session_end", **self.base)
 
             def begin_auth(self, username: str) -> bool:
+                if not self.hassh:
+                    raw_kex = getattr(self.conn, "_client_kexinit", b"")
+                    self.hassh, self.hassh_raw = extract_hassh(raw_kex)
+                if not self.client_version:
+                    raw_ver = getattr(self.conn, "_client_version", b"")
+                    self.client_version = raw_ver.decode("utf-8", "replace") if isinstance(raw_ver, bytes) else str(raw_ver or "")
+                c_data = {}
+                if self.hassh:
+                    c_data["hassh"] = self.hassh
+                    c_data["hassh_raw"] = self.hassh_raw
+                if self.client_version:
+                    c_data["client"] = self.client_version
+                if c_data:
+                    trap.emitter.emit("connect", **self.base, data=c_data)
                 return True
 
             def password_auth_supported(self) -> bool:
                 return True
 
             async def validate_password(self, username: str, password: str) -> bool:
-                trap.emitter.emit("auth_attempt", **self.base, username=username, password=password)
-                await asyncio.sleep(random.uniform(0.3, 0.9))  # как у настоящего sshd
+                self.auth_count += 1
+                auth_data = {}
+                if self.hassh:
+                    auth_data["hassh"] = self.hassh
+                if self.client_version:
+                    auth_data["client"] = self.client_version
+                trap.emitter.emit("auth_attempt", **self.base, username=username, password=password, data=auth_data)
+
+                from . import shell as _sh
+                if getattr(_sh, "NET_DELAY", None) == (0, 0):
+                    await asyncio.sleep(0.01)
+                else:
+                    is_bot = any(b in (self.client_version or "").lower() for b in ("go", "libssh", "paramiko", "hydra")) or (self.auth_count > 2)
+                    delay = random.uniform(1.2, 2.5) if is_bot else random.uniform(0.3, 0.8)
+                    await asyncio.sleep(delay)
                 return trap.accept_any or (username, password) in trap.users
 
         async def handler(process: asyncssh.SSHServerProcess) -> None:
@@ -317,7 +388,8 @@ class SshTrap:
                 return
 
             shell = Shell(trap.fs, user, trap.hostname, OS_RELEASE, UNAME, trap.boot_time, trap.ip, trap.ports, peer[0],
-                          lambda kind, **kw: trap.emitter.emit(kind, **base, username=user, **kw), tty=tty, width=width)
+                          lambda kind, **kw: trap.emitter.emit(kind, **base, username=user, **kw), tty=tty, width=width,
+                          session_id=sid)
 
             async def run(line: str) -> bool:
                 trap.emitter.emit("command", **base, username=user, command=line.strip())

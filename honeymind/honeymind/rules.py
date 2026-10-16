@@ -32,9 +32,20 @@ CATEGORIES: dict[str, CategoryInfo] = {
     "destructive":          CategoryInfo(90, "разрушительные действия"),
     "malware_downloader":   CategoryInfo(90, "загрузка вредоноса"),
     "reverse_shell":        CategoryInfo(96, "обратная оболочка"),
+    # Веб-атаки и OpenSource ловушки (OWASP / Web Honeypots)
+    "sqli":                 CategoryInfo(92, "SQL-инъекция"),
+    "xss":                  CategoryInfo(85, "межсайтовый скриптинг (XSS)"),
+    "rce":                  CategoryInfo(95, "удалённое исполнение кода (RCE)"),
+    "lfi":                  CategoryInfo(88, "чтение файлов / обход каталога (LFI)"),
+    "log4shell":            CategoryInfo(95, "эксплуатация Log4Shell / JNDI"),
+    "wordpot":              CategoryInfo(75, "атака на WordPress / Wordpot"),
+    "ransomware":           CategoryInfo(95, "атака вымогателя (Ransomware)"),
 }
 # Классы, которые не предсказывает ML по тексту команды (приходят из других типов событий):
-EXTRA_CATEGORIES = {"credential_attempt": CategoryInfo(25, "подбор паролей")}
+EXTRA_CATEGORIES = {
+    "credential_attempt": CategoryInfo(25, "подбор паролей"),
+    "web-attack-probe":   CategoryInfo(70, "сканирование веб-уязвимостей"),
+}
 UNKNOWN = "unknown"
 DANGER_THRESHOLD = 60  # score >= порога считаем «опасным» (для алертов и метрик)
 
@@ -264,6 +275,22 @@ RULES: tuple[Rule, ...] = (
          (r"\bdd\b[^|;&]{0,80}\bof=/dev/(?:sd|hd|nvme|vd|xvd|mmcblk)|\bmkfs(?:\.\w+)?\s+/dev/|\bwipefs\b|>\s*/dev/(?:sd|hd|nvme|vd)",)),
     Rule("destroy_forkbomb", "destructive", 85, "fork-бомба", ("T1499.004",),
          (r":\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:",)),
+
+    # ───────── веб-атаки и инъекции ─────────
+    Rule("web_sqli_union", "sqli", 92, "SQL-инъекция (UNION SELECT)", ("T1190",),
+         (r"\bunion\s+(?:all\s+)?select\b",)),
+    Rule("web_sqli_auth_bypass", "sqli", 90, "SQL-инъекция (обход авторизации)", ("T1190",),
+         (r"'\s*or\s+'?1'?\s*=\s*'?1|\bor\s+1=1\b|'\s*or\s+true\b",)),
+    Rule("web_sqli_blind", "sqli", 90, "SQL-инъекция (слепая / функции / пейлоады)", ("T1190",),
+         (r"\b(?:sleep|benchmark|extractvalue|updatexml|load_file)\s*\(|\bwaitfor\s+delay\b",)),
+    Rule("web_xss_script", "xss", 85, "межсайтовый скриптинг (XSS-теги)", ("T1189",),
+         (r"<script\b[^>]*>|javascript:|onerror\s*=|onload\s*=|eval\s*\(|alert\s*\(|<img\b[^>]*onerror|<svg\b[^>]*onload",)),
+    Rule("web_lfi_traversal", "lfi", 88, "обход каталогов / чтение локальных файлов (LFI/Path Traversal)", ("T1005", "T1083"),
+         (r"\.\.[/\\]|php://filter", r"etc/(?:passwd|shadow|hosts)|boot\.ini|win\.ini")),
+    Rule("web_rce_injection", "rce", 95, "внедрение и удалённое выполнение команд (RCE)", ("T1059.004", "T1190"),
+         (r"(?:[;&|`]\s*|\$\()(?:id|whoami|cat\s+/etc/passwd|uname\s+-a|curl\s+\S|wget\s+\S)\b",)),
+    Rule("web_log4shell", "log4shell", 95, "эксплуатация уязвимости Log4Shell (CVE-2021-44228)", ("T1190",),
+         (r"\$\{jndi:(?:ldap|rmi|dns|nis)://",)),
 )
 
 RULES_BY_ID = {r.id: r for r in RULES}

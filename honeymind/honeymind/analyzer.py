@@ -9,7 +9,9 @@ from typing import Any, Iterable
 from . import rules
 from .adapter import (KIND_COMMAND, KIND_CONNECT, KIND_DOWNLOAD, KIND_END, KIND_HONEYTOKEN, KIND_HTTP, KIND_LOGIN,
                       CanonEvent, canonicalize)
+from .clustering import SessionClusterer
 from .humanness import HumanModel, ScriptTracker
+from .markov import MarkovIntentEngine
 from .model import MODEL_VERSION, ThreatModel
 from .rules import CATEGORIES, UNKNOWN, title_ru
 from .textnorm import normalize
@@ -128,10 +130,13 @@ SCRIPT_SEEN_IPS = 2        # …с не меньшего числа других
 
 class Analyzer:
     def __init__(self, model: ThreatModel | None = None, human_model: HumanModel | None = None,
-                 tracker: ScriptTracker | None = None):
+                 tracker: ScriptTracker | None = None, markov: MarkovIntentEngine | None = None,
+                 clusterer: SessionClusterer | None = None):
         self.model = model
         self.human_model = human_model
         self.tracker = tracker if tracker is not None else ScriptTracker()
+        self.markov = markov if markov is not None else MarkovIntentEngine()
+        self.clusterer = clusterer if clusterer is not None else SessionClusterer()
 
     # ───────────────────────── команда ─────────────────────────
     def analyze_command(self, cmd: str | None, kind: str = KIND_COMMAND) -> Verdict:
@@ -242,21 +247,58 @@ class Analyzer:
         return self._analyze_canon(ev)
 
     def _analyze_canon(self, ev: CanonEvent) -> Verdict:
+        if ev.category and ev.category in rules.CATEGORIES and ev.category not in ("benign", rules.UNKNOWN):
+            score = ev.threat_score or rules.CATEGORIES[ev.category].severity
+            mitre_map = {
+                "sqli": ["T1190"], "xss": ["T1189"], "rce": ["T1059.004", "T1190"],
+                "lfi": ["T1005", "T1083"], "log4shell": ["T1190"], "wordpot": ["T1110.001", "T1190"],
+                "ransomware": ["T1486"],
+            }
+            mitre = mitre_map.get(ev.category, ["T1190"])
+            return Verdict(score, ev.category, kind=ev.kind, confidence=0.95, source="rules",
+                           matched_rules=[f"web_{ev.category}"], mitre=mitre,
+                           summary=f"{rules.title_ru(ev.category)}, оценка {score}/100.",
+                           model_version=self._ver())
         if ev.kind == KIND_COMMAND or ev.kind == KIND_HTTP:
             v = self.analyze_command(ev.command, kind=ev.kind)
             if ev.kind == KIND_HTTP and v.source != "rules":
                 v.needs_review = True  # правила и модель обучены на shell-командах, а не на HTTP
             return v
         if ev.kind == KIND_LOGIN:
-            return self.analyze_login(ev.username, ev.password, ev.success)
+            v = self.analyze_login(ev.username, ev.password, ev.success)
+            if ev.hassh:
+                from .hassh import classify_hassh
+                h_res = classify_hassh(ev.hassh, hassh_raw=ev.hassh_raw or "", client_str=ev.client or "")
+                if h_res.is_human is False and h_res.matched:
+                    v.threat_score = max(v.threat_score, 45)
+                    v.category = "bruteforce" if h_res.category == "bruteforce" else v.category
+                    v.matched_rules.append(f"hassh_{h_res.category}")
+                    v.summary += f" [HASSH: {h_res.client_name}]"
+            return v
         if ev.kind == KIND_DOWNLOAD:
             return self.analyze_download(ev.url, ev.file_hash)
         if ev.kind == KIND_HONEYTOKEN:
+            if ev.action == "exfiltrated" or (ev.command and "oob" in ev.command.lower()):
+                return Verdict(100, "credential_access", kind=ev.kind, confidence=1.0, source="heuristic",
+                               matched_rules=["oob_canary_tripped", "data_exfiltrated"], mitre=["T1552.001", "T1041"],
+                               summary="Критический инцидент: подтверждена эксфильтрация данных (100/100). "
+                                       "Канареечный токен активирован во внешней сети нарушителем!", model_version=self._ver())
             return Verdict(92, "credential_access", kind=ev.kind, confidence=0.95, source="heuristic",
-                           matched_rules=["honeytoken_touched"], mitre=["T1552.001"],
+                           matched_rules=["honeytoken_planted" if ev.action == "planted" else "honeytoken_touched"],
+                           mitre=["T1552.001"],
                            summary="Кража учётных данных, оценка 92/100. Основание: тронут приманочный файл/ключ "
                                    "(у легитимного пользователя причин для этого нет).", model_version=self._ver())
         if ev.kind in (KIND_CONNECT, KIND_END):
+            if ev.kind == KIND_CONNECT and ev.hassh:
+                from .hassh import classify_hassh
+                h_res = classify_hassh(ev.hassh, hassh_raw=ev.hassh_raw or "", client_str=ev.client or "")
+                score = 35 if not h_res.is_human else 5
+                cat = "botnet" if (h_res.category == "botnet" or h_res.risk_level == "high") else "benign"
+                return Verdict(score, cat, kind=ev.kind, confidence=0.85 if h_res.matched else 0.5,
+                               source="hassh" if h_res.matched else "heuristic",
+                               matched_rules=[f"hassh_{h_res.category}"] if h_res.matched else [],
+                               mitre=["T1595"] if not h_res.is_human else [],
+                               summary=h_res.summary_ru, model_version=self._ver())
             return Verdict(5, "benign", kind=ev.kind, confidence=0.5, source="heuristic",
                            summary="Служебное событие соединения, оценка 5/100.", model_version=self._ver())
         return Verdict(UNKNOWN_SCORE, UNKNOWN, kind=ev.kind, confidence=0.0, needs_review=True, source="heuristic",
@@ -289,6 +331,15 @@ class Analyzer:
             # медленные боты (ждут ответа между шагами) выглядят «человечно» по темпу — выдаёт содержимое
             human, reason, method = False, "набор команд — типовой скрипт ботнета (пробы/загрузчики), темп не важен", "rules"
         client = next((e.client for e in canon if e.client), None)
+        hassh_val = next((e.hassh for e in canon if e.hassh), None)
+        hassh_raw_val = next((e.hassh_raw for e in canon if e.hassh_raw), "")
+        hassh_analysis = None
+        if hassh_val:
+            from .hassh import classify_hassh
+            hassh_analysis = classify_hassh(hassh_val, hassh_raw=hassh_raw_val or "", client_str=client or "")
+            if human is not False and hassh_analysis.is_human is False:
+                human, method = False, "hassh"
+                reason = f"HASSH-отпечаток ({hassh_analysis.client_name}) идентифицирован как автоматизированный бот/сканер"
         if human is not False and client and _BOT_SSH_CLIENT.search(client):
             human, method = False, "ssh_client"
             reason = "SSH-клиент — библиотека для автоматизации (так подключаются боты; люди — через OpenSSH/PuTTY)"
@@ -309,17 +360,116 @@ class Analyzer:
         if dl_exec:
             # скачал в одной команде, запустил в другой: по отдельности шаги могли выглядеть мягче, вместе — нет
             score = max(score, 95)
+        exfil_tripped = any(e.kind == KIND_HONEYTOKEN and (e.action == "exfiltrated" or (e.command and "oob" in e.command.lower())) for e in canon)
+        if exfil_tripped:
+            score = 100
         chain = " → ".join(title_ru(c) for c in cats) if cats else "значимых действий нет"
-        return {
+
+        # Марковский анализ последовательности техник MITRE ATT&CK
+        mitre_seq: list[str] = []
+        for v in verdicts:
+            for m in v.mitre:
+                if not mitre_seq or mitre_seq[-1] != m:
+                    mitre_seq.append(m)
+        intent_res = self.markov.analyze_sequence(mitre_seq)
+
+        summary_parts = [
+            f"Сессия: {chain}; максимальная оценка события {top.threat_score if top else 0}/100; "
+            f"{'похоже на скрипт/бота' if human is False else 'похоже на человека' if human else 'тип оператора не определён'}."
+        ]
+        if exfil_tripped:
+            summary_parts.append("[Подтверждена эксфильтрация данных нарушителем]")
+        if hassh_analysis and hassh_analysis.matched:
+            summary_parts.append(f"[HASSH: {hassh_analysis.client_name}]")
+        if intent_res.current_technique:
+            summary_parts.append(f"[{intent_res.summary_ru}]")
+
+        # Генерация Detection-as-Code (Sigma и YARA)
+        from .detection_rules import DetectionRuleSynthesizer
+        synth = DetectionRuleSynthesizer()
+        rules_bundle = synth.synthesize(
+            canon,
+            session_id=canon[0].session_id if canon and canon[0].session_id else None,
+            threat_score=score,
+            category=top.category if top else "benign",
+        )
+
+        session_res = {
+            "session_id": canon[0].session_id if canon and canon[0].session_id else None,
             "threat_score": score, "category": top.category if top else "benign", "is_human": human,
             "human_probability": None if p_human is None else round(p_human, 3), "human_method": method,
             "human_reason": reason, "script_seen_before": seen, "kill_chain": cats, "n_events": len(canon),
             "download_then_execute": dl_exec, "ssh_client": client,
+            "hassh": hassh_val,
+            "hassh_profile": hassh_analysis.to_dict() if hassh_analysis else None,
+            "exfiltration_confirmed": exfil_tripped,
             "needs_review": any(v.needs_review for v in verdicts),
-            "summary": f"Сессия: {chain}; максимальная оценка события {top.threat_score if top else 0}/100; "
-                       f"{'похоже на скрипт/бота' if human is False else 'похоже на человека' if human else 'тип оператора не определён'}.",
+            "intent_prediction": intent_res.to_dict(),
+            "detection_rules": rules_bundle.to_dict(),
+            "summary": " ".join(summary_parts),
             "events": [v.to_dict() for v in verdicts],
         }
+
+        # Генерация Dual-Loop отчётов и матрицы MITRE Engage
+        from .reports import ReportSynthesizer, evaluate_mitre_engage
+        rep_synth = ReportSynthesizer()
+        dual_report = rep_synth.synthesize(session_res)
+        session_res["mitre_engage"] = evaluate_mitre_engage(session_res)
+        session_res["dual_loop_report"] = dual_report.to_dict()
+
+        return session_res
+
+    def predict_intent(self, events_or_techniques: list[Any]) -> dict[str, Any]:
+        """Прямой вызов предсказания намерений по списку событий или строк-техник MITRE."""
+        if not events_or_techniques:
+            return self.markov.analyze_sequence([]).to_dict()
+        if isinstance(events_or_techniques[0], str):
+            return self.markov.analyze_sequence(events_or_techniques).to_dict()
+        canon = [canonicalize(e) for e in events_or_techniques]
+        verdicts = [self._analyze_canon(e) for e in canon]
+        tech_seq: list[str] = []
+        for v in verdicts:
+            for m in v.mitre:
+                if not tech_seq or tech_seq[-1] != m:
+                    tech_seq.append(m)
+        return self.markov.analyze_sequence(tech_seq).to_dict()
+
+    def cluster_sessions(self, sessions: list[dict[str, Any]], eps: float = 0.45,
+                         min_samples: int = 2) -> dict[str, Any]:
+        """Кластеризация сессий через DBSCAN для выявления распределенных кампаний."""
+        clusterer = SessionClusterer(eps=eps, min_samples=min_samples)
+        return clusterer.cluster_sessions(sessions)
+
+    def classify_hassh(self, hassh: str, hassh_raw: str = "", client_str: str = "") -> dict[str, Any]:
+        """Сигнатурный и эвристический анализ отпечатка HASSH SSH-клиента."""
+        from .hassh import classify_hassh
+        return classify_hassh(hassh, hassh_raw=hassh_raw, client_str=client_str).to_dict()
+
+    def synthesize_detection_rules(
+        self,
+        events_or_session: list[Any] | dict[str, Any],
+        session_id: str | None = None,
+        threat_score: int | None = None,
+        category: str | None = None,
+    ) -> dict[str, Any]:
+        """Синтез правил обнаружения Detection-as-Code (Sigma YAML и YARA) по событиям атаки."""
+        from .detection_rules import DetectionRuleSynthesizer
+        synth = DetectionRuleSynthesizer()
+        return synth.synthesize(
+            events_or_session,
+            session_id=session_id,
+            threat_score=threat_score,
+            category=category,
+        ).to_dict()
+
+    def generate_report(self, session_or_events: dict[str, Any] | list[Any]) -> dict[str, Any]:
+        """Генерация двухконтурного отчета (Executive Brief и Technical DFIR) и матрицы MITRE Engage."""
+        from .reports import ReportSynthesizer
+        synth = ReportSynthesizer()
+        if isinstance(session_or_events, dict):
+            return synth.synthesize(session_or_events).to_dict()
+        analysis = self.analyze_session(session_or_events)
+        return synth.synthesize(analysis).to_dict()
 
 
 def _download_then_execute(events: list[CanonEvent]) -> bool:

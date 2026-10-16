@@ -5,11 +5,14 @@ import asyncio
 import logging
 import random
 
+from .breadcrumbs import deploy_breadcrumbs
 from .buffer import EventBuffer
 from .center import CenterClient, CenterError
 from .emitter import Emitter
 from .traps.banner import BannerTrap
 from .traps.http import HttpTrap
+from .traps.kube import KubeTrap
+from .traps.llm import LlmTrap
 from .traps.mysql import MysqlTrap
 from .traps.ssh import SshTrap
 
@@ -44,6 +47,10 @@ class Agent:
             return HttpTrap(service, config, self.emitter)
         if proto in ("mysql", "db"):
             return MysqlTrap(service, config, self.emitter, self.state_dir)
+        if proto in ("k8s", "kubernetes"):
+            return KubeTrap(service, config, self.emitter)
+        if proto in ("llm", "ai", "langchain"):
+            return LlmTrap(service, config, self.emitter)
         return BannerTrap(service, config, self.emitter)
 
     async def stop_traps(self) -> None:
@@ -55,14 +62,26 @@ class Agent:
         await self.stop_traps()
         self.emitter.capture_passwords = config.get("logging", {}).get("capture_passwords", True)
         self.jitter = config.get("masking", {}).get("jitter", 0.3)
+        kube_port = 6443
+        llm_port = 8000
         for service in config.get("services", []):
             trap = self._make(service, config)
+            p = service.get("proto", "")
+            if p in ("k8s", "kubernetes"):
+                kube_port = service.get("port", 6443)
+            elif p in ("llm", "ai", "langchain"):
+                llm_port = service.get("port", 8000)
             try:
                 await trap.start(self.bind_host)
                 self.traps.append(trap)
                 log.info("listening on %s", getattr(trap, "port", "?"))
             except OSError as exc:
                 log.error("cannot bind %s: %s", service.get("port"), exc)
+
+        try:
+            deploy_breadcrumbs(self.state_dir, kube_port=kube_port, llm_port=llm_port)
+        except Exception as b_err:
+            log.warning("breadcrumbs deploy error: %s", b_err)
 
     async def apply_manifest(self, m: dict) -> float:
         commands = m.get("cmds", [])

@@ -56,6 +56,35 @@ class SessionIn(BaseModel):
     events: list[dict[str, Any]] = Field(max_length=MAX_SESSION)
 
 
+class MarkovIntentIn(BaseModel):
+    events: list[dict[str, Any]] = Field(default_factory=list, max_length=MAX_SESSION)
+    techniques: list[str] = Field(default_factory=list, max_length=100)
+
+
+class CampaignClusterIn(BaseModel):
+    sessions: list[dict[str, Any]] = Field(max_length=500)
+    eps: float = Field(0.45, ge=0.05, le=1.0)
+    min_samples: int = Field(2, ge=2, le=50)
+
+
+class HasshIn(BaseModel):
+    hassh: str = Field(..., max_length=128)
+    hassh_raw: str = Field("", max_length=4096)
+    client_str: str = Field("", max_length=512)
+
+
+class DetectionRulesIn(BaseModel):
+    events: list[dict[str, Any]] = Field(default_factory=list, max_length=MAX_SESSION)
+    session_id: str = Field("", max_length=128)
+    threat_score: int | None = Field(None, ge=0, le=100)
+    category: str | None = Field(None, max_length=64)
+
+
+class ReportIn(BaseModel):
+    events: list[dict[str, Any]] = Field(default_factory=list, max_length=MAX_SESSION)
+    session_data: dict[str, Any] = Field(default_factory=dict)
+
+
 class BodyLimitMiddleware:
     """ASGI-ограничитель размера тела: считает реально прочитанные байты (Content-Length можно подделать/опустить)."""
 
@@ -173,6 +202,34 @@ def create_app(analyzer: Analyzer | None = None) -> FastAPI:
     @app.post("/session", dependencies=[Depends(auth)])
     def session(body: SessionIn) -> dict[str, Any]:
         return app.state.analyzer.analyze_session(body.events)
+
+    @app.post("/predict/markov_intent", dependencies=[Depends(auth)])
+    def predict_markov_intent(body: MarkovIntentIn) -> dict[str, Any]:
+        if body.techniques:
+            return app.state.analyzer.predict_intent(body.techniques)
+        return app.state.analyzer.predict_intent(body.events)
+
+    @app.post("/cluster/campaigns", dependencies=[Depends(auth)])
+    def cluster_campaigns(body: CampaignClusterIn) -> dict[str, Any]:
+        return app.state.analyzer.cluster_sessions(body.sessions, eps=body.eps, min_samples=body.min_samples)
+
+    @app.post("/predict/hassh", dependencies=[Depends(auth)])
+    def predict_hassh(body: HasshIn) -> dict[str, Any]:
+        return app.state.analyzer.classify_hassh(body.hassh, hassh_raw=body.hassh_raw, client_str=body.client_str)
+
+    @app.post("/export/detection_rules", dependencies=[Depends(auth)])
+    def export_detection_rules(body: DetectionRulesIn) -> dict[str, Any]:
+        return app.state.analyzer.synthesize_detection_rules(
+            body.events,
+            session_id=body.session_id or None,
+            threat_score=body.threat_score,
+            category=body.category,
+        )
+
+    @app.post("/report/dual_loop", dependencies=[Depends(auth)])
+    def generate_dual_loop_report(body: ReportIn) -> dict[str, Any]:
+        target = body.session_data if body.session_data else body.events
+        return app.state.analyzer.generate_report(target)
 
     return app
 

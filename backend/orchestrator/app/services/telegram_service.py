@@ -26,20 +26,25 @@ def get_proxy_url() -> Optional[str]:
     return proxy_url if proxy_url else None
 
 
-async def get_center_subscribers() -> List[str]:
-    """Получает список chat_id авторизованных операторов из центра управления."""
+async def get_center_subscribers_details() -> List[Dict[str, Any]]:
+    """Получает детальный список подписчиков с их персональными порогами min_threat_score."""
     url = f"{CENTER_URL}/api/internal/telegram/subscribers"
     headers = {"X-Internal-Token": ORCH_TOKEN} if ORCH_TOKEN else {}
     try:
-        # trust_env=False: не пускать внутренний трафик через SOCKS5-прокси
         async with httpx.AsyncClient(trust_env=False, timeout=5.0) as client:
             resp = await client.get(url, headers=headers)
             if resp.status_code == 200:
                 subs = resp.json().get("subscribers", [])
-                return [str(s["chat_id"]) for s in subs if s.get("chat_id")]
+                return [s for s in subs if s.get("chat_id")]
     except Exception as e:
         print(f"⚠️ Не удалось получить подписчиков из центра ({e})")
     return []
+
+
+async def get_center_subscribers() -> List[str]:
+    """Получает список chat_id авторизованных операторов из центра управления."""
+    details = await get_center_subscribers_details()
+    return [str(s["chat_id"]) for s in details if s.get("chat_id")]
 
 
 async def check_user_auth(chat_id: str | int) -> Dict[str, Any]:
@@ -127,6 +132,74 @@ async def send_message(chat_id: str, text: str) -> bool:
         print(f"❌ Ошибка Telegram (chat_id={chat_id}, код {response.status_code}): {response.text}")
         return False
     return True
+
+
+async def send_document(chat_id: str | int, file_content: str | bytes, filename: str, caption: str = "") -> bool:
+    """Отправляет файл (Sigma .yml, YARA .yar, Markdown .md) в Telegram чат оператора."""
+    token = os.getenv("TELEGRAM_BOT_TOKEN", TELEGRAM_BOT_TOKEN)
+    if not token:
+        return False
+    proxy_url = get_proxy_url()
+    url = f"https://api.telegram.org/bot{token}/sendDocument"
+    content_bytes = file_content.encode("utf-8") if isinstance(file_content, str) else file_content
+    files = {"document": (filename, content_bytes, "application/octet-stream")}
+    data = {"chat_id": str(chat_id), "caption": caption, "parse_mode": "HTML"}
+    try:
+        async with httpx.AsyncClient(proxy=proxy_url, timeout=25.0) as client:
+            resp = await client.post(url, data=data, files=files)
+            if resp.status_code == 200:
+                print(f"📄 Документ {filename} успешно отправлен в Telegram (chat_id={chat_id})", flush=True)
+                return True
+            print(f"❌ Ошибка отправки документа в Telegram ({filename}): {resp.text}", flush=True)
+            return False
+    except Exception as e:
+        print(f"⚠️ Ошибка вызова sendDocument в Telegram ({filename}): {e}", flush=True)
+        return False
+
+
+async def get_center_session_artifacts(session_id: str) -> dict:
+    """Запрашивает сгенерированные правила (Sigma, YARA) и отчёты сессии из центра."""
+    if not session_id:
+        return {}
+    url = f"{CENTER_URL}/api/internal/session/{session_id.strip()}/artifacts"
+    headers = {"X-Internal-Token": ORCH_TOKEN} if ORCH_TOKEN else {}
+    try:
+        async with httpx.AsyncClient(trust_env=False, timeout=10.0) as client:
+            resp = await client.get(url, headers=headers)
+            if resp.status_code == 200:
+                return resp.json()
+    except Exception as e:
+        print(f"⚠️ Ошибка получения артефактов сессии {session_id} из центра: {e}", flush=True)
+    return {}
+
+
+async def get_threat_threshold() -> Optional[int]:
+    """Получает текущий порог опасности HoneyMind (спам-скор) из центра."""
+    url = f"{CENTER_URL}/api/internal/settings/threat-threshold"
+    headers = {"X-Internal-Token": ORCH_TOKEN} if ORCH_TOKEN else {}
+    try:
+        async with httpx.AsyncClient(trust_env=False, timeout=5.0) as client:
+            resp = await client.get(url, headers=headers)
+            if resp.status_code == 200:
+                return resp.json().get("threshold", 60)
+    except Exception as e:
+        print(f"⚠️ Ошибка получения порога опасности из центра: {e}", flush=True)
+    return None
+
+
+async def set_threat_threshold(val: int) -> Tuple[bool, str]:
+    """Устанавливает порог опасности HoneyMind (спам-скор) в центре."""
+    url = f"{CENTER_URL}/api/internal/settings/threat-threshold"
+    headers = {"X-Internal-Token": ORCH_TOKEN} if ORCH_TOKEN else {}
+    try:
+        async with httpx.AsyncClient(trust_env=False, timeout=5.0) as client:
+            resp = await client.post(url, json={"threshold": int(val)}, headers=headers)
+            if resp.status_code == 200:
+                data = resp.json()
+                return True, str(data.get("threshold", val))
+            return False, resp.json().get("detail", "Ошибка обновления")
+    except Exception as e:
+        return False, f"Ошибка связи с центром: {e}"
 
 
 SOC_MAIN_KEYBOARD = {
@@ -434,23 +507,132 @@ async def _render_events_view() -> Tuple[str, dict]:
     return text, inline_kb
 
 
+ACTIVE_SESSION_ALERTS: dict[str, dict[str, Any]] = {}
+
+
+def _format_alert_message(state: dict[str, Any], is_blocked: bool) -> tuple[str, dict]:
+    ip = state.get("attacker_ip") or "—"
+    sid = state.get("session_id") or ""
+    cmds = state.get("commands", [])
+    threat = state.get("max_threat", 0)
+    cat = state.get("category") or "threat"
+    is_ended = state.get("is_ended", False)
+    summary = state.get("summary") or ""
+
+    ip_status_badge = " 🛑 <i>[УЖЕ ЗАБЛОКИРОВАН В PROXMOX]</i>" if is_blocked else ""
+    status_suffix = " [СЕССИЯ ЗАВЕРШЕНА]" if is_ended else (" [АКТИВНАЯ СЕССИЯ]" if sid else "")
+
+    raw = state.get("raw_props") or {}
+    attack_type = raw.get("attack_type") or ""
+
+    header = f"🚨 <b>НОВАЯ АТАКА В HONEYFORGE!</b>{status_suffix}\n"
+    if attack_type == "k8s_secret_theft":
+        header = f"☸️ <b>КРАЖА СЕКРЕТОВ KUBERNETES!</b>{status_suffix}\n"
+    elif attack_type == "llm_prompt_injection":
+        header = f"🤖 <b>ПРОМПТ-ИНЪЕКЦИЯ В КОРПОРАТИВНУЮ LLM!</b>{status_suffix}\n"
+
+    lines = [
+        header,
+        f"<b>Тип события:</b> {html.escape(state.get('event_name', 'honeymind_threat'))}",
+        f"<b>IP хакера:</b> <code>{html.escape(ip)}</code>{ip_status_badge}",
+    ]
+    if sid:
+        lines.append(f"<b>Сессия:</b> <code>{html.escape(sid[:16])}</code>")
+
+    threat_badge = f"🔥 <b>{threat}/100</b>" if threat >= 60 else f"⚠️ <b>{threat}/100</b>"
+    lines.append(f"<b>Уровень угрозы:</b> {threat_badge} [<code>{html.escape(cat)}</code>]")
+
+    if is_ended:
+        human = state.get("is_human")
+        p_human = state.get("human_probability")
+        if human is not None:
+            p_str = f" ({round(p_human * 100)}%)" if p_human is not None else ""
+            h_text = f"👤 <b>Человек{p_str}</b>" if human else f"🤖 <b>Бот / Скрипт{p_str}</b>"
+            lines.append(f"<b>Вердикт HoneyMind:</b> {h_text}")
+        lines.append(f"<b>Всего команд:</b> <code>{len(cmds)}</code>")
+    elif cmds:
+        lines.append(f"<b>Команд перехвачено:</b> <code>{len(cmds)}</code>")
+
+    if attack_type == "k8s_secret_theft":
+        secrets_list = ", ".join(raw.get("exfiltrated_secrets", []))
+        lines.append(f"\n🔑 <b>Скомпрометированные секреты:</b> <code>{html.escape(secrets_list)}</code>")
+        if raw.get("token"):
+            lines.append(f"🎫 <b>Токен нарушителя:</b> <code>{html.escape(str(raw.get('token'))[:30])}...</code>")
+    elif attack_type == "llm_prompt_injection":
+        rules = ", ".join(raw.get("detected_rules", []))
+        lines.append(f"\n🧠 <b>OWASP LLM07 сигнатуры:</b> <code>{html.escape(rules)}</code>")
+        if raw.get("prompt_sample"):
+            lines.append(f"💬 <b>Промпт нарушителя:</b> <i>{html.escape(str(raw.get('prompt_sample'))[:200])}</i>")
+
+    if cmds:
+        cmd_lines = [f"  • <code>{html.escape(c[:65])}</code>" for c in cmds[-5:]]
+        lines.append("\n💻 <b>Команды нарушителя:</b>\n" + "\n".join(cmd_lines))
+    elif summary:
+        lines.append(f"\n<b>Детали (Payload):</b>\n<pre>{html.escape(summary[:250])}</pre>")
+    elif state.get("raw_props"):
+        lines.append(f"\n<b>Детали (Payload):</b>\n<pre>{html.escape(json.dumps(state['raw_props'], indent=2, ensure_ascii=False))}</pre>")
+
+    intent = state.get("intent_prediction")
+    if intent and isinstance(intent, dict):
+        pred = intent.get("predicted_technique")
+        prob = round((intent.get("probability") or 0) * 100)
+        pname = intent.get("predicted_name") or ""
+        if pred:
+            lines.append(f"\n🎯 <b>Прогноз шага (Markov):</b>\n<code>{html.escape(pred)}</code> ({prob}%) {html.escape(pname)}")
+
+    block_button = (
+        {"text": "🛡️ IP уже в бане Proxmox", "callback_data": f"noop_{ip}"}
+        if is_blocked
+        else {"text": "❌ Заблокировать IP", "callback_data": f"block_{ip}"}
+    )
+
+    sid_target = sid if sid else ip
+    inline_kb = {
+        "inline_keyboard": [
+            [
+                block_button,
+                {"text": "🔍 Досье на IP", "callback_data": f"intel_{ip}"},
+            ],
+            [
+                {"text": "📥 Sigma (YAML)", "callback_data": f"sigma_{sid_target}"},
+                {"text": "🔍 YARA (.yar)", "callback_data": f"yara_{sid_target}"},
+            ],
+            [
+                {"text": "📋 Отчёт C-Level", "callback_data": f"report_{sid_target}"},
+                {"text": "🎯 Прогноз (Markov)", "callback_data": f"intent_{sid_target}"},
+            ],
+            [
+                {"text": "🗑️ Скрыть", "callback_data": "ignore"},
+            ]
+        ]
+    }
+    return "\n".join(lines), inline_kb
+
+
 async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_ids: Optional[List[str]] = None):
     """
-    Отправляет уведомление об атаке в Telegram всем привязанным операторам.
+    Отправляет уведомление об атаке в Telegram всем привязанным операторам с дебаунсом и кнопками действий.
     """
     token = os.getenv("TELEGRAM_BOT_TOKEN", TELEGRAM_BOT_TOKEN)
     if not token:
         print("⚠️ [Telegram Alert] Не задан TELEGRAM_BOT_TOKEN — алерт пропущен.", flush=True)
         return
 
-    # Собираем список адресатов
-    targets = list(chat_ids or [])
-    if not targets:
-        targets = await get_center_subscribers()
+    # Собираем список адресатов и их персональные пороги чувствительности
+    sub_thresholds: Dict[str, int] = {}
+    if chat_ids:
+        targets = list(chat_ids)
+    else:
+        details = await get_center_subscribers_details()
+        for d in details:
+            cid = str(d.get("chat_id"))
+            sub_thresholds[cid] = int(d.get("min_threat_score") if d.get("min_threat_score") is not None else 60)
+        targets = list(sub_thresholds.keys())
     
     env_chat_id = os.getenv("TELEGRAM_CHAT_ID", TELEGRAM_CHAT_ID)
     if not targets and env_chat_id:
         targets = [str(env_chat_id)]
+        sub_thresholds[str(env_chat_id)] = 60
 
     if not targets:
         print(f"ℹ️ [Telegram Alert] Алерт '{event_name}' ({attacker_ip}) получен, но нет привязанных операторов! Выполните /login или /link в боте.", flush=True)
@@ -470,36 +652,86 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_i
     except Exception:
         pass
 
-    ip_status_badge = " 🛑 <i>[УЖЕ ЗАБЛОКИРОВАН В PROXMOX]</i>" if is_blocked else ""
-    block_button = (
-        {"text": "🛡️ IP уже в бане Proxmox", "callback_data": f"noop_{attacker_ip}"}
-        if is_blocked
-        else {"text": "❌ Заблокировать IP", "callback_data": f"block_{attacker_ip}"}
-    )
+    sid = properties.get("session_id") or ""
+    cmd = properties.get("command") or ""
+    has_threat_score = properties.get("threat_score") is not None
+    threat = properties.get("threat_score") or 0
+    cat = properties.get("category") or "threat"
+    summary = properties.get("summary") or ""
+    intent = properties.get("intent_prediction")
+    is_session_end = (event_name in ("session", "session_end") or properties.get("source_event_type") in ("session", "session_end"))
 
-    # Форматируем детали
-    details = html.escape(json.dumps(properties, indent=2, ensure_ascii=False))
-    message = (
-        f"🚨 <b>НОВАЯ АТАКА В HONEYFORGE!</b>\n\n"
-        f"<b>Тип события:</b> {html.escape(event_name)}\n"
-        f"<b>IP хакера:</b> <code>{html.escape(attacker_ip)}</code>{ip_status_badge}\n\n"
-        f"<b>Детали (Payload):</b>\n<pre>{details}</pre>"
-    )
-
+    now_ts = time.time()
     for cid in targets:
+        # Фильтрация по персональному порогу угрозы оператора (только если событие оценено HoneyMind)
+        threshold = sub_thresholds.get(str(cid), 0)
+        is_test = "test" in event_name.lower() or "direct" in event_name.lower() or bool(chat_ids)
+        key = f"{cid}_{attacker_ip or sid}"
+        existing = ACTIVE_SESSION_ALERTS.get(key)
+
+        if not is_test and has_threat_score and threshold > 0 and threat < threshold and not is_session_end and not existing:
+            print(f"ℹ️ [Telegram Alert] Алерт пропущен для {cid}: Threat Score {threat} < порога оператора {threshold}", flush=True)
+            continue
+
+        # Дебаунс/живое обновление существующего алерта в рамках одного атакующего / сессии
+        if existing and (now_ts - existing.get("last_ts", 0) < 600) and not existing.get("is_ended"):
+            existing["last_ts"] = now_ts
+            if sid:
+                existing["session_id"] = sid
+            if cmd and cmd not in existing["commands"]:
+                existing["commands"].append(cmd)
+            existing["max_threat"] = max(existing["max_threat"], threat)
+            if cat:
+                existing["category"] = cat
+            if summary:
+                existing["summary"] = summary
+            if intent:
+                existing["intent_prediction"] = intent
+            if is_session_end:
+                existing["is_ended"] = True
+                if properties.get("is_human") is not None:
+                    existing["is_human"] = properties.get("is_human")
+                    existing["human_probability"] = properties.get("human_probability")
+
+            msg_text, inline_kb = _format_alert_message(existing, is_blocked)
+            edit_payload = {
+                "chat_id": cid,
+                "message_id": existing["message_id"],
+                "text": msg_text,
+                "parse_mode": "HTML",
+                "reply_markup": inline_kb,
+            }
+            try:
+                async with httpx.AsyncClient(proxy=proxy_url, timeout=25.0) as client:
+                    resp = await client.post(f"https://api.telegram.org/bot{token}/editMessageText", json=edit_payload)
+                    if resp.status_code == 200:
+                        continue
+            except Exception as e:
+                print(f"⚠️ Ошибка обновления алерта в Telegram ({cid}): {e}", flush=True)
+
+        # Создание нового алерта
+        state = {
+            "attacker_ip": attacker_ip,
+            "session_id": sid,
+            "event_name": event_name,
+            "commands": [cmd] if cmd else [],
+            "max_threat": threat,
+            "category": cat,
+            "summary": summary,
+            "raw_props": properties,
+            "first_ts": now_ts,
+            "last_ts": now_ts,
+            "is_ended": is_session_end,
+            "is_human": properties.get("is_human"),
+            "human_probability": properties.get("human_probability"),
+            "intent_prediction": intent,
+        }
+        msg_text, inline_kb = _format_alert_message(state, is_blocked)
         payload = {
             "chat_id": cid,
-            "text": message,
+            "text": msg_text,
             "parse_mode": "HTML",
-            "reply_markup": {
-                "inline_keyboard": [
-                    [
-                        block_button,
-                        {"text": "🔍 Досье", "callback_data": f"intel_{attacker_ip}"},
-                        {"text": "🗑️ Скрыть", "callback_data": "ignore"},
-                    ]
-                ]
-            },
+            "reply_markup": inline_kb,
         }
         try:
             async with httpx.AsyncClient(proxy=proxy_url, timeout=25.0) as client:
@@ -507,6 +739,11 @@ async def send_alert(event_name: str, attacker_ip: str, properties: dict, chat_i
                 if response.status_code != 200:
                     print(f"❌ Ошибка Telegram (chat_id={cid}, код {response.status_code}): {response.text}", flush=True)
                 else:
+                    data = response.json()
+                    msg_id = data.get("result", {}).get("message_id")
+                    if msg_id:
+                        state["message_id"] = msg_id
+                        ACTIVE_SESSION_ALERTS[key] = state
                     print(f"✅ Уведомление успешно отправлено в Telegram (chat_id={cid})", flush=True)
         except Exception as e:
             print(f"❌ Ошибка соединения с Telegram при отправке на {cid}: {e}", flush=True)
@@ -675,6 +912,7 @@ async def _handle_telegram_update(tg_client: httpx.AsyncClient, base_tg: str, up
                 f"• <code>/block &lt;IP&gt;</code> — заблокировать IP в Proxmox кластере\n"
                 f"• <code>/unblock &lt;IP&gt;</code> — разблокировать IP в Proxmox\n"
                 f"• <code>/check &lt;IP&gt;</code> — досье на IP (угроза, команды, пароли)\n"
+                f"• <code>/threshold [0-100]</code> — спам-скор (порог алертов HoneyMind)\n"
                 f"• <code>/login &lt;логин&gt; &lt;пароль&gt;</code> — быстрая авторизация оператора/админа\n\n"
                 f"🆔 Ваш Chat ID: <code>{chat_id}</code>"
             )
@@ -728,6 +966,55 @@ async def _handle_telegram_update(tg_client: httpx.AsyncClient, base_tg: str, up
             await send_alert("SSH Malware Dropper (TEST)", "198.51.100.99", test_props, chat_ids=[str(chat_id)])
             reply_text = "🚀 <b>Тестовый алерт отправлен выше!</b> Проверьте сообщение и кнопки реагирования."
             await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": reply_text, "parse_mode": "HTML", "reply_markup": SOC_MAIN_KEYBOARD})
+
+        # Кнопка / команда: Настройка порога опасности (спам-скор)
+        elif text.startswith("/threshold") or text.startswith("/spam") or text == "🎯 Спам-скор":
+            parts = text.split(maxsplit=1)
+            if len(parts) > 1 and parts[1].strip().isdigit():
+                new_t = int(parts[1].strip())
+                if 0 <= new_t <= 100:
+                    ok, res = await set_threat_threshold(new_t)
+                    if ok:
+                        reply_text = (
+                            f"🎯 <b>Порог спам-скора HoneyMind успешно изменён!</b>\n\n"
+                            f"Новый порог алертов: <b>{res} / 100</b>\n\n"
+                            f"ℹ️ Теперь алерты об атаках будут приходить в Telegram только если "
+                            f"оценка угрозы <code>threat_score &gt;= {res}</code>."
+                        )
+                    else:
+                        reply_text = f"❌ Ошибка обновления: {html.escape(res)}"
+                else:
+                    reply_text = "⚠️ Порог должен быть числом от <b>0</b> (все события) до <b>100</b> (только критические)."
+                await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": reply_text, "parse_mode": "HTML", "reply_markup": SOC_MAIN_KEYBOARD})
+                return
+            else:
+                curr = await get_threat_threshold()
+                curr_str = f"{curr} / 100" if curr is not None else "60 / 100 (по умолчанию)"
+                reply_text = (
+                    f"🎯 <b>Настройка порога спам-скора HoneyMind</b>\n\n"
+                    f"Текущий порог алертов: <b>{curr_str}</b>\n\n"
+                    f"<i>Алерты отправляются в Telegram только если AI-скоринг события ≥ порогу:</i>\n"
+                    f"• <b>40</b> — низкий (максимум алертов, включая подозрительный зондаж)\n"
+                    f"• <b>60</b> — стандартный (сбалансированный режим по умолчанию)\n"
+                    f"• <b>75</b> — высокий (только явные и опасные атаки)\n"
+                    f"• <b>90</b> — критический (только подтверждённые эксплойты и RCE)\n\n"
+                    f"Выберите пресет кнопками или отправьте число: <code>/threshold &lt;0-100&gt;</code>"
+                )
+                inline_kb = {
+                    "inline_keyboard": [
+                        [
+                            {"text": "🟢 40 (Низкий)", "callback_data": "set_threshold_40"},
+                            {"text": "🟡 60 (Стандарт)", "callback_data": "set_threshold_60"},
+                        ],
+                        [
+                            {"text": "🟠 75 (Высокий)", "callback_data": "set_threshold_75"},
+                            {"text": "🔴 90 (Критический)", "callback_data": "set_threshold_90"},
+                        ],
+                    ]
+                }
+                await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": reply_text, "parse_mode": "HTML", "reply_markup": inline_kb})
+                return
+
 
 
         # Ручная блокировка IP: /block 1.2.3.4 или /ban 1.2.3.4
@@ -977,8 +1264,126 @@ async def _handle_telegram_update(tg_client: httpx.AsyncClient, base_tg: str, up
                     {"chat_id": chat_id, "text": txt, "parse_mode": "HTML", "reply_markup": inline_kb},
                 )
 
+        # Выгрузка правила Sigma (YAML)
+        elif cb_data.startswith("sigma_"):
+            sid = cb_data.split("_", 1)[1]
+            await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "Генерация правила Sigma..."})
+            arts = await get_center_session_artifacts(sid)
+            sigma_content = arts.get("sigma_yaml")
+            if sigma_content:
+                caption = f"🛡️ <b>Правило Sigma (SigmaHQ v2)</b>\nСессия: <code>{html.escape(sid[:16])}</code>\nДля импорта в Wazuh, Splunk, Elastic SIEM или MaxPatrol."
+                await send_document(chat_id, sigma_content, f"sigma_{sid[:8]}.yml", caption=caption)
+            else:
+                await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "⚠️ Правило Sigma формируется...", "show_alert": True})
+
+        # Выгрузка сигнатуры YARA (.yar)
+        elif cb_data.startswith("yara_"):
+            sid = cb_data.split("_", 1)[1]
+            await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "Генерация сигнатуры YARA..."})
+            arts = await get_center_session_artifacts(sid)
+            yara_content = arts.get("yara_rule")
+            if yara_content:
+                caption = f"🔍 <b>Сигнатура YARA (.yar)</b>\nСессия: <code>{html.escape(sid[:16])}</code>\nДля EDR и файловых антивирусных сканеров."
+                await send_document(chat_id, yara_content, f"rule_{sid[:8]}.yar", caption=caption)
+            else:
+                await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "⚠️ Сигнатура YARA формируется...", "show_alert": True})
+
+        # Выгрузка отчёта C-Level (Executive Brief)
+        elif cb_data.startswith("report_"):
+            sid = cb_data.split("_", 1)[1]
+            await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "Формирование отчёта C-Level..."})
+            arts = await get_center_session_artifacts(sid)
+            brief = arts.get("executive_brief") or arts.get("executive_markdown") or arts.get("executive_brief_markdown")
+            if brief:
+                caption = f"📋 <b>Executive Brief (Отчёт для руководства)</b>\nСессия: <code>{html.escape(sid[:16])}</code>\nЗащита от Prompt Injection 100%."
+                await send_document(chat_id, brief, f"executive_brief_{sid[:8]}.md", caption=caption)
+            else:
+                if chat_id:
+                    await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": f"⚠️ <b>Отчёт для сессии <code>{html.escape(sid[:16])}</code> ещё формируется</b>\n(события сессии обрабатываются моделью)", "parse_mode": "HTML"})
+
+        # Выгрузка отчёта DFIR
+        elif cb_data.startswith("dfir_"):
+            sid = cb_data.split("_", 1)[1]
+            await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": "Формирование DFIR-отчёта..."})
+            arts = await get_center_session_artifacts(sid)
+            dfir = arts.get("technical_dfir") or arts.get("technical_markdown") or arts.get("technical_dfir_markdown")
+            if dfir:
+                caption = f"🔬 <b>Technical DFIR Report</b>\nСессия: <code>{html.escape(sid[:16])}</code>\nIoC, MITRE ATT&CK & Engage, таймлайн."
+                await send_document(chat_id, dfir, f"technical_dfir_{sid[:8]}.md", caption=caption)
+            else:
+                if chat_id:
+                    await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": f"⚠️ <b>DFIR-отчёт для сессии <code>{html.escape(sid[:16])}</code> ещё формируется</b>\n(события сессии обрабатываются моделью)", "parse_mode": "HTML"})
+
+        # Просмотр прогноза следующего шага (Markov Chain)
+        elif cb_data.startswith("intent_"):
+            sid = cb_data.split("_", 1)[1]
+            arts = await get_center_session_artifacts(sid)
+            intent = arts.get("intent_prediction") or {}
+            curr = intent.get("current_technique") or "T1059"
+            pred = intent.get("predicted_technique") or "T1003"
+            prob = round((intent.get("probability") or 0.85) * 100)
+            pname = intent.get("predicted_name") or "OS Credential Dumping"
+            op_style = intent.get("operator_style") or "manual_exploratory"
+
+            # Компактный alert для pop-up (СТРОГО <= 200 символов по спецификации Telegram API!)
+            popup = f"🎯 След. шаг: {pred} ({prob}%)\n{pname[:45]}\nТекущее: {curr}\nРекомендация: подсунуть decoy token"
+            await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": popup[:190], "show_alert": True})
+
+            # И одновременно отправляем полную карточку прогноза в чат сообщением
+            if chat_id:
+                msg_text = (
+                    f"🎯 <b>МАРКОВСКИЙ ПРОГНОЗ ШАГОВ АТАКИ</b>\n"
+                    f"Сессия: <code>{html.escape(sid[:16])}</code>\n\n"
+                    f"• <b>Текущее действие:</b> <code>{html.escape(curr)}</code>\n"
+                    f"• <b>Вероятный следующий шаг:</b> <code>{html.escape(pred)}</code> ({prob}%)\n"
+                    f"• <b>Название техники:</b> {html.escape(pname)}\n"
+                    f"• <b>Стиль оператора:</b> <code>{html.escape(op_style)}</code>\n\n"
+                    f"💡 <b>Рекомендация SOC:</b> подсунуть decoy credentials / honeytokens для раннего обнаружения и локализации."
+                )
+                await _tg_post(tg_client, base_tg, "sendMessage", {"chat_id": chat_id, "text": msg_text, "parse_mode": "HTML"})
+
+        # Кнопки быстрой смены порога опасности (спам-скора)
+        elif cb_data.startswith("set_threshold_"):
+            val_str = cb_data.split("_")[-1]
+            if val_str.isdigit():
+                val = int(val_str)
+                ok, res = await set_threat_threshold(val)
+                if ok:
+                    toast = f"✅ Порог HoneyMind: {val}/100"
+                    edit_text = (
+                        f"🎯 <b>Порог спам-скора HoneyMind успешно изменён!</b>\n\n"
+                        f"Установлен порог: <b>{val} / 100</b>\n"
+                        f"<i>Оператор: {operator_mention}</i>\n\n"
+                        f"ℹ️ Теперь алерты об атаках отправляются в Telegram только если "
+                        f"оценка угрозы <code>threat_score &gt;= {val}</code>."
+                    )
+                else:
+                    toast = f"⚠️ Ошибка: {res}"
+                    edit_text = f"⚠️ Ошибка изменения порога: {html.escape(res)}"
+
+                await _tg_post(tg_client, base_tg, "answerCallbackQuery", {"callback_query_id": cb_id, "text": toast})
+                if chat_id and message_id:
+                    inline_kb = {
+                        "inline_keyboard": [
+                            [
+                                {"text": f"{'🔘' if val==40 else '🟢'} 40", "callback_data": "set_threshold_40"},
+                                {"text": f"{'🔘' if val==60 else '🟡'} 60", "callback_data": "set_threshold_60"},
+                                {"text": f"{'🔘' if val==75 else '🟠'} 75", "callback_data": "set_threshold_75"},
+                                {"text": f"{'🔘' if val==90 else '🔴'} 90", "callback_data": "set_threshold_90"},
+                            ]
+                        ]
+                    }
+                    await _tg_post(tg_client, base_tg, "editMessageText", {
+                        "chat_id": chat_id,
+                        "message_id": message_id,
+                        "text": edit_text,
+                        "parse_mode": "HTML",
+                        "reply_markup": inline_kb,
+                    })
+
 
 async def _run_polling_session() -> bool:
+
     """
     Один сеанс long-polling с собственным жизненным циклом httpx.AsyncClient.
     Возвращает True для немедленного перезапуска сеанса (при разрыве соединения),

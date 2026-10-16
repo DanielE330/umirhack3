@@ -23,6 +23,7 @@ PERMISSIONS: dict[str, tuple[str, str]] = {
     "users.manage": ("Администрирование", "Создавать пользователей, назначать роли, блокировать, сбрасывать 2FA"),
     "roles.manage": ("Администрирование", "Создавать и менять свои роли с набором прав"),
     "ideas.manage": ("Администрирование", "Решать судьбу идей новых ловушек"),
+    "settings.manage": ("Администрирование", "Настройки платформы, пороги алертов и спам-скор HoneyMind"),
 }
 ALL = frozenset(PERMISSIONS)
 
@@ -33,7 +34,8 @@ BUILTIN_ROLES: dict[str, tuple[str, str, list[str]]] = {
     "admin": ("Администратор", "Полный доступ ко всему, включая пользователей и роли.", sorted(ALL)),
     "operator": ("Оператор", "Управляет ловушками, профилями и машинами, видит события и файлы. Без пользователей, ролей и аудита.",
                  _VIEW + ["events.export", "iocs.export", "traps.manage", "traps.command", "traps.deploy", "profiles.manage",
-                          "machines.manage", "machines.power", "files.view", "files.download"]),
+                          "machines.manage", "machines.power", "files.view", "files.download", "settings.manage"]),
+
     "analyst": ("Аналитик SOC", "Разбирает события и файлы атакующих, выгружает IoC. Ничего не настраивает.",
                 _VIEW + ["events.export", "iocs.export", "files.view", "files.download"]),
     "deployer": ("Инженер развёртывания", "Создаёт машины, профили и ловушки, ставит агентов. Файлы атакующих и экспорт недоступны.",

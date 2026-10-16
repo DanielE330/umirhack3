@@ -13,16 +13,55 @@ import time
 from concurrent.futures import Executor, ThreadPoolExecutor
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
-from .honeymind import HoneyMind
-from .models import Event, SessionAssessment
+from .models import Event, SessionAssessment, SystemSetting, User
 from .orchestrator import Orchestrator
 
 log = logging.getLogger("honeyforge.center.scoring")
 
 ALERT_THRESHOLD = 60
+
+_threat_alert_threshold: int = 60
+_threshold_lock = threading.Lock()
+
+
+def get_threat_alert_threshold(db: Session | None = None) -> int:
+    """Возвращает текущий порог опасности (0-100), выше которого отправляются алерты."""
+    global _threat_alert_threshold
+    if db is not None:
+        try:
+            s = db.get(SystemSetting, "threat_alert_threshold")
+            if s and s.value and s.value.isdigit():
+                with _threshold_lock:
+                    _threat_alert_threshold = int(s.value)
+        except Exception:
+            pass
+    with _threshold_lock:
+        return _threat_alert_threshold
+
+
+def set_threat_alert_threshold(val: int, db: Session | None = None, username: str = "system") -> int:
+    """Устанавливает порог опасности (0-100) и сохраняет его в БД."""
+    global _threat_alert_threshold
+    val = max(0, min(100, int(val)))
+    with _threshold_lock:
+        _threat_alert_threshold = val
+    if db is not None:
+        try:
+            s = db.get(SystemSetting, "threat_alert_threshold")
+            if not s:
+                s = SystemSetting(key="threat_alert_threshold", value=str(val), updated_by=username)
+                db.add(s)
+            else:
+                s.value = str(val)
+                s.updated_by = username
+            db.commit()
+        except Exception as e:
+            log.warning("Failed to persist threat_alert_threshold: %s", e)
+    return val
+
 # Ограничиваем и параллелизм, и число попыток — иначе медленный/недоступный HoneyMind копит
 # неограниченно много фоновых задач на потоке событий от агентов.
 MAX_WORKERS = 8
@@ -85,6 +124,7 @@ def _score_event(session_factory: sessionmaker[Session], honeymind: HoneyMind,
         log.warning("honeymind: событие %s осталось без оценки (сервис недоступен)", event_view.get("id"))
         return
 
+    effective_thresh = ALERT_THRESHOLD
     with session_factory() as db:
         ev = db.get(Event, event_view["id"])
         if ev is None:
@@ -94,29 +134,47 @@ def _score_event(session_factory: sessionmaker[Session], honeymind: HoneyMind,
         ev.needs_review = result.get("needs_review")
         ev.honeymind_result = result
         db.commit()
+        system_thresh = get_threat_alert_threshold(db)
+
+        custom_min = db.scalar(
+            select(func.min(User.alert_threat_threshold))
+            .where(User.is_active == True, User.telegram_chat_id.is_not(None))
+        )
+        effective_thresh = min(system_thresh, custom_min) if custom_min is not None else system_thresh
 
     threat_score = result.get("threat_score") or 0
     event_type = event_view.get("type")
-    if threat_score >= ALERT_THRESHOLD and event_type not in SKIP_THREAT_ALERT_TYPES:
-        _notify_threat(orchestrator, event_type, event_view.get("src_ip", ""), result)
+    if threat_score >= effective_thresh and event_type not in SKIP_THREAT_ALERT_TYPES:
+        _notify_threat(orchestrator, event_type, event_view.get("src_ip", ""), result,
+                       session_id=event_view.get("session_id"), command=event_view.get("command"))
 
 
-def _notify_threat(orchestrator: Orchestrator, event_type: str, src_ip: str, result: dict[str, Any]) -> None:
+def _notify_threat(orchestrator: Orchestrator, event_type: str, src_ip: str, result: dict[str, Any],
+                   session_id: str | None = None, command: str | None = None) -> None:
     """Алерт в Telegram через существующий канал центр -> оркестратор -> send_alert.
 
-    Передаём только поля ответа HoneyMind (summary собран из шаблонов, без текста атакующего —
-    honeymind/README.md, раздел «Безопасность»), а не сырой payload события.
+    Передаём поля ответа HoneyMind, session_id для группировки сессий и команду.
     """
     try:
+        sid = session_id or result.get("session_id") or ""
+        props = {
+            "source_event_type": event_type,
+            "category": result.get("category"),
+            "threat_score": result.get("threat_score"),
+            "summary": result.get("summary", ""),
+            "session_id": sid,
+            "command": command or "",
+            "is_human": result.get("is_human"),
+            "human_probability": result.get("human_probability"),
+            "human_reason": result.get("human_reason"),
+            "intent_prediction": result.get("intent_prediction"),
+        }
+        event_name = "honeymind_threat"
         orchestrator.request("POST", "/", {
-            "event_name": "honeymind_threat",
+            "event_name": event_name,
             "attacker_ip": src_ip or "",
-            "properties": {
-                "source_event_type": event_type,
-                "category": result.get("category"),
-                "threat_score": result.get("threat_score"),
-                "summary": result.get("summary", ""),
-            },
+            "session_id": sid,
+            "properties": props,
         }, timeout=10, base="/api/v1/notify")
     except Exception:
         pass  # алерт вторичен: оценка уже сохранена в БД
@@ -158,11 +216,12 @@ def _assess_session(session_factory: sessionmaker[Session], honeymind: HoneyMind
         assessment.ssh_client = result.get("ssh_client")
         assessment.result = result
         db.commit()
+        threshold = get_threat_alert_threshold(db)
 
     threat_score = result.get("threat_score") or 0
     download_then_exec = bool(result.get("download_then_execute"))
-    if orchestrator and (download_then_exec or threat_score >= ALERT_THRESHOLD):
-        _notify_threat(orchestrator, "session", last_src_ip, result)
+    if orchestrator and (download_then_exec or threat_score >= threshold):
+        _notify_threat(orchestrator, "session_end", last_src_ip, result, session_id=session_id)
 
 
 def rescore_unscored_events(
@@ -198,6 +257,7 @@ def rescore_unscored_events(
     alerts_to_send = []
     with session_factory() as db:
         scored = 0
+        threshold = get_threat_alert_threshold(db)
         for ev_id, res in zip(event_ids, results):
             ev = db.get(Event, ev_id)
             if not ev:
@@ -208,7 +268,7 @@ def rescore_unscored_events(
             ev.honeymind_result = res
             scored += 1
             threat_score = ev.threat_score or 0
-            if orchestrator and threat_score >= ALERT_THRESHOLD and ev.type not in SKIP_THREAT_ALERT_TYPES:
+            if orchestrator and threat_score >= threshold and ev.type not in SKIP_THREAT_ALERT_TYPES:
                 alerts_to_send.append((ev.type, ev.src_ip or "", res))
         db.commit()
 

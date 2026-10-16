@@ -7,6 +7,7 @@ import io
 import ipaddress
 import uuid
 from datetime import datetime, timedelta
+from typing import Any
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
@@ -78,21 +79,238 @@ def get_session_assessment(session_id: str, _: User = Depends(auth.require_perm(
     if not total and a is None:
         raise HTTPException(404, "Сессия ещё не оценена")
     counts = dict(db.execute(select(Event.type, func.count()).where(Event.session_id == session_id).group_by(Event.type)).all())
+    cmds = db.scalars(select(Event.command).where(Event.session_id == session_id, Event.command != "").order_by(Event.id.asc()).limit(50)).all()
     summary = {"events": total, "src_ip": src or "", "first_ts": first.isoformat() + "Z" if first else None,
                "last_ts": last.isoformat() + "Z" if last else None,
                "duration_seconds": round((last - first).total_seconds(), 1) if first and last else 0,
                "commands": counts.get("command", 0), "auth_attempts": counts.get("auth_attempt", 0),
-               "honeytokens": counts.get("honeytoken", 0)}
+               "honeytokens": counts.get("honeytoken", 0),
+               "commands_list": [c for c in cmds if c]}
     out = {"session_id": session_id, "is_human": None, "human_probability": None, "human_method": None,
            "human_reason": None, "script_seen_before": None, "threat_score": None,
            "download_then_execute": None, "ssh_client": None, "updated_at": None, "summary": summary}
     if a is not None:
+        res_data = a.result or {}
         out.update(is_human=a.is_human, human_probability=a.human_probability, human_method=a.human_method,
                    human_reason=a.human_reason, script_seen_before=a.script_seen_before,
                    threat_score=a.threat_score, download_then_execute=a.download_then_execute,
                    ssh_client=a.ssh_client,
+                   dual_loop_report=res_data.get("dual_loop_report"),
+                   detection_rules=res_data.get("detection_rules"),
+                   mitre_engage=res_data.get("mitre_engage"),
+                   intent_prediction=res_data.get("intent_prediction"),
+                   hassh_profile=res_data.get("hassh_profile"),
                    updated_at=a.updated_at.isoformat() + "Z")
     return out
+
+
+def _get_or_synth_session_artifacts(db: Session, session_id: str, request: Request) -> tuple[dict[str, Any], dict[str, Any]]:
+    from ..scoring import _event_payload
+    a = db.get(SessionAssessment, session_id)
+    res_data = (a.result or {}) if a and a.result else {}
+    rules = res_data.get("detection_rules")
+    reports = res_data.get("dual_loop_report")
+    if rules and reports:
+        return rules, reports
+
+    honeymind = getattr(request.app.state, "honeymind", None)
+    if honeymind:
+        rows = db.scalars(select(Event).where(Event.session_id == session_id).order_by(Event.ts)).all()
+        events = [_event_payload({
+            "type": r.type, "command": r.command, "username": r.username, "password": r.password,
+            "session_id": r.session_id, "ts": r.ts.isoformat() + "Z" if r.ts else "", "data": r.data,
+        }) for r in rows]
+        if events:
+            if not rules:
+                rules = honeymind.export_detection_rules(events, session_id=session_id) or {}
+            if not reports:
+                reports = honeymind.generate_report(events=events) or {}
+            if a and rules and reports:
+                if not a.result or not isinstance(a.result, dict):
+                    a.result = {}
+                a.result["detection_rules"] = rules
+                a.result["dual_loop_report"] = reports
+                db.commit()
+    return rules or {}, reports or {}
+
+
+@router.get("/sessions/{session_id}/sigma.yml")
+def download_session_sigma(session_id: str, request: Request, _: User = Depends(auth.require_perm("events.export")), db: Session = Depends(get_db)):
+    rules, _ = _get_or_synth_session_artifacts(db, session_id, request)
+    sigma = rules.get("sigma_yaml")
+    if not sigma:
+        raise HTTPException(404, "Правило Sigma не сформировано для этой сессии")
+    return PlainTextResponse(sigma, media_type="application/x-yaml; charset=utf-8",
+                             headers={"Content-Disposition": f'attachment; filename="sigma_{session_id[:16]}.yml"'})
+
+
+@router.get("/sessions/{session_id}/yara.yar")
+def download_session_yara(session_id: str, request: Request, _: User = Depends(auth.require_perm("events.export")), db: Session = Depends(get_db)):
+    rules, _ = _get_or_synth_session_artifacts(db, session_id, request)
+    yara = rules.get("yara_rule")
+    if not yara:
+        raise HTTPException(404, "Правило YARA не сформировано для этой сессии")
+    return PlainTextResponse(yara, media_type="text/plain; charset=utf-8",
+                             headers={"Content-Disposition": f'attachment; filename="rule_{session_id[:16]}.yar"'})
+
+
+@router.get("/sessions/{session_id}/report.md")
+def download_session_report(session_id: str, request: Request, _: User = Depends(auth.require_perm("events.view")), db: Session = Depends(get_db)):
+    _, reports = _get_or_synth_session_artifacts(db, session_id, request)
+    brief = (reports or {}).get("executive_markdown") or (reports or {}).get("executive_brief_markdown")
+    if not brief:
+        raise HTTPException(404, "Executive Brief не сформирован для этой сессии")
+    return PlainTextResponse(brief, media_type="text/markdown; charset=utf-8",
+                             headers={"Content-Disposition": f'attachment; filename="executive_brief_{session_id[:16]}.md"'})
+
+
+@router.get("/sessions/{session_id}/dfir.md")
+def download_session_dfir(session_id: str, request: Request, _: User = Depends(auth.require_perm("events.view")), db: Session = Depends(get_db)):
+    _, reports = _get_or_synth_session_artifacts(db, session_id, request)
+    dfir = (reports or {}).get("technical_markdown") or (reports or {}).get("technical_dfir_markdown")
+    if not dfir:
+        raise HTTPException(404, "DFIR-отчёт не сформирован для этой сессии")
+    return PlainTextResponse(dfir, media_type="text/markdown; charset=utf-8",
+                             headers={"Content-Disposition": f'attachment; filename="technical_dfir_{session_id[:16]}.md"'})
+
+
+@router.get("/sessions/{session_id}/stix.json")
+def download_session_stix(session_id: str, request: Request,
+                          _: User = Depends(auth.require_perm("events.export")),
+                          db: Session = Depends(get_db)):
+    """STIX 2.1 Bundle: полный граф разведки и атаки сессии (OpenCTI, MISP, SIEM, SOAR)."""
+    rows = db.scalars(select(Event).where(Event.session_id == session_id).order_by(Event.ts.asc())).all()
+    if not rows:
+        raise HTTPException(404, "Сессия не найдена")
+
+    first_ts = rows[0].ts
+    last_ts = rows[-1].ts
+    src_ip = next((r.src_ip for r in rows if r.src_ip), "")
+
+    first_iso = first_ts.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    last_iso = last_ts.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+    identity_id = f"identity--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:identity:center')}"
+    objects: list[dict[str, Any]] = [
+        {
+            "type": "identity",
+            "spec_version": "2.1",
+            "id": identity_id,
+            "created": first_iso,
+            "modified": first_iso,
+            "name": "HoneyForge Cyber Deception Platform",
+            "identity_class": "system",
+            "description": "Автономная распределённая платформа киберобмана и перехвата APT.",
+        }
+    ]
+
+    # Indicator на IP
+    indicator_id = None
+    if src_ip:
+        try:
+            addr = ipaddress.ip_address(src_ip)
+            kind = "ipv4-addr" if addr.version == 4 else "ipv6-addr"
+            indicator_id = f"indicator--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:session:' + session_id + ':ip:' + src_ip)}"
+            objects.append({
+                "type": "indicator",
+                "spec_version": "2.1",
+                "id": indicator_id,
+                "created": first_iso,
+                "modified": last_iso,
+                "name": f"Attacker IP: {src_ip}",
+                "description": f"Атакующий адрес, зафиксированный в сессии {session_id}",
+                "pattern": f"[{kind}:value = '{src_ip}']",
+                "pattern_type": "stix",
+                "valid_from": first_iso,
+                "indicator_types": ["malicious-activity", "compromised"],
+            })
+        except ValueError:
+            pass
+
+    # Выявляем техники MITRE ATT&CK
+    attack_patterns = []
+    has_commands = any(r.type == "command" for r in rows)
+    has_auth = any(r.type == "auth_attempt" for r in rows)
+    has_k8s = any(r.data and r.data.get("attack_type") == "k8s_secret_theft" or r.proto == "k8s" for r in rows)
+    has_llm = any(r.data and r.data.get("attack_type") == "llm_prompt_injection" or r.proto == "llm" for r in rows)
+    has_tokens = any(r.type == "honeytoken" for r in rows)
+
+    if has_k8s:
+        ap_id = f"attack-pattern--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:mitre:T1552.007')}"
+        objects.append({
+            "type": "attack-pattern", "spec_version": "2.1", "id": ap_id,
+            "created": first_iso, "modified": last_iso,
+            "name": "Container and Resource Discovery / Unsecured K8s Secrets",
+            "description": "Попытка сбора секретов кластера Kubernetes (kubectl get secrets)",
+            "external_references": [{"source_name": "mitre-attack", "external_id": "T1552.007"}],
+        })
+        attack_patterns.append(ap_id)
+
+    if has_llm:
+        ap_id = f"attack-pattern--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:atlas:AML.T0054')}"
+        objects.append({
+            "type": "attack-pattern", "spec_version": "2.1", "id": ap_id,
+            "created": first_iso, "modified": last_iso,
+            "name": "LLM Jailbreak / Adversarial Prompt Injection",
+            "description": "Атака на корпоративную языковую модель с целью обхода ограничений (OWASP LLM07)",
+            "external_references": [{"source_name": "mitre-atlas", "external_id": "AML.T0054"}],
+        })
+        attack_patterns.append(ap_id)
+
+    if has_commands:
+        ap_id = f"attack-pattern--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:mitre:T1059.004')}"
+        objects.append({
+            "type": "attack-pattern", "spec_version": "2.1", "id": ap_id,
+            "created": first_iso, "modified": last_iso,
+            "name": "Command and Scripting Interpreter: Unix Shell",
+            "description": "Выполнение интерактивных команд в шелле ловушки",
+            "external_references": [{"source_name": "mitre-attack", "external_id": "T1059.004"}],
+        })
+        attack_patterns.append(ap_id)
+
+    if has_auth:
+        ap_id = f"attack-pattern--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:mitre:T1110.001')}"
+        objects.append({
+            "type": "attack-pattern", "spec_version": "2.1", "id": ap_id,
+            "created": first_iso, "modified": last_iso,
+            "name": "Brute Force: Password Guessing",
+            "description": "Попытки подбора паролей к сервисам ловушки",
+            "external_references": [{"source_name": "mitre-attack", "external_id": "T1110.001"}],
+        })
+        attack_patterns.append(ap_id)
+
+    if has_tokens and not has_k8s:
+        ap_id = f"attack-pattern--{uuid.uuid5(uuid.NAMESPACE_URL, 'honeyforge:mitre:T1552')}"
+        objects.append({
+            "type": "attack-pattern", "spec_version": "2.1", "id": ap_id,
+            "created": first_iso, "modified": last_iso,
+            "name": "Unsecured Credentials",
+            "description": "Доступ к файлам-приманкам и канареечным токенам",
+            "external_references": [{"source_name": "mitre-attack", "external_id": "T1552"}],
+        })
+        attack_patterns.append(ap_id)
+
+    # Связи (Relationship) indicator -> indicates -> attack-pattern
+    if indicator_id:
+        for ap_id in attack_patterns:
+            objects.append({
+                "type": "relationship",
+                "spec_version": "2.1",
+                "id": f"relationship--{uuid.uuid4()}",
+                "created": first_iso,
+                "modified": last_iso,
+                "relationship_type": "indicates",
+                "source_ref": indicator_id,
+                "target_ref": ap_id,
+            })
+
+    bundle = {
+        "type": "bundle",
+        "id": f"bundle--{uuid.uuid4()}",
+        "objects": objects,
+    }
+    return JSONResponse(bundle, media_type="application/stix+json;version=2.1",
+                        headers={"Content-Disposition": f'attachment; filename="stix_bundle_{session_id[:16]}.json"'})
 
 
 def _csv_cell(value) -> str:

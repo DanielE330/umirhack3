@@ -40,6 +40,16 @@ const en = {
     'Proxmox could not create the machine: see details on the card. You can delete it and create it again',
   'Proxmox недоступен: {err}. Машины не показываются, остальное работает.':
     'Proxmox unavailable: {err}. Machines are hidden, everything else works.',
+  'Закрыть уведомление': 'Dismiss notification',
+  'Гипервизор Proxmox не подключён': 'Proxmox hypervisor not connected',
+  'Автономный режим': 'Standalone mode',
+  'Причина: {err}': 'Reason: {err}',
+  'HoneyForge работает в автономном режиме: ловушки и агенты могут запускаться прямо на хосте или в Docker. Чтобы создавать изолированные виртуальные машины LXC/QEMU в Proxmox VE, настройте параметры доступа в infra/.env (PROXMOX_HOST, PROXMOX_TOKEN_NAME, PROXMOX_TOKEN_VALUE).':
+    'HoneyForge is running in standalone mode: traps and agents can run directly on the host or in Docker. To create isolated LXC/QEMU virtual machines in Proxmox VE, configure access settings in infra/.env (PROXMOX_HOST, PROXMOX_TOKEN_NAME, PROXMOX_TOKEN_VALUE).',
+  'Невозможно создать контейнер: Proxmox не подключён ({err})':
+    'Cannot create container: Proxmox is not connected ({err})',
+  'Машины недоступны — Proxmox оффлайн или не настроен':
+    'Machines unavailable — Proxmox is offline or not configured',
   'QR-код для приложения-аутентификатора': 'QR code for the authenticator app',
   'SSH-сканер': 'SSH scanner',
   'VMID / нода': 'VMID / node',
@@ -834,7 +844,27 @@ const en = {
   'Привязать в Telegram': 'Link in Telegram',
   'Откроется бот: нажмите «Запустить» — привязка завершится сама': 'The bot opens: press “Start” and linking finishes by itself',
   'Код': 'Code',
-  'Показать код и скопировать его': 'Show the code and copy it',
+  'Порог алертов в Telegram': 'Telegram Alert Threshold',
+  'Минимальный уровень угрозы (Threat Score 0–100), при котором бот присылает уведомление. Позволяет избавиться от Alert Fatigue.':
+    'Minimum Threat Score (0–100) required to trigger Telegram notifications. Mitigates Alert Fatigue.',
+  'Порог алертов сохранён: {val}/100': 'Alert threshold saved: {val}/100',
+  'Порог алертов': 'Alert threshold',
+  'Критический (RCE, деструктивные действия, утечки .env)': 'Critical (RCE, destructive actions, .env leaks)',
+  'Высокий (атаки, эксплойты и брутфорс)': 'High (attacks, exploits, brute-force)',
+  'Средний (подозрительная активность, рекомендуется)': 'Medium (suspicious activity, recommended)',
+  'Низкий (все события, включая фоновый шум)': 'Low (all events, including background noise)',
+  'Порог тревоги HoneyMind (спам-скор)': 'HoneyMind Alert Threshold (Spam-Score)',
+  'Минимальная оценка угрозы (0–100), при которой HoneyMind отправляет мгновенный алерт в Telegram. Чем выше значение, тем меньше уведомлений о фоновом шуме.': 'Minimum threat score (0–100) for HoneyMind to dispatch an instant Telegram alert. Higher values suppress background scanning noise.',
+  'Порог тревоги HoneyMind установлен: {val} / 100': 'HoneyMind alert threshold set to: {val} / 100',
+  'Критический': 'Critical',
+  'Стандартный': 'Standard',
+  'Чувствительный': 'Sensitive',
+  'Порог опасности': 'Threat Threshold',
+  '40 — Низкий': '40 — Low',
+  '60 — Стандарт': '60 — Standard',
+  '75 — Высокий': '75 — High',
+  '90 — Критический': '90 — Critical',
 }
 
 export default en
+

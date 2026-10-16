@@ -35,6 +35,7 @@ LATE_COLUMNS = {
         "telegram_username": "VARCHAR(64)",
         "telegram_link_code": "VARCHAR(32)",
         "telegram_link_expires": "TIMESTAMP",
+        "alert_threat_threshold": "INTEGER DEFAULT 60",
     },
     "session_assessments": {
         "threat_score": "INTEGER",

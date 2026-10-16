@@ -5,7 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.api.deps import internal_only
 from app.schemas.machine import AgentInstall, MachineCreate, MachineUpdate
 from app.services.agent_installer import AgentInstaller
-from app.services.proxmox_manager import NotOurMachine, ProxmoxManager
+from app.services.proxmox_manager import (
+    NotOurMachine,
+    ProxmoxManager,
+    ProxmoxNotConfigured,
+    ProxmoxUnavailable,
+)
 
 router = APIRouter(dependencies=[Depends(internal_only)])
 
@@ -19,6 +24,10 @@ def manager() -> ProxmoxManager:
     if _manager is None:
         try:
             _manager = ProxmoxManager.from_env()
+        except ProxmoxNotConfigured as e:
+            raise HTTPException(status_code=503, detail=str(e))
+        except ProxmoxUnavailable as e:
+            raise HTTPException(status_code=503, detail=str(e))
         except Exception as e:
             raise HTTPException(status_code=503, detail=f"Proxmox недоступен: {e}")
     return _manager
@@ -46,7 +55,13 @@ def _run(vmid: int, ip: str, body: MachineCreate) -> None:
 @router.get("/")
 def list_machines():
     """Машины-ловушки (только с тегом honeyforge) + те, что ещё создаются."""
-    machines = manager().list_machines()
+    try:
+        mgr = manager()
+        machines = mgr.list_machines()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Proxmox недоступен: {e}")
     seen = {m["vmid"] for m in machines}
     for m in machines:
         if m["vmid"] in JOBS:
@@ -115,6 +130,17 @@ def rollback_snapshot(vmid: int, name: str = "clean"):
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Ошибка отката к снимку: {e}")
     return {"vmid": vmid, "snapshot": name, "status": "restored"}
+
+
+@router.post("/{vmid}/freeze")
+def freeze_machine(vmid: int, session_id: str = "manual"):
+    try:
+        snapname = manager().forensic_freeze(vmid, session_id)
+    except NotOurMachine:
+        raise HTTPException(status_code=404, detail="Машина не найдена")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Ошибка криминалистической заморозки: {e}")
+    return {"vmid": vmid, "snapshot": snapname, "status": "frozen"}
 
 
 @router.get("/{vmid}/snapshots")

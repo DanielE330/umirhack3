@@ -249,3 +249,33 @@ def test_operator_label_feedback_and_export_cli(app, admin, client):
         assert lbl is not None
         assert lbl.label == "malware_downloader"
         assert lbl.operator == "admin"
+
+
+def test_oob_canary_trip_confirms_exfiltration(app, admin, client):
+    t = mk_trap(admin, name="ssh-bait")
+    # 1. Агент логирует факт чтения ханитокена
+    token_val = "AKIASOCTEST123"
+    r_log = admin.post(
+        "/assets/v1/log",
+        json={"events": [event(type="honeytoken", command="/root/.aws/credentials",
+                               session_id="sess-attacker-99", data={"action": "planted", "token_id": token_val})]},
+        headers=agent_headers(t["token"])
+    )
+    assert r_log.status_code == 200
+
+    # 2. Атакующий обращается к канареечному URL (OOB callback)
+    r_oob = client.get(f"/assets/v1/telemetry/sync?token={token_val}")
+    assert r_oob.status_code == 200
+    assert r_oob.json().get("code") == "AUTH_EXPIRED"
+
+    # 3. В БД зафиксировано подтверждение эксфильтрации с threat_score=100
+    with app.state.session_factory() as db:
+        oob_ev = db.scalar(
+            select(Event).where(Event.command == f"OOB Canary Tripped: {token_val}").order_by(Event.id.desc())
+        )
+        assert oob_ev is not None
+        assert oob_ev.threat_score == 100
+        assert oob_ev.session_id == "sess-attacker-99"
+        assert oob_ev.data.get("action") == "exfiltrated"
+        assert oob_ev.data.get("planted_session_id") == "sess-attacker-99"
+

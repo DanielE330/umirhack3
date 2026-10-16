@@ -11,7 +11,7 @@ _PROCESS_NAME = re.compile(r"^[A-Za-z0-9_./ -]{1,40}$")
 
 class Service(BaseModel):
     port: int = Field(ge=1, le=65535)
-    proto: Literal["banner", "ssh", "http", "mysql", "db"] = "banner"
+    proto: Literal["banner", "ssh", "http", "mysql", "db", "k8s", "kubernetes", "llm", "ai", "langchain"] = "banner"
     banner: str = Field(default="", max_length=255)
 
 

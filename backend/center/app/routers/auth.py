@@ -47,6 +47,7 @@ def _user_info(user: User, csrf: str) -> dict:
         "csrf": csrf,
         "telegram_linked": bool(user.telegram_chat_id),
         "telegram_username": user.telegram_username,
+        "alert_threat_threshold": user.alert_threat_threshold if user.alert_threat_threshold is not None else 60,
     }
 
 
@@ -270,4 +271,21 @@ def unlink_telegram(request: Request, sess: AuthSession = Depends(auth.current_s
     auth.audit(db, user.username, "telegram.unlink", ip=auth.client_ip(request))
     db.commit()
     return {"ok": True}
+
+
+class AlertThresholdIn(BaseModel):
+    threshold: int = Field(ge=0, le=100)
+
+
+@router.patch("/me/alert-threshold")
+def update_alert_threshold(body: AlertThresholdIn, request: Request,
+                           sess: AuthSession = Depends(auth.current_session),
+                           db: Session = Depends(get_db)):
+    """Настройка персонального минимального порога угрозы для Telegram-алертов (0-100)."""
+    user = sess.user
+    user.alert_threat_threshold = body.threshold
+    auth.audit(db, user.username, "alert_threshold.update", f"threshold={body.threshold}", ip=auth.client_ip(request))
+    db.commit()
+    return {"ok": True, "alert_threat_threshold": user.alert_threat_threshold}
+
 

@@ -12,7 +12,15 @@ export default function AuthProvider({ children }) {
       setCsrf(d.csrf)
       setState({
         status: 'authed',
-        user: { username: d.username, role: d.role, roleTitle: d.role_title || d.role, permissions: d.permissions || [], telegramLinked: Boolean(d.telegram_linked), telegramUsername: d.telegram_username || '' },
+        user: {
+          username: d.username,
+          role: d.role,
+          roleTitle: d.role_title || d.role,
+          permissions: d.permissions || [],
+          telegramLinked: Boolean(d.telegram_linked),
+          telegramUsername: d.telegram_username || '',
+          alertThreatThreshold: d.alert_threat_threshold != null ? d.alert_threat_threshold : 60,
+        },
       })
     } catch {
       setCsrf('')

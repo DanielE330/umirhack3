@@ -31,6 +31,7 @@ class User(Base):
     telegram_username: Mapped[str | None] = mapped_column(String(64), nullable=True)
     telegram_link_code: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
     telegram_link_expires: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    alert_threat_threshold: Mapped[int] = mapped_column(Integer, default=60)
 
     recovery_codes: Mapped[list["RecoveryCode"]] = relationship(cascade="all, delete-orphan")
 
@@ -265,3 +266,15 @@ class Role(Base):
     is_system: Mapped[bool] = mapped_column(Boolean, default=False)
     created_by: Mapped[str] = mapped_column(String(64), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class SystemSetting(Base):
+    """Глобальные системные параметры центра (пороги алертов, спам-скор HoneyMind и др.)."""
+
+    __tablename__ = "system_settings"
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[str] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+    updated_by: Mapped[str] = mapped_column(String(64), default="")
+

@@ -30,5 +30,6 @@ class Orchestrator:
                 detail = None
             # 401 оркестратора — ошибка настройки центра, а не прав оператора
             status = 503 if resp.status_code in (401, 500, 502, 503) else resp.status_code
-            raise HTTPException(status, detail if isinstance(detail, str) else "Ошибка оркестратора")
+            msg = detail if isinstance(detail, str) and detail != "Internal Server Error" else "Ошибка оркестратора"
+            raise HTTPException(status, msg)
         return resp.json()

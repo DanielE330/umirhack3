@@ -10,7 +10,7 @@ import { ORDER, STATES } from '../../lib/model.js'
 import ContainerCard from './ContainerCard.jsx'
 
 export default function Containers() {
-  const { containers, traps, pickProfiles, cFilter, setCFilter, trapsOf } = useData()
+  const { containers, traps, pickProfiles, cFilter, setCFilter, trapsOf, orchError } = useData()
   const { can } = useAuth()
   const { showToast } = useUi()
   const { openNewContainer } = useModals()
@@ -30,6 +30,10 @@ export default function Containers() {
   const working = containers.filter((c) => c.state === 'online').length
 
   const add = () => {
+    if (orchError) {
+      showToast(t('Невозможно создать контейнер: Proxmox не подключён ({err})', { err: orchError }), true)
+      return
+    }
     if (!pickProfiles.length) {
       showToast(t('Сначала создайте профиль ловушки'), true)
       navigate('/profiles')
@@ -40,6 +44,20 @@ export default function Containers() {
 
   return (
     <section>
+      {orchError && (
+        <div className="orch-offline-card">
+          <div className="orch-offline-header">
+            <b>{t('Гипервизор Proxmox не подключён')}</b>
+            <span className="badge badge-warn">{t('Автономный режим')}</span>
+          </div>
+          <p className="orch-offline-desc">
+            {t('Причина: {err}', { err: orchError })}
+          </p>
+          <p className="orch-offline-hint">
+            {t('HoneyForge работает в автономном режиме: ловушки и агенты могут запускаться прямо на хосте или в Docker. Чтобы создавать изолированные виртуальные машины LXC/QEMU в Proxmox VE, настройте параметры доступа в infra/.env (PROXMOX_HOST, PROXMOX_TOKEN_NAME, PROXMOX_TOKEN_VALUE).')}
+          </p>
+        </div>
+      )}
       <div className="toolbar">
         {can('machines.manage') && (
           <button className="btn" data-tip={t('Создать в Proxmox новую машину в изолированной сети и запустить в ней ловушки')} onClick={add}>
@@ -62,7 +80,7 @@ export default function Containers() {
       <div className="cgrid">
         {list.length
           ? list.map((c) => <ContainerCard key={c.id} c={c} />)
-          : <div className="cnone">{containers.length ? t('Ничего не найдено') : t('Контейнеров пока нет — создайте первый')}</div>}
+          : <div className="cnone">{orchError ? t('Машины недоступны — Proxmox оффлайн или не настроен') : (containers.length ? t('Ничего не найдено') : t('Контейнеров пока нет — создайте первый'))}</div>}
       </div>
     </section>
   )

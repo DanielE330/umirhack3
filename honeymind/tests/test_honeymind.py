@@ -186,6 +186,30 @@ def test_download_and_honeytoken_are_high(analyzer):
     assert analyzer.analyze_event({"type": "honeytoken", "command": "/root/.aws/credentials"}).threat_score >= 90
 
 
+def test_honeytoken_planted_and_exfiltrated_scoring(analyzer):
+    planted = analyzer.analyze_event({
+        "type": "honeytoken", "command": "/root/.aws/credentials",
+        "data": {"action": "planted", "token_id": "AKIA123"}
+    })
+    assert planted.threat_score == 92
+    assert "honeytoken_planted" in planted.matched_rules
+
+    exfil = analyzer.analyze_event({
+        "type": "honeytoken", "command": "OOB Token Triggered: AKIA123",
+        "data": {"action": "exfiltrated", "token_id": "AKIA123"}
+    })
+    assert exfil.threat_score == 100
+    assert "oob_canary_tripped" in exfil.matched_rules
+
+    # В сессии факт эксфильтрации подтверждает атаку
+    sess = analyzer.analyze_session([
+        {"type": "command", "command": "cat /root/.aws/credentials"},
+        {"type": "honeytoken", "command": "OOB Triggered", "data": {"action": "exfiltrated", "token_id": "AKIA123"}}
+    ])
+    assert sess["threat_score"] == 100
+    assert sess["exfiltration_confirmed"] is True
+
+
 # ───────────── сессия / is_human ─────────────
 def _ev(t, cmd):
     return {"timestamp": f"2026-10-10T10:00:{t:06.3f}Z", "event_type": "command_executed", "payload": {"command": cmd}}

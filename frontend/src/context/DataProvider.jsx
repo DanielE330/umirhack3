@@ -35,23 +35,34 @@ export default function DataProvider({ children }) {
   const fail = useCallback((e) => showToast(e.message, true), [showToast])
   // обрыв связи с центром (перезапуск, сеть) показываем один раз, а не каждые 5 секунд опроса
   const outage = useRef(false)
+  const lastMachinesCheck = useRef(0)
+  const orchFailed = useRef(false)
 
   // ---------- загрузка ----------
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (forceMachines = false) => {
     try {
       const [ps, ts] = await Promise.all([canProfiles ? api('/api/profiles') : [], canTraps ? api('/api/traps') : []])
-      let ms = []
-      let err = ''
-      try {
-        if (canMachines) ms = await api('/api/machines')
-      } catch (e) {
-        err = e.message
-      }
       setProfiles(ps.map(profileFromApi))
-      setMachines(ms.map(machineFromApi))
       setTrapsRaw(ts)
-      setOrchError(err)
       outage.current = false
+
+      // Опрос Proxmox: если гипервизор недоступен или не настроен, не долбим /api/machines каждые 5с,
+      // а повторяем раз в 30 секунд (или сразу при явном действии оператора).
+      const now = Date.now()
+      const interval = orchFailed.current ? 30000 : 5000
+      if (canMachines && (forceMachines || now - lastMachinesCheck.current >= interval)) {
+        lastMachinesCheck.current = now
+        try {
+          const ms = await api('/api/machines')
+          setMachines(ms.map(machineFromApi))
+          setOrchError('')
+          orchFailed.current = false
+        } catch (e) {
+          orchFailed.current = true
+          setMachines([])
+          setOrchError(e.message)
+        }
+      }
     } catch (e) {
       if (!(e instanceof TypeError)) fail(e)
       else if (!outage.current) {
@@ -222,7 +233,7 @@ export default function DataProvider({ children }) {
         delete n[c.vmid]
         return n
       })
-      await refresh()
+      await refresh(true)
     },
     [refresh, showToast, fail],
   )

