@@ -16,16 +16,25 @@
 # Команды:
 #   bootstrap     ВСЁ ОДНОЙ КОМАНДОЙ: готовит хост (как install), затем сам создаёт отдельный LXC-контейнер
 #                 (docker.io + docker compose) со всем стеком — center/orchestrator/db/honeymind/proxy —
-#                 копирует туда код, секреты Proxmox, генерирует infra/.env и создаёт первого admin
-#                 (пароль печатается один раз). --center-ip здесь — свободный адрес в ЛОКАЛЬНОЙ сети
-#                 (не в DMZ) для этого нового контейнера.
+#                 копирует туда код, секреты Proxmox, генерирует infra/.env, создаёт первого admin
+#                 (пароль печатается один раз) и HTTPS для панели на отдельном порту (ниже). --center-ip
+#                 здесь — свободный адрес в ЛОКАЛЬНОЙ сети (не в DMZ) для этого нового контейнера.
 #   install       Только хост Proxmox: DMZ-мост с файрволом, пул/роли/пользователь/API-токен,
 #                 шаблон ловушек, hf-agent-ctl, ключ оркестратора. Центр поднимаете сами (см. docs/INSTALL.md)
 #                 или на другом сервере — используйте, если bootstrap не подходит (центр не на этом хосте).
 #   update-app    Перекопировать код в контейнер центра (из bootstrap) и пересобрать docker compose.
+#   admin-tls     Отдельно включить/обновить HTTPS для панели (если выключали --no-admin-tls при bootstrap
+#                 или меняете --admin-tls-port).
 #   uninstall     удаляет всё перечисленное, включая машины-ловушки, шаблон и контейнер центра (если был bootstrap).
 #   status        что из этого сейчас есть на хосте.
 #   update-agent  только обновить код агента (/usr/local/share/hf-agent/netsvc.tgz) — для новых установок агентов.
+#
+# HTTPS для панели (только bootstrap/admin-tls): т.к. порт --center-port (4000) внутри HoneyForge
+# намеренно работает по голому HTTP (туда же ходят агенты-ловушки из DMZ, своя защита от утечки
+# панели в их сторону — ломать нельзя), bootstrap поднимает ОТДЕЛЬНЫЙ systemd-сервис
+# honeyforge-tls-admin: stunnel слушает TLS на --admin-tls-port (4443) и перенаправляет на
+# 127.0.0.1:--center-port. Сертификат самоподписанный (ECDSA, IP в SAN, 10 лет) — браузер один раз
+# спросит подтверждение. Полностью отдельно от docker compose — переживает update-app и перезапуски.
 #
 # Повторный запуск любой команды безопасен: готовое пропускается, секреты не перегенерируются.
 # Параметры (сохраняются в /etc/honeyforge/proxmox.conf и подхватываются при следующих запусках):
@@ -37,6 +46,7 @@
 #   --center-disk ГБ      диск контейнера центра (20)      --center-storage     хранилище (как у ловушек)
 #   --center-bridge NAME  мост для контейнера центра (по умолчанию = --wan)
 #   --center-gateway IP   шлюз локальной сети для контейнера центра (автоопределение)
+#   --admin-tls-port N    порт HTTPS для панели (4443, самоподписанный, см. выше) --no-admin-tls  выключить
 #   --orch-from IP        откуда оркестратор ходит по SSH на хост (по умолчанию = --center-ip)
 #   --orch-pubkey FILE    свой публичный ключ оркестратора (иначе ключ генерируется в /root/honeyforge-secrets/)
 #   --pve-ip IP           адрес хоста Proxmox для центра (по умолчанию — адрес на --wan)
@@ -91,6 +101,7 @@ REBUILD_TEMPLATE=0; ROTATE_TOKEN=0; YES=0
 CENTER_VMID=9200; CENTER_CORES=2; CENTER_MEMORY=2048; CENTER_DISK=20
 CENTER_STORAGE=""; CENTER_BRIDGE=""; CENTER_GW=""; CENTER_PREFIX=""
 ADMIN_PASSWORD=""
+ADMIN_TLS=1; ADMIN_TLS_PORT=4443
 
 # shellcheck disable=SC1090
 [ -r "$STATE" ] && . "$STATE"
@@ -108,6 +119,8 @@ while [ $# -gt 0 ]; do
     --center-bridge) CENTER_BRIDGE="$2"; shift ;;
     --center-gateway) CENTER_GW="$2"; shift ;;
     --center-prefix) CENTER_PREFIX="$2"; shift ;;
+    --admin-tls-port) ADMIN_TLS_PORT="$2"; shift ;;
+    --no-admin-tls) ADMIN_TLS=0 ;;
     --orch-from) ORCH_FROM="$2"; shift ;;
     --orch-pubkey) ORCH_PUBKEY="$2"; shift ;;
     --pve-ip) PVE_IP="$2"; shift ;;
@@ -162,7 +175,8 @@ save_state() {
     echo "# HoneyForge на этом хосте Proxmox: параметры установки (пишет hf-proxmox.sh)"
     for v in CENTER_IP CENTER_PORT ORCH_FROM PVE_IP NODE STORAGE BRIDGE WAN_IF DMZ_NET DMZ_GW TEMPLATE_ID POOL \
              OST_STORAGE TEMPLATE_DISK STORAGE_ADDED_CONTENT \
-             CENTER_VMID CENTER_CORES CENTER_MEMORY CENTER_DISK CENTER_STORAGE CENTER_BRIDGE CENTER_GW CENTER_PREFIX; do
+             CENTER_VMID CENTER_CORES CENTER_MEMORY CENTER_DISK CENTER_STORAGE CENTER_BRIDGE CENTER_GW CENTER_PREFIX \
+             ADMIN_TLS_PORT; do
       printf '%s=%q\n' "$v" "${!v}"
     done
   } > "$STATE"
@@ -691,6 +705,64 @@ create_center_admin() {
   ok "пользователь admin создан"
 }
 
+setup_admin_tls() {
+  [ "$ADMIN_TLS" = 1 ] || { warn "HTTPS для панели выключен (--no-admin-tls) — панель только по http://$CENTER_IP:$CENTER_PORT"; return 0; }
+  say "HTTPS для панели на :$ADMIN_TLS_PORT (самоподписанный сертификат, порт $CENTER_PORT не трогаем — канал агентов не страдает)"
+  if pct exec "$CENTER_VMID" -- systemctl is-active --quiet honeyforge-tls-admin 2>/dev/null; then
+    ok "уже настроено: https://$CENTER_IP:$ADMIN_TLS_PORT/"
+    return
+  fi
+  local script; script=$(mktemp)
+  cat > "$script" <<'SH'
+set -eu
+PORT="$1"; IP="$2"; BACKEND_PORT="$3"
+DIR=/etc/honeyforge-tls
+mkdir -p "$DIR"
+if [ ! -f "$DIR/stunnel.pem" ]; then
+  openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -days 3650 -nodes \
+    -keyout "$DIR/key.pem" -out "$DIR/cert.pem" -subj "/CN=$IP" -addext "subjectAltName=IP:$IP"
+  chmod 600 "$DIR/key.pem"
+  cat "$DIR/cert.pem" "$DIR/key.pem" > "$DIR/stunnel.pem"
+  chmod 600 "$DIR/stunnel.pem"
+fi
+command -v stunnel4 >/dev/null 2>&1 || command -v stunnel >/dev/null 2>&1 || {
+  DEBIAN_FRONTEND=noninteractive apt-get -q update >/dev/null
+  DEBIAN_FRONTEND=noninteractive apt-get -q install -y stunnel4 >/dev/null
+}
+STUNNEL_BIN=$(command -v stunnel4 || command -v stunnel)
+mkdir -p /etc/stunnel
+cat > /etc/stunnel/honeyforge-admin.conf <<CONF
+pid = /run/stunnel-honeyforge-admin.pid
+foreground = yes
+[honeyforge-admin]
+accept = $PORT
+connect = 127.0.0.1:$BACKEND_PORT
+cert = $DIR/stunnel.pem
+CONF
+cat > /etc/systemd/system/honeyforge-tls-admin.service <<UNIT
+[Unit]
+Description=HoneyForge admin HTTPS (:$PORT -> 127.0.0.1:$BACKEND_PORT, самоподписанный, stunnel)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+ExecStart=$STUNNEL_BIN /etc/stunnel/honeyforge-admin.conf
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+systemctl daemon-reload
+systemctl enable --now honeyforge-tls-admin.service
+SH
+  pct push "$CENTER_VMID" "$script" /tmp/.hf-admin-tls.sh --perms 755
+  rm -f "$script"
+  pct exec "$CENTER_VMID" -- sh /tmp/.hf-admin-tls.sh "$ADMIN_TLS_PORT" "$CENTER_IP" "$CENTER_PORT"
+  pct exec "$CENTER_VMID" -- rm -f /tmp/.hf-admin-tls.sh
+  ok "https://$CENTER_IP:$ADMIN_TLS_PORT/ (сертификат самоподписанный — браузер спросит подтверждение один раз)"
+}
+
 cmd_bootstrap() {
   need_tools
   is_ip "$CENTER_IP" || die "укажите --center-ip <свободный IP в локальной сети> — на нём поднимется контейнер центра"
@@ -706,6 +778,7 @@ cmd_bootstrap() {
   write_center_env
   compose_up_center
   create_center_admin
+  setup_admin_tls
   save_state
 
   cat <<EOF
@@ -713,6 +786,7 @@ cmd_bootstrap() {
 $(say "Готово. HoneyForge развёрнут полностью — хост Proxmox и центр со всем стеком.")
   Панель:  http://$CENTER_IP:$CENTER_PORT
 EOF
+  [ "$ADMIN_TLS" = 1 ] && echo "  HTTPS:   https://$CENTER_IP:$ADMIN_TLS_PORT/   (самоподписанный сертификат — подтвердить один раз в браузере)"
   if [ -n "$ADMIN_PASSWORD" ]; then
     echo "  Админ:   admin / $ADMIN_PASSWORD   (сохраните — больше не показывается)"
   else
@@ -732,6 +806,16 @@ cmd_update_app() {
   deploy_app_source
   compose_up_center
   ok "Готово."
+}
+
+cmd_admin_tls() {
+  need_tools
+  init_defaults
+  [ -n "$(guest_conf "$CENTER_VMID")" ] || die "контейнер центра $CENTER_VMID не найден — сначала bootstrap"
+  is_ip "$CENTER_IP" || die "укажите --center-ip <адрес контейнера центра> (тот же, что при bootstrap)"
+  ADMIN_TLS=1
+  setup_admin_tls
+  save_state
 }
 
 # ---------- удаление ----------
@@ -873,12 +957,14 @@ cmd_status() {
   echo "  машин-ловушек на ноде: $n"
   check "контейнер центра $CENTER_VMID ($CENTER_IP)" "c=\$(guest_conf $CENTER_VMID) && [ -n \"\$c\" ] && has_tag \$c $TAG_CENTER"
   check "центр отвечает на :$CENTER_PORT" "pct exec $CENTER_VMID -- curl -sf http://127.0.0.1:$CENTER_PORT/api/health"
+  check "HTTPS панели :$ADMIN_TLS_PORT" "pct exec $CENTER_VMID -- systemctl is-active --quiet honeyforge-tls-admin"
 }
 
 case "$CMD" in
   install) cmd_install ;;
   bootstrap) cmd_bootstrap ;;
   update-app) cmd_update_app ;;
+  admin-tls) cmd_admin_tls ;;
   uninstall) cmd_uninstall ;;
   status) cmd_status ;;
   update-agent) need_tools; install_agent_pkg ;;

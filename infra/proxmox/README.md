@@ -23,15 +23,17 @@ ssh root@<proxmox> /root/honeyforge/infra/proxmox/hf-proxmox.sh install --center
 
 | Команда | Что делает |
 |---|---|
-| `bootstrap` | всё, что делает `install` (ниже), и дополнительно: создаёт отдельный LXC-контейнер (тег `honeyforge-center`, Ubuntu 24.04 + Docker), копирует туда код приложения, секреты Proxmox, генерирует `infra/.env` и поднимает `docker compose up -d --build`, создаёт первого администратора (пароль печатается один раз). Для `bootstrap` рядом со скриптом нужен **весь репозиторий** (`backend/`, `frontend/`, `honeymind/`, `infra/`), не только эта папка — `hf-deploy.sh` копирует его целиком сам |
+| `bootstrap` | всё, что делает `install` (ниже), и дополнительно: создаёт отдельный LXC-контейнер (тег `honeyforge-center`, Ubuntu 24.04 + Docker), копирует туда код приложения, секреты Proxmox, генерирует `infra/.env` и поднимает `docker compose up -d --build`, создаёт первого администратора (пароль печатается один раз) и HTTPS для панели (ниже). Для `bootstrap` рядом со скриптом нужен **весь репозиторий** (`backend/`, `frontend/`, `honeymind/`, `infra/`), не только эта папка — `hf-deploy.sh` копирует его целиком сам |
 | `install` | только хост: мост DMZ + файрвол + NAT, типы `rootdir,images` у хранилища, пул/роли/пользователь/API-токен/ACL, `hf-agent-ctl` и код агента, шаблон ловушек (собирается из `ubuntu-24.04-standard`, ~3–5 мин), узкий SSH-ключ оркестратора. Повторный запуск безопасен: готовое пропускается |
 | `update-app` | перекопировать код в контейнер центра (из `bootstrap`) и пересобрать `docker compose up -d --build`; секреты и БД не трогает |
+| `admin-tls` | отдельно включить/обновить HTTPS для панели (если выключали `--no-admin-tls` при `bootstrap` или меняете `--admin-tls-port`) |
 | `uninstall` | удаляет машины с тегом `honeyforge`, шаблон (`honeyforge-template`), контейнер центра (`honeyforge-center`, если был `bootstrap`), пользователя, токен, роли, пул, ключ, `hf-agent-ctl`, мост и файрвол DMZ; типы хранилища возвращает, если там не осталось дисков. Спрашивает подтверждение (`--yes` — без вопроса) |
 | `status` | что из этого есть на хосте, включая контейнер центра |
 | `update-agent` | только обновить `/usr/local/share/hf-agent/netsvc.tgz` (новый код подхватит следующая установка агента) |
 
 Параметры (`--help`): `--center-ip`, `--center-port`, `--center-vmid`, `--center-cores`, `--center-memory`,
-`--center-disk`, `--center-storage`, `--center-bridge`, `--center-gateway`, `--orch-from`, `--orch-pubkey`,
+`--center-disk`, `--center-storage`, `--center-bridge`, `--center-gateway`, `--admin-tls-port`, `--no-admin-tls`,
+`--orch-from`, `--orch-pubkey`,
 `--pve-ip`, `--node`, `--storage`, `--bridge`, `--wan`, `--network`, `--gateway`, `--template-id`, `--pool`,
 `--ostemplate`, `--template-disk`, `--rebuild-template`, `--rotate-token`. Они сохраняются в
 `/etc/honeyforge/proxmox.conf`, повторные запуски и `uninstall` берут их оттуда. Параметры файрвола — в
@@ -45,6 +47,22 @@ LAN), со статическим IP `--center-ip`. Внутри — `docker.io`
 `/opt/honeyforge`, секреты оркестратора и `infra/.env` (генерируется один раз, секреты — `openssl rand`,
 не перегенерируются при повторном `bootstrap`). Это НЕ ловушка и не подключается к DMZ `vmbr1` — обычный
 сервис на обычной сети, виден так же, как панель на любом другом сервере.
+
+### HTTPS для панели
+
+Порт `--center-port` (4000) внутри HoneyForge намеренно работает по голому HTTP — по нему же ходят
+агенты-ловушки из DMZ со своей защитой от утечки панели в их сторону (`@dmz_other` в `infra/Caddyfile`),
+ломать нельзя. Поэтому `bootstrap`/`admin-tls` поднимают в том же контейнере ОТДЕЛЬНЫЙ systemd-сервис
+`honeyforge-tls-admin`: `stunnel` слушает TLS на `--admin-tls-port` (4443) и перенаправляет на
+`127.0.0.1:--center-port`. Сертификат самоподписанный (ECDSA P-256, IP контейнера в SAN, 10 лет) —
+браузер один раз спросит подтверждение («Дополнительно» → «Принять риск и продолжить»), дальше работает
+как обычный HTTPS. Полностью отдельно от docker compose — переживает `update-app` и перезапуски
+контейнера. Выключить при `bootstrap` — `--no-admin-tls`; включить позже — `hf-proxmox.sh admin-tls --center-ip <IP>`.
+
+Если вместо самоподписанного сертификата нужен настоящий домен с Let's Encrypt — заведите на своём внешнем
+Caddy/обратном прокси запись `reverse_proxy <center-ip>:<center-port>` (см. `infra/proxmox/hf-deploy.sh`
+и корневой `README.md`): это не относится к `hf-proxmox.sh`, так как внешний прокси обычно стоит на
+отдельном сервере вне управления этим скриптом.
 
 Итог установки — `/root/honeyforge-secrets/` (только root):
 
