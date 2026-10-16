@@ -91,16 +91,35 @@ export $(.venv/bin/python -m app.cli gen-key)
 Веб-интерфейс — сборка `frontend/dist` (переопределяется `HF_STATIC_DIR`), перед запуском центра её нужно собрать: `cd frontend && npm ci && npm run build`. Для разработки фронта — `npm run dev` (Vite проксирует `/api` на центр, адрес — `VITE_API_TARGET`, по умолчанию `http://localhost:4000`) или `npm run dev:demo` без центра. Без оркестратора раздел машин отвечает 503.
 Отдельный compose центра с PostgreSQL: `backend/center/docker-compose.yml` (`.env` рядом, см. `backend/center/.env.example`).
 
-### Хост Proxmox
+### Весь проект на чистом Proxmox — одна команда
 
-Подготовка хоста (DMZ-мост с файрволом, пул/роли/API-токен, шаблон ловушек, `hf-agent-ctl`, ключ оркестратора) и её откат — одним скриптом:
+На любом свежем Proxmox VE 8/9 (доступ root по SSH) одна команда с рабочей машины поднимает всё: хост
+(DMZ-мост с файрволом, пул/роли/API-токен, шаблон ловушек, `hf-agent-ctl`, ключ оркестратора) и центр со
+всем docker-compose стеком (proxy/center/orchestrator/db/honeymind) — в отдельном LXC-контейнере на этом
+же хосте:
+
+```sh
+cd umirhack3   # корень репозитория
+./infra/proxmox/hf-deploy.sh root@<proxmox> --center-ip <свободный IP в вашей локальной сети>
+```
+
+Через несколько минут скрипт напечатает адрес панели и пароль администратора (показывается один раз).
+Повторный запуск той же команды безопасен (секреты не трогает); обновить код после правок —
+`./infra/proxmox/hf-deploy.sh root@<proxmox> update-app`; удалить всё — `... uninstall`; посмотреть,
+что уже развёрнуто — `... status`.
+
+### Хост Proxmox отдельно (центр — на другом сервере)
+
+Если центр должен стоять не на хосте Proxmox, а отдельно — тем же скриптом ставится только хост:
 
 ```sh
 rsync -aR --exclude __pycache__ infra/proxmox agent/netsvc root@<proxmox>:/root/honeyforge/
 ssh root@<proxmox> /root/honeyforge/infra/proxmox/hf-proxmox.sh install --center-ip <IP центра>   # uninstall / status
 ```
 
-Значения для `infra/.env` и ключи оркестратора появятся в `/root/honeyforge-secrets/` на хосте. Подробности — `infra/proxmox/README.md`, пошаговая установка, обновление и удаление всего стека — `docs/INSTALL.md`.
+Значения для `infra/.env` и ключи оркестратора появятся в `/root/honeyforge-secrets/` на хосте — их нужно
+скопировать на сервер центра самостоятельно (раздел 4 `docs/INSTALL.md`). Подробности о самом хосте —
+`infra/proxmox/README.md`, полная пошаговая инструкция (включая одну команду выше) — `docs/INSTALL.md`.
 
 ### Агент
 

@@ -3,12 +3,36 @@
 Полная инструкция: от чистого Proxmox до первой пойманной атаки, плюс обновление, удаление и типовые проблемы.
 Краткий обзор архитектуры и API — в корневом `README.md`, детали хоста Proxmox — в `infra/proxmox/README.md`.
 
+## 0. Быстрый путь: весь проект одной командой
+
+Нужен только чистый Proxmox VE 8/9 с доступом root по SSH — больше ничего готовить не надо, скрипт сам
+поднимет и хост, и центр со всем стеком (в отдельном LXC-контейнере на этом же хосте):
+
+```sh
+git clone https://github.com/DanielE330/umirhack3.git && cd umirhack3
+./infra/proxmox/hf-deploy.sh root@<proxmox> --center-ip <свободный IP в вашей локальной сети>
+```
+
+`--center-ip` — адрес, который получит новый контейнер центра в вашей обычной (не DMZ) сети; агенты
+ловушек узнают центр по этому же адресу. Через несколько минут (сборка шаблона ловушек + образов docker)
+скрипт печатает ссылку на панель и пароль администратора `admin` — он показывается только один раз,
+сохраните сразу. Дальше — раздел 5 этой инструкции («Первая ловушка»).
+
+Повторный запуск той же команды безопасен: код обновится, но пароли, токены и база данных не трогаются.
+Отдельно: `... update-app` — перекопировать код и пересобрать после правок (без пересоздания секретов);
+`... status` — что уже развёрнуто; `... uninstall` — удалить всё, включая контейнер центра.
+
+Этот путь не подходит, если центр должен стоять не на хосте Proxmox, а на отдельном сервере — тогда
+нужны разделы 3–4 ниже (`hf-proxmox.sh install` готовит только хост, центр поднимается вручную через
+`docker compose`). Главный скрипт — один и тот же, `infra/proxmox/hf-proxmox.sh`; `hf-deploy.sh` — это
+просто его удалённый запуск (rsync репозитория + ssh) в одну команду с рабочей машины.
+
 ## 1. Что из чего состоит
 
 | Где | Что | Как ставится |
 |---|---|---|
-| Хост Proxmox VE 8/9 | DMZ-мост `vmbr1` с файрволом, пул/роли/API-токен оркестратора, шаблон ловушек (LXC Ubuntu 24.04 с агентом), `hf-agent-ctl` | `infra/proxmox/hf-proxmox.sh install` |
-| Сервер центра (любой Linux с Docker; на стенде — CT 102 в Proxmox) | proxy (Caddy :4000), center, orchestrator, PostgreSQL | `docker compose` из `infra/` |
+| Хост Proxmox VE 8/9 | DMZ-мост `vmbr1` с файрволом, пул/роли/API-токен оркестратора, шаблон ловушек (LXC Ubuntu 24.04 с агентом), `hf-agent-ctl` | `infra/proxmox/hf-proxmox.sh install` (входит и в `bootstrap`) |
+| Сервер центра (любой Linux с Docker; на стенде — CT 102 в Proxmox) | proxy (Caddy :4000), center, orchestrator, PostgreSQL, honeymind | `docker compose` из `infra/`, либо автоматически отдельным LXC — `hf-proxmox.sh bootstrap` / `hf-deploy.sh` (раздел 0) |
 | Машины-ловушки | агент `netsvc` под видом `systemd-journal-helper` | автоматически: оркестратор клонирует шаблон, центр включает агента |
 
 ```
@@ -179,7 +203,13 @@ docker exec hf-orchestrator python -W ignore -c "import os,httpx; t=os.environ['
 
 ## 7. Обновление
 
-**Центр и оркестратор:**
+**Если ставили через bootstrap/hf-deploy.sh** (центр в своём LXC на хосте Proxmox) — одна команда
+перекопирует код и пересоберёт docker compose, секреты и БД не трогает:
+```sh
+./infra/proxmox/hf-deploy.sh root@<proxmox> update-app
+```
+
+**Центр и оркестратор (ставили вручную, центр — отдельный сервер):**
 ```sh
 rsync -az --delete --exclude .git --exclude .venv --exclude __pycache__ --exclude .pytest_cache --exclude .claude --exclude knowledge --exclude node_modules --exclude dist \
   --filter 'P infra/.env' --filter 'P infra/secrets/' ./ root@<центр>:/opt/honeyforge/
@@ -198,13 +228,18 @@ ssh root@<proxmox> /root/honeyforge/infra/proxmox/hf-proxmox.sh update-agent
 
 ## 8. Удаление
 
-**Хост Proxmox:**
+**Если ставили через bootstrap/hf-deploy.sh** — одна команда удаляет всё, включая контейнер центра:
+```sh
+./infra/proxmox/hf-deploy.sh root@<proxmox> uninstall   # --yes — без вопроса
+```
+
+**Хост Proxmox (ставили вручную через install, без bootstrap):**
 ```sh
 ssh -t root@<proxmox> /root/honeyforge/infra/proxmox/hf-proxmox.sh uninstall   # --yes — без вопроса
 ```
 
 Скрипт сначала покажет список и спросит `yes`, затем удалит:
-- машины с тегом `honeyforge` и шаблон с тегом `honeyforge-template`;
+- машины с тегом `honeyforge`, шаблон с тегом `honeyforge-template` и контейнер центра с тегом `honeyforge-center` (если был bootstrap);
 - пользователя `honeyforge@pve` с токеном, роли, пул и ACL;
 - ключ `hf-orchestrator`, `hf-agent-ctl`, архив агента;
 - мост и файрвол DMZ.
@@ -212,7 +247,7 @@ ssh -t root@<proxmox> /root/honeyforge/infra/proxmox/hf-proxmox.sh uninstall   #
 Мост остаётся, если к нему подключены машины без тега. Типы содержимого хранилища возвращаются, только если на нём не осталось дисков.
 `ip_forward` и скачанный образ Ubuntu не трогаются — они могут быть нужны другим. В конце удаляются `/etc/honeyforge` и `/root/honeyforge-secrets`.
 
-**Центр:**
+**Центр (ставили вручную, отдельный сервер):**
 ```sh
 cd /opt/honeyforge/infra && docker compose down -v   # -v удаляет и базу (события, пользователи)
 rm -rf /opt/honeyforge
@@ -245,9 +280,12 @@ HF_CENTER_URL=http://<центр>:4000 HF_TRAP_TOKEN=<токен> python3 -m net
 | Вход в панель: 429 | 5 неверных паролей / 20 с IP за 15 минут | подождать или `docker compose exec -T db psql -U honeyforge -d honeyforge -c "DELETE FROM login_failures"` |
 | Потерян телефон с 2FA | — | другой admin: «Пользователи» → «Сбросить 2FA» |
 | Панель старая после обновления | кэш браузера | Ctrl+Shift+R |
+| `bootstrap`: `у контейнера центра нет интернета` | не тот `--center-bridge`/`--center-gateway` (LAN хоста отличается от маршрута по умолчанию) | указать явно `--center-bridge vmbrX --center-gateway <IP>` |
+| `bootstrap`: `центр не отвечает на /api/health` | сборка образов не успела за 3 минуты или упала | `pct exec <CENTER_VMID> -- sh -c 'cd /opt/honeyforge/infra && docker compose logs'` |
+| `bootstrap` второй раз создаёт не то | контейнер центра занят чужим гостем на VMID 9200 | `--center-vmid <свободный>` |
 
 Логи:
-- центр — `docker compose logs -f center` (и `orchestrator`, `proxy`);
+- центр — `docker compose logs -f center` (и `orchestrator`, `proxy`); если центр поднят через bootstrap — сначала `pct exec <CENTER_VMID> -- sh -c 'cd /opt/honeyforge/infra && ...'`;
 - хост Proxmox — `journalctl -t hf-agent-ctl`, `pct list`, `hf-proxmox.sh status`.
 
 ## 11. Безопасность стенда

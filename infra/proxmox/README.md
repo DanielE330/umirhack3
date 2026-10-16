@@ -4,22 +4,47 @@
 
 ## Автоматическая установка и удаление: `hf-proxmox.sh`
 
-Скрипт повторяет всё, что описано ниже (кроме правок чужой автоматизации хоста), на любом Proxmox VE 8/9. Запускается на хосте от root, рядом нужен код агента:
+Скрипт повторяет всё, что описано ниже (кроме правок чужой автоматизации хоста), на любом Proxmox VE 8/9.
+Запускается на хосте от root. Проще всего — одной командой с рабочей машины через обёртку `hf-deploy.sh`
+(сама копирует репозиторий и запускает `hf-proxmox.sh` на хосте):
 
 ```sh
-# с рабочей машины, из корня репозитория
+# с рабочей машины, из корня репозитория — поднимает ВЕСЬ проект: хост + центр со всем docker-compose
+# стеком в отдельном LXC-контейнере на этом же хосте
+./infra/proxmox/hf-deploy.sh root@<proxmox> --center-ip <свободный IP в локальной сети>
+```
+
+Вручную, без `hf-deploy.sh` (например, центр должен стоять на отдельном сервере — тогда только хост):
+
+```sh
 rsync -aR --exclude __pycache__ infra/proxmox agent/netsvc root@<proxmox>:/root/honeyforge/
 ssh root@<proxmox> /root/honeyforge/infra/proxmox/hf-proxmox.sh install --center-ip <IP центра>
 ```
 
 | Команда | Что делает |
 |---|---|
-| `install` | мост DMZ + файрвол + NAT, типы `rootdir,images` у хранилища, пул/роли/пользователь/API-токен/ACL, `hf-agent-ctl` и код агента, шаблон ловушек (собирается из `ubuntu-24.04-standard`, ~3–5 мин), узкий SSH-ключ оркестратора. Повторный запуск безопасен: готовое пропускается |
-| `uninstall` | удаляет машины с тегом `honeyforge`, шаблон (`honeyforge-template`), пользователя, токен, роли, пул, ключ, `hf-agent-ctl`, мост и файрвол DMZ; типы хранилища возвращает, если там не осталось дисков. Спрашивает подтверждение (`--yes` — без вопроса) |
-| `status` | что из этого есть на хосте |
+| `bootstrap` | всё, что делает `install` (ниже), и дополнительно: создаёт отдельный LXC-контейнер (тег `honeyforge-center`, Ubuntu 24.04 + Docker), копирует туда код приложения, секреты Proxmox, генерирует `infra/.env` и поднимает `docker compose up -d --build`, создаёт первого администратора (пароль печатается один раз). Для `bootstrap` рядом со скриптом нужен **весь репозиторий** (`backend/`, `frontend/`, `honeymind/`, `infra/`), не только эта папка — `hf-deploy.sh` копирует его целиком сам |
+| `install` | только хост: мост DMZ + файрвол + NAT, типы `rootdir,images` у хранилища, пул/роли/пользователь/API-токен/ACL, `hf-agent-ctl` и код агента, шаблон ловушек (собирается из `ubuntu-24.04-standard`, ~3–5 мин), узкий SSH-ключ оркестратора. Повторный запуск безопасен: готовое пропускается |
+| `update-app` | перекопировать код в контейнер центра (из `bootstrap`) и пересобрать `docker compose up -d --build`; секреты и БД не трогает |
+| `uninstall` | удаляет машины с тегом `honeyforge`, шаблон (`honeyforge-template`), контейнер центра (`honeyforge-center`, если был `bootstrap`), пользователя, токен, роли, пул, ключ, `hf-agent-ctl`, мост и файрвол DMZ; типы хранилища возвращает, если там не осталось дисков. Спрашивает подтверждение (`--yes` — без вопроса) |
+| `status` | что из этого есть на хосте, включая контейнер центра |
 | `update-agent` | только обновить `/usr/local/share/hf-agent/netsvc.tgz` (новый код подхватит следующая установка агента) |
 
-Параметры (`--help`): `--center-ip`, `--center-port`, `--orch-from`, `--orch-pubkey`, `--pve-ip`, `--node`, `--storage`, `--bridge`, `--wan`, `--network`, `--gateway`, `--template-id`, `--pool`, `--ostemplate`, `--template-disk`, `--rebuild-template`, `--rotate-token`. Они сохраняются в `/etc/honeyforge/proxmox.conf`, повторные запуски и `uninstall` берут их оттуда. Параметры файрвола — в `/etc/default/hf-dmz`.
+Параметры (`--help`): `--center-ip`, `--center-port`, `--center-vmid`, `--center-cores`, `--center-memory`,
+`--center-disk`, `--center-storage`, `--center-bridge`, `--center-gateway`, `--orch-from`, `--orch-pubkey`,
+`--pve-ip`, `--node`, `--storage`, `--bridge`, `--wan`, `--network`, `--gateway`, `--template-id`, `--pool`,
+`--ostemplate`, `--template-disk`, `--rebuild-template`, `--rotate-token`. Они сохраняются в
+`/etc/honeyforge/proxmox.conf`, повторные запуски и `uninstall` берут их оттуда. Параметры файрвола — в
+`/etc/default/hf-dmz`.
+
+### Контейнер центра (`bootstrap`)
+
+Отдельный LXC (по умолчанию VMID `9200`, тег `honeyforge-center`, 2 ядра/2 ГБ/20 ГБ, Ubuntu 24.04,
+`--features nesting=1` для Docker внутри LXC) на том же мосту, что смотрит в интернет (`--wan`, обычно
+LAN), со статическим IP `--center-ip`. Внутри — `docker.io` + `docker-compose-v2`, код приложения в
+`/opt/honeyforge`, секреты оркестратора и `infra/.env` (генерируется один раз, секреты — `openssl rand`,
+не перегенерируются при повторном `bootstrap`). Это НЕ ловушка и не подключается к DMZ `vmbr1` — обычный
+сервис на обычной сети, виден так же, как панель на любом другом сервере.
 
 Итог установки — `/root/honeyforge-secrets/` (только root):
 

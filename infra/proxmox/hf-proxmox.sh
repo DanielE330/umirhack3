@@ -1,25 +1,47 @@
 #!/bin/bash
 # Установка и удаление HoneyForge на хосте Proxmox (всё, что описано в infra/proxmox/README.md).
-# Запускается на хосте Proxmox от root, рядом должен лежать код агента (../../agent/netsvc):
+# Запускается на хосте Proxmox от root. Рядом нужен весь репозиторий (не только эта папка) —
+# bootstrap/update-app собирают образы из backend/, frontend/, honeymind/, install/uninstall/status
+# достаточно agent/netsvc. Проще всего — одной командой с рабочей машины через infra/proxmox/hf-deploy.sh
+# (копирует репозиторий и запускает этот скрипт за вас):
 #
-#   cd <репозиторий> && rsync -aR --exclude __pycache__ infra/proxmox agent/netsvc root@<proxmox>:/root/honeyforge/
-#   ssh root@<proxmox> /root/honeyforge/infra/proxmox/hf-proxmox.sh install --center-ip 192.168.1.122
+#   ./infra/proxmox/hf-deploy.sh root@<proxmox> --center-ip 192.168.1.50
+#
+# Вручную — то же самое в два шага:
+#
+#   cd <репозиторий> && rsync -aR --exclude __pycache__ --exclude .git --exclude node_modules \
+#     --exclude frontend/dist --exclude .venv infra agent backend frontend honeymind root@<proxmox>:/root/honeyforge/
+#   ssh root@<proxmox> /root/honeyforge/infra/proxmox/hf-proxmox.sh bootstrap --center-ip 192.168.1.50
 #
 # Команды:
-#   install       DMZ-мост с файрволом, пул/роли/пользователь/API-токен, шаблон ловушек, hf-agent-ctl, ключ оркестратора.
-#                 Повторный запуск безопасен: готовое пропускается. Итог — /root/honeyforge-secrets/ (env + ключи для центра).
-#   uninstall     удаляет всё перечисленное, включая машины-ловушки (тег honeyforge) и шаблон (тег honeyforge-template).
+#   bootstrap     ВСЁ ОДНОЙ КОМАНДОЙ: готовит хост (как install), затем сам создаёт отдельный LXC-контейнер
+#                 (docker.io + docker compose) со всем стеком — center/orchestrator/db/honeymind/proxy —
+#                 копирует туда код, секреты Proxmox, генерирует infra/.env и создаёт первого admin
+#                 (пароль печатается один раз). --center-ip здесь — свободный адрес в ЛОКАЛЬНОЙ сети
+#                 (не в DMZ) для этого нового контейнера.
+#   install       Только хост Proxmox: DMZ-мост с файрволом, пул/роли/пользователь/API-токен,
+#                 шаблон ловушек, hf-agent-ctl, ключ оркестратора. Центр поднимаете сами (см. docs/INSTALL.md)
+#                 или на другом сервере — используйте, если bootstrap не подходит (центр не на этом хосте).
+#   update-app    Перекопировать код в контейнер центра (из bootstrap) и пересобрать docker compose.
+#   uninstall     удаляет всё перечисленное, включая машины-ловушки, шаблон и контейнер центра (если был bootstrap).
 #   status        что из этого сейчас есть на хосте.
 #   update-agent  только обновить код агента (/usr/local/share/hf-agent/netsvc.tgz) — для новых установок агентов.
 #
+# Повторный запуск любой команды безопасен: готовое пропускается, секреты не перегенерируются.
 # Параметры (сохраняются в /etc/honeyforge/proxmox.conf и подхватываются при следующих запусках):
-#   --center-ip IP        адрес центра, до которого агенты ходят из DMZ (обязателен при первой установке)
+#   --center-ip IP        bootstrap: адрес нового контейнера центра в локальной сети (обязателен)
+#                          install: адрес центра, до которого агенты ходят из DMZ (обязателен)
 #   --center-port N       порт центра (4000)
+#   --center-vmid N       VMID контейнера центра (9200)
+#   --center-cores N      ядра контейнера центра (2)      --center-memory МБ   ОЗУ (2048)
+#   --center-disk ГБ      диск контейнера центра (20)      --center-storage     хранилище (как у ловушек)
+#   --center-bridge NAME  мост для контейнера центра (по умолчанию = --wan)
+#   --center-gateway IP   шлюз локальной сети для контейнера центра (автоопределение)
 #   --orch-from IP        откуда оркестратор ходит по SSH на хост (по умолчанию = --center-ip)
 #   --orch-pubkey FILE    свой публичный ключ оркестратора (иначе ключ генерируется в /root/honeyforge-secrets/)
 #   --pve-ip IP           адрес хоста Proxmox для центра (по умолчанию — адрес на --wan)
 #   --node NAME           нода Proxmox (hostname)
-#   --storage NAME        хранилище машин-ловушек (hdd, если есть, иначе local-lvm)
+#   --storage NAME        хранилище машин-ловушек (hdd/local-lvm/local-zfs/local-btrfs/local — первое, что есть)
 #   --bridge NAME         мост DMZ (vmbr1)        --wan NAME         мост с выходом в интернет (из маршрута по умолчанию)
 #   --network CIDR        подсеть DMZ (10.20.0.0/24)  --gateway IP   адрес хоста в DMZ (10.20.0.1)
 #   --template-id N       VMID шаблона (9101)     --pool NAME        пул (honeyforge)
@@ -49,6 +71,7 @@ TOKEN_NAME=orchestrator
 KEY_COMMENT=hf-orchestrator
 TAG=honeyforge
 TAG_TPL=honeyforge-template
+TAG_CENTER=honeyforge-center
 ROLE_TRAPS=HoneyForgeTraps
 ROLE_TPL=HoneyForgeTemplate
 PRIVS_TRAPS="Datastore.AllocateSpace,Datastore.Audit,Pool.Audit,SDN.Use,Sys.Audit,VM.Allocate,VM.Audit,VM.Clone,VM.Config.CPU,VM.Config.Cloudinit,VM.Config.Disk,VM.Config.Memory,VM.Config.Network,VM.Config.Options,VM.PowerMgmt"
@@ -65,6 +88,9 @@ BRIDGE=vmbr1; WAN_IF=""; DMZ_NET=10.20.0.0/24; DMZ_GW=10.20.0.1; TEMPLATE_ID=910
 OSTEMPLATE=""; OST_STORAGE=local; TEMPLATE_DISK=8; BUILD_IP=""
 STORAGE_ADDED_CONTENT=""
 REBUILD_TEMPLATE=0; ROTATE_TOKEN=0; YES=0
+CENTER_VMID=9200; CENTER_CORES=2; CENTER_MEMORY=2048; CENTER_DISK=20
+CENTER_STORAGE=""; CENTER_BRIDGE=""; CENTER_GW=""; CENTER_PREFIX=""
+ADMIN_PASSWORD=""
 
 # shellcheck disable=SC1090
 [ -r "$STATE" ] && . "$STATE"
@@ -74,6 +100,14 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --center-ip) CENTER_IP="$2"; shift ;;
     --center-port) CENTER_PORT="$2"; shift ;;
+    --center-vmid) CENTER_VMID="$2"; shift ;;
+    --center-cores) CENTER_CORES="$2"; shift ;;
+    --center-memory) CENTER_MEMORY="$2"; shift ;;
+    --center-disk) CENTER_DISK="$2"; shift ;;
+    --center-storage) CENTER_STORAGE="$2"; shift ;;
+    --center-bridge) CENTER_BRIDGE="$2"; shift ;;
+    --center-gateway) CENTER_GW="$2"; shift ;;
+    --center-prefix) CENTER_PREFIX="$2"; shift ;;
     --orch-from) ORCH_FROM="$2"; shift ;;
     --orch-pubkey) ORCH_PUBKEY="$2"; shift ;;
     --pve-ip) PVE_IP="$2"; shift ;;
@@ -127,7 +161,8 @@ save_state() {
   {
     echo "# HoneyForge на этом хосте Proxmox: параметры установки (пишет hf-proxmox.sh)"
     for v in CENTER_IP CENTER_PORT ORCH_FROM PVE_IP NODE STORAGE BRIDGE WAN_IF DMZ_NET DMZ_GW TEMPLATE_ID POOL \
-             OST_STORAGE TEMPLATE_DISK STORAGE_ADDED_CONTENT; do
+             OST_STORAGE TEMPLATE_DISK STORAGE_ADDED_CONTENT \
+             CENTER_VMID CENTER_CORES CENTER_MEMORY CENTER_DISK CENTER_STORAGE CENTER_BRIDGE CENTER_GW CENTER_PREFIX; do
       printf '%s=%q\n' "$v" "${!v}"
     done
   } > "$STATE"
@@ -136,7 +171,7 @@ save_state() {
 
 need_tools() {
   [ "$(id -u)" -eq 0 ] || die "запускать от root на хосте Proxmox"
-  for t in pveum pct pvesm pveam pvesh ifreload iptables awk tar; do
+  for t in pveum pct pvesm pveam pvesh ifreload iptables awk tar openssl; do
     command -v "$t" >/dev/null || die "нет команды $t — это точно хост Proxmox VE?"
   done
 }
@@ -298,11 +333,17 @@ install_ctl() {
 
 # ---------- шаблон машин-ловушек ----------
 BUILDING=""
+CENTER_BUILDING=""
 cleanup_build() {
   if [ -n "$BUILDING" ]; then
     warn "сборка шаблона прервана — удаляю недособранный CT $BUILDING"
     pct stop "$BUILDING" >/dev/null 2>&1 || true
     pct destroy "$BUILDING" --purge 1 >/dev/null 2>&1 || true
+  fi
+  if [ -n "$CENTER_BUILDING" ]; then
+    warn "создание контейнера центра прервано — удаляю недособранный CT $CENTER_BUILDING"
+    pct stop "$CENTER_BUILDING" >/dev/null 2>&1 || true
+    pct destroy "$CENTER_BUILDING" --purge 1 >/dev/null 2>&1 || true
   fi
 }
 trap cleanup_build EXIT
@@ -469,7 +510,7 @@ write_env() {
   chmod 600 "$envf"
 }
 
-cmd_install() {
+provision_host() {
   need_tools
   is_ip "$CENTER_IP" || die "укажите адрес центра: --center-ip <IP> (до него агенты ходят из DMZ)"
   init_defaults
@@ -485,7 +526,10 @@ cmd_install() {
   install_orch_key
   write_env
   save_state
+}
 
+cmd_install() {
+  provision_host
   local files="$SECRETS/known_hosts"
   [ -f "$SECRETS/pve_agent_ed25519" ] && files="$SECRETS/pve_agent_ed25519 $files"
   cat <<EOF
@@ -497,7 +541,197 @@ $(say "Готово. Подключение центра:")
   2. Переменные из $SECRETS/proxmox.env → infra/.env центра, затем:
        docker compose up -d orchestrator center
   3. После копирования приватный ключ на хосте больше не нужен: rm $SECRETS/pve_agent_ed25519
+
+  Центр поднимаете сами на отдельном сервере. Если вместо этого хотите, чтобы центр со всем стеком
+  (docker compose: center/orchestrator/db/honeymind/proxy) поднялся сам прямо на этом хосте Proxmox
+  в отдельном LXC-контейнере — заново запустите с командой bootstrap вместо install.
 EOF
+}
+
+# ---------- контейнер центра (bootstrap) ----------
+init_center_defaults() {
+  [ -n "$CENTER_BRIDGE" ] || CENTER_BRIDGE="$WAN_IF"
+  [ -n "$CENTER_STORAGE" ] || CENTER_STORAGE="$STORAGE"
+  [ -n "$CENTER_PREFIX" ] || CENTER_PREFIX=$(ip -4 -o addr show dev "$CENTER_BRIDGE" 2>/dev/null \
+    | awk '{split($4,a,"/"); print a[2]; exit}' || true)
+  [ -n "$CENTER_PREFIX" ] || CENTER_PREFIX=24
+  [ -n "$CENTER_GW" ] || CENTER_GW=$(ip route show default dev "$CENTER_BRIDGE" 2>/dev/null \
+    | awk '{for(i=1;i<NF;i++) if($i=="via"){print $(i+1); exit}}' || true)
+  [ -n "$CENTER_GW" ] || die "не удалось определить шлюз локальной сети на $CENTER_BRIDGE (укажите --center-gateway)"
+}
+
+install_docker_in_center() {
+  local apt=(env DEBIAN_FRONTEND=noninteractive apt-get -q -o Dpkg::Use-Pty=0)
+  pct exec "$CENTER_VMID" -- "${apt[@]}" update >/dev/null
+  pct exec "$CENTER_VMID" -- "${apt[@]}" install -y --no-install-recommends docker.io docker-compose-v2 openssl curl >/dev/null
+  pct exec "$CENTER_VMID" -- systemctl enable --now docker >/dev/null
+}
+
+create_center_ct() {
+  say "Контейнер центра $CENTER_VMID: $CENTER_IP/$CENTER_PREFIX на $CENTER_BRIDGE, $CENTER_CORES ядра, ${CENTER_MEMORY}МБ, ${CENTER_DISK}ГБ"
+  local conf; conf=$(guest_conf "$CENTER_VMID")
+  if [ -n "$conf" ]; then
+    has_tag "$conf" "$TAG_CENTER" || die "VMID $CENTER_VMID занят чужим гостем (укажите --center-vmid)"
+    [ "$(pct status "$CENTER_VMID" | awk '{print $2}')" = running ] || pct start "$CENTER_VMID"
+    if pct exec "$CENTER_VMID" -- command -v docker >/dev/null 2>&1; then
+      ok "контейнер уже есть и запущен"
+      return
+    fi
+    warn "CT $CENTER_VMID есть, но Docker не установлен (прерванная сборка) — доустанавливаю"
+    install_docker_in_center
+    ok "Docker установлен и запущен в CT $CENTER_VMID"
+    return
+  fi
+  local ost; ost=$(resolve_ostemplate)
+  CENTER_BUILDING=$CENTER_VMID
+  pct create "$CENTER_VMID" "$ost" --hostname honeyforge-center --ostype ubuntu --arch amd64 \
+    --cores "$CENTER_CORES" --memory "$CENTER_MEMORY" --swap 512 --rootfs "$CENTER_STORAGE:$CENTER_DISK" \
+    --net0 "name=eth0,bridge=$CENTER_BRIDGE,ip=$CENTER_IP/$CENTER_PREFIX,gw=$CENTER_GW,type=veth" \
+    --nameserver 1.1.1.1 --unprivileged 1 --features nesting=1 --tags "$TAG_CENTER" --onboot 1 \
+    --description "HoneyForge: центр, оркестратор, БД (docker compose)" >/dev/null
+  ok "CT $CENTER_VMID создан из $ost"
+  pct start "$CENTER_VMID"
+
+  local i
+  for i in $(seq 60); do
+    pct exec "$CENTER_VMID" -- getent hosts archive.ubuntu.com >/dev/null 2>&1 && break
+    [ "$i" = 60 ] && die "у контейнера центра нет интернета (шлюз $CENTER_GW на $CENTER_BRIDGE доступен?)"
+    sleep 2
+  done
+  install_docker_in_center
+  CENTER_BUILDING=""
+  ok "Docker установлен и запущен в CT $CENTER_VMID"
+}
+
+deploy_app_source() {
+  say "Копирую код приложения в CT $CENTER_VMID"
+  { [ -d "$REPO/backend" ] && [ -d "$REPO/frontend" ] && [ -d "$REPO/infra" ]; } \
+    || die "рядом со скриптом нет полного репозитория (backend/frontend/infra) — скопируйте его целиком, не только infra/proxmox (см. --help)"
+  local tgz; tgz=$(mktemp)
+  tar -C "$REPO" --exclude __pycache__ --exclude '*.pyc' --exclude node_modules \
+    --exclude frontend/dist --exclude infra/secrets --exclude infra/.env --exclude .venv \
+    -czf "$tgz" backend frontend honeymind infra
+  pct push "$CENTER_VMID" "$tgz" /tmp/.hf-app.tgz
+  rm -f "$tgz"
+  pct exec "$CENTER_VMID" -- sh -c 'mkdir -p /opt/honeyforge && tar -xzf /tmp/.hf-app.tgz -C /opt/honeyforge && rm -f /tmp/.hf-app.tgz'
+  ok "/opt/honeyforge в CT $CENTER_VMID обновлён"
+}
+
+push_center_secrets() {
+  say "Ключи оркестратора и переменные Proxmox → CT $CENTER_VMID"
+  pct exec "$CENTER_VMID" -- mkdir -p /opt/honeyforge/infra/secrets
+  if [ -f "$SECRETS/pve_agent_ed25519" ]; then
+    pct push "$CENTER_VMID" "$SECRETS/pve_agent_ed25519" /opt/honeyforge/infra/secrets/pve_agent_ed25519 --perms 600
+    rm -f "$SECRETS/pve_agent_ed25519"   # приватный ключ на хосте больше не нужен — теперь он в CT
+  fi
+  pct push "$CENTER_VMID" "$SECRETS/known_hosts" /opt/honeyforge/infra/secrets/known_hosts --perms 600
+  pct push "$CENTER_VMID" "$SECRETS/proxmox.env" /opt/honeyforge/infra/proxmox.env.generated --perms 600
+  pct exec "$CENTER_VMID" -- chmod 700 /opt/honeyforge/infra/secrets
+  ok "скопированы"
+}
+
+write_center_env() {
+  if pct exec "$CENTER_VMID" -- test -f /opt/honeyforge/infra/.env; then
+    ok "infra/.env в CT $CENTER_VMID уже настроен — не трогаю"
+    return
+  fi
+  say "Генерирую infra/.env в CT $CENTER_VMID (секреты видны только внутри контейнера)"
+  local gen; gen=$(mktemp)
+  cat > "$gen" <<'SH'
+set -eu
+cd /opt/honeyforge/infra
+HF_SECRET_KEY=$(openssl rand 32 | openssl base64 -A | tr '+/' '-_')
+HF_DB_PASSWORD=$(openssl rand -base64 24 | tr -dc 'A-Za-z0-9')
+ORCH_TOKEN=$(openssl rand -base64 32 | tr -dc 'A-Za-z0-9')
+HONEYMIND_TOKEN=$(openssl rand -base64 32 | tr -dc 'A-Za-z0-9')
+{
+  echo "HF_SECRET_KEY=$HF_SECRET_KEY"
+  echo "HF_DB_PASSWORD=$HF_DB_PASSWORD"
+  echo "ORCH_TOKEN=$ORCH_TOKEN"
+  echo "HONEYMIND_TOKEN=$HONEYMIND_TOKEN"
+  echo "HF_COOKIE_SECURE=false"
+  echo "HF_PUBLIC_URL=http://__CENTER_IP__:__CENTER_PORT__"
+  grep -E '^(PROXMOX_|PVE_SSH_HOST=)' proxmox.env.generated
+} > .env
+chmod 600 .env
+SH
+  sed -i "s/__CENTER_IP__/$CENTER_IP/; s/__CENTER_PORT__/$CENTER_PORT/" "$gen"
+  pct push "$CENTER_VMID" "$gen" /tmp/.hf-env.sh --perms 700
+  rm -f "$gen"
+  pct exec "$CENTER_VMID" -- sh /tmp/.hf-env.sh
+  pct exec "$CENTER_VMID" -- rm -f /tmp/.hf-env.sh
+  ok "infra/.env готов"
+}
+
+compose_up_center() {
+  say "Собираю и запускаю docker compose в CT $CENTER_VMID (первый раз — несколько минут)"
+  pct exec "$CENTER_VMID" -- sh -c 'cd /opt/honeyforge/infra && docker compose up -d --build'
+  local i
+  for i in $(seq 90); do
+    pct exec "$CENTER_VMID" -- curl -sf "http://127.0.0.1:$CENTER_PORT/api/health" >/dev/null 2>&1 && break
+    [ "$i" = 90 ] && die "центр не отвечает на /api/health — смотрите: pct exec $CENTER_VMID -- sh -c 'cd /opt/honeyforge/infra && docker compose logs'"
+    sleep 2
+  done
+  ok "центр отвечает: http://$CENTER_IP:$CENTER_PORT"
+}
+
+create_center_admin() {
+  if pct exec "$CENTER_VMID" -- test -f /opt/honeyforge/.admin-created; then
+    ok "первый администратор уже был создан этим скриптом ранее — пароль не меняю"
+    return
+  fi
+  say "Создаю первого администратора (admin)"
+  ADMIN_PASSWORD=$(openssl rand -base64 18 | tr -dc 'A-Za-z0-9')
+  local tmp; tmp=$(mktemp); printf '%s\n' "$ADMIN_PASSWORD" > "$tmp"
+  pct push "$CENTER_VMID" "$tmp" /tmp/.hf-admin-pw --perms 600
+  shred -u "$tmp" 2>/dev/null || rm -f "$tmp"
+  pct exec "$CENTER_VMID" -- sh -c \
+    'cd /opt/honeyforge/infra && docker compose exec -T center python -m app.cli create-admin admin < /tmp/.hf-admin-pw; st=$?; rm -f /tmp/.hf-admin-pw; exit $st'
+  pct exec "$CENTER_VMID" -- touch /opt/honeyforge/.admin-created
+  ok "пользователь admin создан"
+}
+
+cmd_bootstrap() {
+  need_tools
+  is_ip "$CENTER_IP" || die "укажите --center-ip <свободный IP в локальной сети> — на нём поднимется контейнер центра"
+  init_defaults
+  init_center_defaults
+  is_ip "$PVE_IP" || die "не удалось определить адрес хоста на $WAN_IF (укажите --pve-ip)"
+  say "Bootstrap HoneyForge: контейнер центра $CENTER_IP на $CENTER_BRIDGE, хост $NODE, шаблон ловушек $TEMPLATE_ID"
+  create_center_ct
+  save_state
+  deploy_app_source
+  provision_host
+  push_center_secrets
+  write_center_env
+  compose_up_center
+  create_center_admin
+  save_state
+
+  cat <<EOF
+
+$(say "Готово. HoneyForge развёрнут полностью — хост Proxmox и центр со всем стеком.")
+  Панель:  http://$CENTER_IP:$CENTER_PORT
+EOF
+  if [ -n "$ADMIN_PASSWORD" ]; then
+    echo "  Админ:   admin / $ADMIN_PASSWORD   (сохраните — больше не показывается)"
+  else
+    echo "  Админ:   admin (создан при первом bootstrap, пароль не менялся)"
+  fi
+  cat <<EOF
+  При первом входе: QR в приложении-аутентификаторе (2FA) и резервные коды.
+  Дальше: «Профили» → создать профиль ловушки, «Контейнеры» → создать в Proxmox (docs/INSTALL.md, п.5).
+  Обновить код после правок: hf-proxmox.sh update-app. Статус: hf-proxmox.sh status.
+EOF
+}
+
+cmd_update_app() {
+  need_tools
+  init_defaults
+  [ -n "$(guest_conf "$CENTER_VMID")" ] || die "контейнер центра $CENTER_VMID не найден — сначала bootstrap"
+  deploy_app_source
+  compose_up_center
+  ok "Готово."
 }
 
 # ---------- удаление ----------
@@ -524,7 +758,7 @@ cmd_uninstall() {
   init_defaults
   local ours=() foreign_on_bridge=() id kind conf
   while read -r id kind conf; do
-    if has_tag "$conf" "$TAG" || has_tag "$conf" "$TAG_TPL"; then
+    if has_tag "$conf" "$TAG" || has_tag "$conf" "$TAG_TPL" || has_tag "$conf" "$TAG_CENTER"; then
       ours+=("$id:$kind:$(awk -F': ' '/^(hostname|name):/ {print $2; exit}' "$conf")")
     elif grep -qE "^net[0-9]+:.*bridge=$BRIDGE(,|\$)" "$conf"; then
       foreign_on_bridge+=("$id")
@@ -533,9 +767,9 @@ cmd_uninstall() {
 
   say "Будет удалено с ноды $NODE:"
   if [ ${#ours[@]} -gt 0 ]; then
-    for g in "${ours[@]}"; do echo "    - гость ${g%%:*} (${g##*:}) с тегом $TAG/$TAG_TPL"; done
+    for g in "${ours[@]}"; do echo "    - гость ${g%%:*} (${g##*:}) с тегом $TAG/$TAG_TPL/$TAG_CENTER"; done
   else
-    echo "    - машин-ловушек и шаблонов нет"
+    echo "    - машин-ловушек, шаблонов и контейнера центра нет"
   fi
   echo "    - пользователь $PVE_USER с токеном, роли $ROLE_TRAPS/$ROLE_TPL, пул $POOL, ACL"
   echo "    - ключ $KEY_COMMENT из $(authorized_keys)"
@@ -637,10 +871,14 @@ cmd_status() {
   local n=0 id kind conf
   while read -r id kind conf; do has_tag "$conf" "$TAG" && n=$((n + 1)); done < <(guests)
   echo "  машин-ловушек на ноде: $n"
+  check "контейнер центра $CENTER_VMID ($CENTER_IP)" "c=\$(guest_conf $CENTER_VMID) && [ -n \"\$c\" ] && has_tag \$c $TAG_CENTER"
+  check "центр отвечает на :$CENTER_PORT" "pct exec $CENTER_VMID -- curl -sf http://127.0.0.1:$CENTER_PORT/api/health"
 }
 
 case "$CMD" in
   install) cmd_install ;;
+  bootstrap) cmd_bootstrap ;;
+  update-app) cmd_update_app ;;
   uninstall) cmd_uninstall ;;
   status) cmd_status ;;
   update-agent) need_tools; install_agent_pkg ;;
