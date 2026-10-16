@@ -98,14 +98,24 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-is_ip() { [[ "$1" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; }
+is_ip() {
+  [[ "$1" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]] || return 1
+  local o; for o in "${BASH_REMATCH[@]:1}"; do [ "$o" -le 255 ] || return 1; done
+}
 
 init_defaults() {
   [ -n "$NODE" ] || NODE=$(hostname)
   [ -d "/etc/pve/nodes/$NODE" ] || die "нода $NODE не найдена в /etc/pve/nodes (укажите --node)"
   [ -n "$WAN_IF" ] || WAN_IF=$(ip route show default | awk '{for(i=1;i<NF;i++) if($i=="dev"){print $(i+1); exit}}' || true)
   [ -n "$WAN_IF" ] || WAN_IF=vmbr0
-  [ -n "$STORAGE" ] || { if storage_exists hdd; then STORAGE=hdd; else STORAGE=local-lvm; fi; }
+  if [ -z "$STORAGE" ]; then
+    # hdd — диск этого стенда; local-lvm/local-zfs/local-btrfs — что ставит инсталлятор PVE по умолчанию
+    # в зависимости от выбранной ФС; local есть всегда (каталоговое хранилище, тоже умеет rootdir,images)
+    local cand
+    for cand in hdd local-lvm local-zfs local-btrfs local; do
+      storage_exists "$cand" && { STORAGE=$cand; break; }
+    done
+  fi
   [ -n "$ORCH_FROM" ] || ORCH_FROM="$CENTER_IP"
   [ -n "$PVE_IP" ] || PVE_IP=$(ip -4 -o addr show dev "$WAN_IF" 2>/dev/null | awk '{split($4,a,"/"); print a[1]; exit}' || true)
   DMZ_PREFIX="${DMZ_NET#*/}"
@@ -320,10 +330,14 @@ install_template() {
       grep -q "^template: 1" "$conf" || pct stop "$TEMPLATE_ID" >/dev/null 2>&1 || true
       pct destroy "$TEMPLATE_ID" --purge 1
       ok "старый шаблон удалён"
-    else
+    elif grep -q "^template: 1" "$conf"; then
       ok "шаблон уже есть (пересобрать — --rebuild-template)"
       pveum acl modify "/vms/$TEMPLATE_ID" --users "$PVE_USER" --roles "$ROLE_TPL"
       return
+    else
+      warn "CT $TEMPLATE_ID с тегом $TAG_TPL найден, но сборка не завершена (не template) — пересобираю"
+      pct stop "$TEMPLATE_ID" >/dev/null 2>&1 || true
+      pct destroy "$TEMPLATE_ID" --purge 1
     fi
   fi
 
