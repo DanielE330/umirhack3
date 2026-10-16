@@ -93,14 +93,15 @@ export $(.venv/bin/python -m app.cli gen-key)
 
 ### Весь проект на чистом Proxmox — одна команда
 
-На любом свежем Proxmox VE 8/9 (доступ root по SSH) одна команда с рабочей машины поднимает всё: хост
-(DMZ-мост с файрволом, пул/роли/API-токен, шаблон ловушек, `hf-agent-ctl`, ключ оркестратора) и центр со
-всем docker-compose стеком (proxy/center/orchestrator/db/honeymind) — в отдельном LXC-контейнере на этом
-же хосте:
+На любом свежем Proxmox VE 8/9 (доступ root по SSH с рабочей машины, где есть git/rsync/ssh) достаточно
+одной этой команды — больше ничего скачивать и готовить не нужно, она сама клонирует репозиторий и
+разворачивает всё: хост (DMZ-мост с файрволом, пул/роли/API-токен, шаблон ловушек, `hf-agent-ctl`, ключ
+оркестратора) и центр со всем docker-compose стеком (proxy/center/orchestrator/db/honeymind) — в отдельном
+LXC-контейнере на этом же хосте:
 
 ```sh
-cd umirhack3   # корень репозитория
-./infra/proxmox/hf-deploy.sh root@<proxmox> --center-ip <свободный IP в вашей локальной сети>
+git clone https://github.com/DanielE330/umirhack3.git && cd umirhack3 \
+  && ./infra/proxmox/hf-deploy.sh root@<proxmox> --center-ip <свободный IP в вашей локальной сети>
 ```
 
 Через несколько минут скрипт напечатает адрес панели и пароль администратора (показывается один раз).
