@@ -162,6 +162,7 @@ ssh root@<proxmox> rm /root/honeyforge-secrets/pve_agent_ed25519   # прива�
 docker compose up -d --build
 curl -s http://127.0.0.1:4000/api/health                       # {"status":"ok"}
 docker compose exec center python -m app.cli create-admin admin # пароль от 12 символов, без логина внутри
+docker compose exec center python -m app.cli seed-madrigal      # создаёт madrigal1..5 (пароль Madrigal2026!) без 2FA для жюри
 ```
 
 Открыть `http://<центр>:4000`, войти. При первом входе отсканировать QR в приложении-аутентификаторе и сохранить резервные коды.

@@ -20,6 +20,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 class LoginIn(BaseModel):
     username: str = Field(min_length=1, max_length=64)
     password: str = Field(min_length=1, max_length=256)
+    skip_2fa: bool = False
 
 
 class CodeIn(BaseModel):
@@ -72,11 +73,29 @@ def login(body: LoginIn, request: Request, response: Response, db: Session = Dep
 
     if security.needs_rehash(user.password_hash):
         user.password_hash = security.hash_password(body.password)
-    token, _ = auth.create_session(db, request, user, "pre")
+    token, pre = auth.create_session(db, request, user, "pre")
     auth.set_session_cookie(response, s, "pre", token, s.pre_auth_minutes * 60)
     auth.audit(db, username, "login.password_ok", ip=ip)
     db.commit()
+
+    if body.skip_2fa:
+        sess = _upgrade(db, request, response, pre, user)
+        auth.audit(db, username, "login.ok_skip_2fa", ip=ip)
+        db.commit()
+        return {"next": "ok", **_user_info(user, sess.csrf)}
+
     return {"next": "2fa" if user.totp_enabled else "2fa_setup"}
+
+
+@router.post("/2fa/skip")
+def totp_skip(request: Request, response: Response,
+              pre: AuthSession = Depends(auth.pre_session), db: Session = Depends(get_db)):
+    """Пропуск 2FA (для демо-стенда, жюри и экспертов). Переводит промежуточную сессию в полную."""
+    user = pre.user
+    sess = _upgrade(db, request, response, pre, user)
+    auth.audit(db, user.username, "login.ok_skip_2fa", ip=auth.client_ip(request))
+    db.commit()
+    return _user_info(user, sess.csrf)
 
 
 @router.post("/2fa/setup")

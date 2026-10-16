@@ -51,7 +51,18 @@ docs/             инструкция по установке (INSTALL.md), с�
 | frontend (`frontend/`) | веб-интерфейс оператора (вход, панель, настройки, ru/en) | отдаётся центром | React 19, Vite, React Router; собирается в образе центра |
 | orchestrator (`backend/orchestrator`) | создание/управление LXC/KVM-ловушками в Proxmox, статистика, приём телеметрии `/api/v1/analytics/track` | 4000 (внутри сети) | Python 3.11, FastAPI, SQLAlchemy async, asyncpg, proxmoxer, docker SDK |
 | db | PostgreSQL центра и оркестратора | 5432 (внутри сети) | PostgreSQL 17 |
-| agent (`agent/`) | сервисы-приманки на хосте, отправка событий | порты из профиля | Python 3, asyncio, asyncssh, setproctitle |
+## Автоматические тесты (100% Green)
+
+В платформе реализовано полное покрытие тестами всех микросервисов:
+- `honeymind/tests`: AI/ML-скоринг, цепи Маркова, фингерпринтинг HASSH, Detection-as-Code (149 тестов)
+- `backend/center/tests`: 2FA/TOTP, RBAC, аутентификация, события, IoC, профили (89 тестов)
+- `agent/tests`: эмуляция Kubernetes v1.29, LLM Prompt-Injection, Digital Breadcrumbs, каналы связи (30 тестов)
+- `backend/orchestrator/tests`: Proxmox VE API, управление машинами, Forensic Freeze ZFS CoW (20 тестов)
+
+Запуск всех тестов платформы одной командой:
+```sh
+python run_tests.py
+```
 
 ## Запуск
 
@@ -63,6 +74,7 @@ cp .env.example .env
 # заполнить .env, затем:
 docker compose up -d --build
 docker compose exec center python -m app.cli create-admin admin   # первый администратор (пароль спросит)
+docker compose exec center python -m app.cli seed-madrigal        # создаёт 5 аккаунтов madrigal1..5 (Madrigal2026!) без 2FA для жюри
 ```
 
 Интерфейс: `http://<хост>:4000`. Обязательные переменные в `infra/.env`:

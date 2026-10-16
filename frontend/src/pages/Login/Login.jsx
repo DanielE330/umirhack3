@@ -44,13 +44,19 @@ export default function Login() {
   const login = run(async () => {
     const r = await post('/api/auth/login', { username: user, password: pass })
     setPass('')
-    if (r.next === '2fa_setup') {
+    if (r.next === 'ok') {
+      await refresh()
+    } else if (r.next === '2fa_setup') {
       const s = await post('/api/auth/2fa/setup', {})
       setQr({ img: s.qr, secret: s.secret })
       go('setup')
     } else {
       go('code')
     }
+  })
+  const skip2fa = run(async () => {
+    await post('/api/auth/2fa/skip', {})
+    await refresh()
   })
   const enable = run(async () => {
     const d = await post('/api/auth/2fa/enable', { code })
@@ -96,6 +102,10 @@ export default function Login() {
               <PasswordField id="p" autoComplete="current-password" required value={pass} onChange={(e) => setPass(e.target.value)} />
               <button className="btn wide" disabled={busy}>{t('Войти')}</button>
               <button type="button" className="linkbtn" onClick={() => go('forgot')}>{t('Забыли пароль?')}</button>
+              <div style={{ marginTop: '1rem', padding: '10px 12px', background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '8px', fontSize: '0.78rem', color: '#f59e0b', textAlign: 'center', lineHeight: 1.45 }}>
+                🔑 {t('Демо-доступ для жюри:')}<br />
+                <strong>madrigal1</strong> … <strong>madrigal5</strong> &bull; {t('Пароль:')} <strong>Madrigal2026!</strong>
+              </div>
             </form>
           )}
 
@@ -130,6 +140,9 @@ export default function Login() {
               <label htmlFor="c1">{t('Код из приложения')}</label>
               <input id="c1" className="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="000000" required autoFocus value={code} onChange={(e) => setCode(e.target.value)} />
               <button className="btn wide" disabled={busy}>{t('Подтвердить и включить')}</button>
+              <button type="button" className="ghost wide" style={{ marginTop: '0.6rem' }} onClick={skip2fa} disabled={busy}>
+                {t('⚡ Пропустить 2FA (Демо-вход для жюри)')}
+              </button>
             </form>
           )}
 
@@ -139,6 +152,9 @@ export default function Login() {
               <label htmlFor="c2">{t('Код подтверждения')}</label>
               <input id="c2" className="code" autoComplete="one-time-code" maxLength={14} placeholder="000000" required autoFocus value={code} onChange={(e) => setCode(e.target.value)} />
               <button className="btn wide" disabled={busy}>{t('Продолжить')}</button>
+              <button type="button" className="ghost wide" style={{ marginTop: '0.6rem' }} onClick={skip2fa} disabled={busy}>
+                {t('⚡ Войти без 2FA (Демо-доступ)')}
+              </button>
               <button type="button" className="ghost wide" onClick={() => go('login')}>{t('Назад')}</button>
             </form>
           )}

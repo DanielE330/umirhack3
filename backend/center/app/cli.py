@@ -78,10 +78,38 @@ def export_labels_cmd() -> None:
                 print(json.dumps({"command": cmd, "label": lbl}, ensure_ascii=False))
 
 
+def seed_madrigal_users(password: str = "Madrigal2026!") -> None:
+    settings = get_settings()
+    engine = make_engine(settings.database_url)
+    init_db(engine)
+    with sessionmaker(engine)() as db:
+        for i in range(1, 6):
+            username = f"madrigal{i}"
+            u = db.scalar(select(User).where(User.username == username))
+            if not u:
+                u = User(
+                    username=username,
+                    password_hash=security.hash_password(password),
+                    role="admin",
+                    totp_enabled=False
+                )
+                db.add(u)
+                print(f"[+] Создан пользователь {username} (admin) с паролем {password}")
+            else:
+                u.password_hash = security.hash_password(password)
+                u.role = "admin"
+                u.is_active = True
+                u.totp_enabled = False
+                print(f"[*] Обновлён пользователь {username} (admin) с паролем {password}")
+        db.commit()
+    print("Готово! Аккаунты madrigal1..5 для жюри готовы к работе.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="app.cli")
     sub = parser.add_subparsers(dest="cmd", required=True)
     sub.add_parser("gen-key")
+    sub.add_parser("seed-madrigal", help="Создать 5 админ-аккаунтов madrigal1..5 для жюри и экспертов")
     cu = sub.add_parser("create-user")
     cu.add_argument("username")
     cu.add_argument("--role", default="operator", help="admin, operator, analyst, deployer, auditor, viewer или своя роль")
@@ -97,6 +125,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.cmd == "gen-key":
         print(f"HF_SECRET_KEY={security.generate_key()}")
+    elif args.cmd == "seed-madrigal":
+        seed_madrigal_users()
     elif args.cmd == "create-user":
         create_user(args.username, args.role)
     elif args.cmd == "create-admin":
